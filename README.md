@@ -12,6 +12,35 @@ off by default: with all switches off, it behaves like upstream SAT 4.2.1 plus t
 below. The goal is a better SAT in general, while the official project has had no new commits since
 March 2026.
 
+### The goal: heating that is calmer, more comfortable and more efficient
+
+SAT already decides how warm the water in your radiators should be, instead of switching the boiler
+on and off. SAT-xtreme aims to make that work better in situations where SAT falls short, such as a
+thermostat on the bus that passes the setpoint slowly, a boiler that ignores the modulation limit, or
+the anti-cycling time of the boiler.
+
+- **Calmer.** Fewer and longer burns instead of short bursts: the boiler starts right away when SAT asks
+  for heat, every PWM block gets the burn time it was planned for, and SAT waits for the anti-cycling
+  time of the boiler instead of asking for heat it cannot deliver yet. This is measurable on the
+  dashboard: time from heating demand to flame, burn time per block and burner starts per day.
+- **More comfortable, because you stay in control.**
+  - Nothing changes behind your back: every feature has its own switch and is off by default, and a
+    boiler preset only fills in numbers, it never turns a switch on.
+  - You decide how SAT reacts: how strongly it corrects (gain factor), how far the water may get hotter
+    than the heating curve (maximum rise), or your own PID values.
+  - You can see why SAT does what it does: the heating curve, the PID correction, the burn time of each
+    block, the remaining anti-cycling time, the learned overshoot protection value and the calibration
+    report are sensors, and there is a ready-made dashboard.
+  - Learning is transparent: the self-learning overshoot protection value first only shows what it
+    learned, and SAT only uses it when you choose so. The calibration can be stopped at any moment and
+    never heats the room more than 1 °C above your target.
+  - Your thermostat stays your fallback: when Home Assistant stops, the thermostat on the bus takes
+    over, and when you turn SAT off it can take over right away.
+- **More efficient (expected, still to be measured).** Every start of the boiler costs gas, because it
+  starts at high power; fewer starts save gas. A correct overshoot protection value keeps the water as
+  cool as possible, so the boiler condenses better. And no burn time is lost waiting for the setpoint.
+  This has not been measured yet; a comparison of gas use per day will be added once it is.
+
 The features were developed for, and so far only tested on, one setup:
 
 | | Tested setup |
