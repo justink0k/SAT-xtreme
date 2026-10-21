@@ -231,6 +231,11 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         )
 
     @property
+    def flame_start_count(self) -> int:
+        """Xtreme fork: number of burner starts seen since start-up."""
+        return self._flame.start_count
+
+    @property
     def manufacturer(self) -> Optional[Manufacturer]:
         return self._manufacturer
 

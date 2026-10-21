@@ -25,3 +25,9 @@ stop_xtreme_calibration:
     entity:
       domain: climate
       integration: "sat"
+
+create_xtreme_dashboard:
+  target:
+    entity:
+      domain: climate
+      integration: "sat"

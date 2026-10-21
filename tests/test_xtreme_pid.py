@@ -148,6 +148,6 @@ async def test_fork_entities_are_labelled(hass: HomeAssistant, entry: MockConfig
     await sat_sensor.async_setup_entry(hass, entry, lambda new_entities: entities.extend(new_entities))
 
     fork_entities = [entity for entity in entities if type(entity).__module__.endswith("xtreme_sensor")]
-    assert len(fork_entities) == 2
+    assert len(fork_entities) == 6
     assert all(entity.name.startswith(FORK_LABEL) for entity in fork_entities)
     assert any(isinstance(entity, SatPidOutputSensor) for entity in fork_entities)

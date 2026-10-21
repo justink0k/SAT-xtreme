@@ -361,6 +361,10 @@
     "stop_xtreme_calibration": {
       "name": "Stop Xtreme calibration (fork)",
       "description": "SAT-xtreme: stop the calibration and return to normal operation."
+    },
+    "create_xtreme_dashboard": {
+      "name": "Create Xtreme dashboard (fork)",
+      "description": "SAT-xtreme: create or rebuild the SAT Xtreme dashboard with the entities that exist now."
     }
   },
   "selector": {
@@ -386,6 +390,17 @@
           "confirm": {
             "title": "Turn on 'The boiler ignores the modulation limit'?",
             "description": "During the calibration SAT-xtreme set the maximum modulation to 0 %, but the boiler kept modulating at about {modulation} %. Boilers like this do not follow the modulation limit (MM=). With the option 'The boiler ignores the modulation limit' on, SAT stops sending the limit and keeps using the reported modulation. Submit to turn the option on; SAT reloads. Ignore this repair to leave everything as it is."
+          }
+        }
+      }
+    },
+    "create_dashboard": {
+      "title": "Create the SAT Xtreme dashboard",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Create the SAT Xtreme dashboard?",
+            "description": "SAT-xtreme can create a dashboard 'SAT Xtreme' in the sidebar with the state of the boiler, graphs of the last hours, the PID correction, the PWM blocks, the learned OPV and the calibration. It uses the entities of this SAT, whatever they are called, and only shows cards for the features you use. Submit to create it. Later you can rebuild it with the button 'Xtreme fork: Create Dashboard' (for example after turning on a feature); that only changes the SAT Xtreme dashboard."
           }
         }
       }

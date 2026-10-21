@@ -4,7 +4,7 @@ import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
-from .const import DOMAIN, SERVICE_RESET_INTEGRAL, SERVICE_PULSE_WIDTH_MODULATION, SERVICE_START_XTREME_CALIBRATION, SERVICE_STOP_XTREME_CALIBRATION
+from .const import DOMAIN, SERVICE_RESET_INTEGRAL, SERVICE_PULSE_WIDTH_MODULATION, SERVICE_START_XTREME_CALIBRATION, SERVICE_STOP_XTREME_CALIBRATION, SERVICE_CREATE_XTREME_DASHBOARD
 from .util import get_climate_entities
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
@@ -75,5 +75,20 @@ async def async_register_services(hass: HomeAssistant) -> None:
         DOMAIN,
         service=SERVICE_STOP_XTREME_CALIBRATION,
         service_func=stop_xtreme_calibration,
+        schema=vol.Schema({vol.Required("entity_id"): cv.entity_ids})
+    )
+
+    async def create_xtreme_dashboard(call: ServiceCall):
+        """Service to create or rebuild the SAT Xtreme dashboard."""
+        from .xtreme_dashboard import async_create_dashboard
+
+        for climate in get_climate_entities(hass, call.data.get("entity_id", [])):
+            _LOGGER.info("Create Xtreme dashboard action called for %s", climate.entity_id)
+            await async_create_dashboard(hass, climate.config_entry_for_xtreme)
+
+    hass.services.async_register(
+        DOMAIN,
+        service=SERVICE_CREATE_XTREME_DASHBOARD,
+        service_func=create_xtreme_dashboard,
         schema=vol.Schema({vol.Required("entity_id"): cv.entity_ids})
     )

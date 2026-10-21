@@ -23,6 +23,7 @@ from .const import (
 )
 from .coordinator import SatDataUpdateCoordinatorFactory
 from .services import async_register_services
+from .xtreme_dashboard import async_offer_dashboard
 from .util import get_climate_entities
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
@@ -63,6 +64,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     # Register the services
     await async_register_services(hass)
+
+    # SAT-xtreme: offer to create the dashboard (a repair with a fix button, never automatically)
+    async_offer_dashboard(hass, entry)
 
     return True
 

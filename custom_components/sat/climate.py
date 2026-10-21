@@ -1060,6 +1060,11 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         self.async_write_ha_state()
 
+    @property
+    def config_entry_for_xtreme(self) -> ConfigEntry:
+        """The config entry of this SAT, for the SAT-xtreme dashboard."""
+        return self._config_entry
+
     def _check_boiler_preset(self) -> None:
         """Xtreme profile: log a warning when the boiler preset is for another manufacturer than the detected one."""
         if self._xtreme_preset_checked or (manufacturer := self._coordinator.manufacturer) is None:

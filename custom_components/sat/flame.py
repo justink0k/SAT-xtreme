@@ -90,6 +90,9 @@ class Flame:
         # Xtreme fork: time of the last real ON->OFF transition (not set at start-up)
         self._flame_went_off_monotonic: Optional[float] = None
 
+        # Xtreme fork: number of burner starts (OFF->ON) seen since start-up
+        self._start_count: int = 0
+
         # Stored states
         self._last_boiler_state: Optional[BoilerState] = None
         self._last_pulse_width_modulation_state: Optional[PWMState] = None
@@ -128,6 +131,11 @@ class Flame:
             return self._flame_off_monotonic
 
         return None
+
+    @property
+    def start_count(self) -> int:
+        """Xtreme fork: number of burner starts (heating and hot water) seen since start-up."""
+        return self._start_count
 
     @property
     def went_off_since(self) -> Optional[float]:
@@ -194,6 +202,7 @@ class Flame:
 
         # OFF -> ON
         if currently_active and not previously_active:
+            self._start_count += 1
             self._flame_on_monotonic = now
             self._flame_off_monotonic = None
             self._last_update_monotonic = now

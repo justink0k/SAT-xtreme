@@ -1,4 +1,4 @@
-"""Buttons of the Xtreme profile: start and stop the calibration."""
+"""Buttons of SAT-xtreme: create the dashboard, start and stop the calibration."""
 from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity
@@ -8,6 +8,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_NAME, DOMAIN, COORDINATOR, CLIMATE
 from .entity import SatClimateEntity
+from .xtreme_dashboard import async_create_dashboard
 from .xtreme_sensor import FORK_LABEL
 
 
@@ -19,13 +20,32 @@ async def async_setup_entry(_hass: HomeAssistant, _config_entry: ConfigEntry, _a
     climate = _hass.data[DOMAIN][_config_entry.entry_id][CLIMATE]
     coordinator = _hass.data[DOMAIN][_config_entry.entry_id][COORDINATOR]
 
-    if not coordinator.xtreme_profile.calibration:
-        return
+    entities = [SatCreateDashboardButton(coordinator, _config_entry, climate)]
 
-    _async_add_entities([
-        SatStartCalibrationButton(coordinator, _config_entry, climate),
-        SatStopCalibrationButton(coordinator, _config_entry, climate),
-    ])
+    if coordinator.xtreme_profile.calibration:
+        entities += [
+            SatStartCalibrationButton(coordinator, _config_entry, climate),
+            SatStopCalibrationButton(coordinator, _config_entry, climate),
+        ]
+
+    _async_add_entities(entities)
+
+
+class SatCreateDashboardButton(SatClimateEntity, ButtonEntity):
+    """Create or rebuild the SAT Xtreme dashboard with the entities that exist now."""
+
+    _attr_icon = "mdi:view-dashboard-edit-outline"
+
+    @property
+    def name(self) -> str:
+        return f"{FORK_LABEL} Create Dashboard {self._config_entry.data.get(CONF_NAME)}"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._config_entry.data.get(CONF_NAME).lower()}-xtreme-create-dashboard"
+
+    async def async_press(self) -> None:
+        await async_create_dashboard(self.hass, self._config_entry)
 
 
 class SatStartCalibrationButton(SatClimateEntity, ButtonEntity):

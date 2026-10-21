@@ -5,13 +5,14 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTemperature, UnitOfTime
+from homeassistant.const import PERCENTAGE, UnitOfTemperature, UnitOfTime
 from homeassistant.core import Event, EventStateChangedData
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import CONF_NAME
-from .entity import SatClimateEntity
+from .entity import SatClimateEntity, SatEntity
 
 FORK_LABEL = "Xtreme fork:"
 
@@ -19,7 +20,13 @@ FORK_LABEL = "Xtreme fork:"
 def async_setup_xtreme_sensors(coordinator, config_entry: ConfigEntry, climate, async_add_entities: AddEntitiesCallback) -> None:
     """Add the sensors of the active Xtreme profile switches."""
     profile = coordinator.xtreme_profile
-    entities = [SatPidOutputSensor(coordinator, config_entry, climate)]
+    entities = [
+        SatPidOutputSensor(coordinator, config_entry, climate),
+        SatBoilerFlowSensor(coordinator, config_entry),
+        SatControlSetpointSensor(coordinator, config_entry),
+        SatModulationSensor(coordinator, config_entry),
+        SatBurnerStartsSensor(coordinator, config_entry),
+    ]
 
     if profile.boiler_timing:
         entities += [
@@ -168,3 +175,80 @@ class SatPidOutputSensor(SatXtremeSensor):
             "gain_factor": pid.gain_factor,
             "maximum_setpoint_rise": self._coordinator.xtreme_profile.maximum_setpoint_rise,
         }
+
+
+class SatXtremeBoilerSensor(SatEntity, SensorEntity):
+    """Base class for sensors that show boiler data as SAT sees it, for any gateway."""
+
+    _key: str = ""
+    _label: str = ""
+
+    @property
+    def name(self) -> str:
+        return f"{FORK_LABEL} {self._label} {self._config_entry.data.get(CONF_NAME)}"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._config_entry.data.get(CONF_NAME).lower()}-xtreme-{self._key}"
+
+
+class SatBoilerFlowSensor(SatXtremeBoilerSensor):
+    _key = "boiler-flow"
+    _label = "Boiler Flow"
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    @property
+    def native_value(self) -> float | None:
+        return self._coordinator.boiler_temperature
+
+
+class SatControlSetpointSensor(SatXtremeBoilerSensor):
+    _key = "control-setpoint"
+    _label = "Control Setpoint"
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    @property
+    def native_value(self) -> float | None:
+        return self._coordinator.setpoint
+
+
+class SatModulationSensor(SatXtremeBoilerSensor):
+    _key = "modulation"
+    _label = "Boiler Modulation"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:fire"
+
+    @property
+    def native_value(self) -> float | None:
+        return self._coordinator.relative_modulation_value
+
+
+class SatBurnerStartsSensor(SatXtremeBoilerSensor, RestoreEntity):
+    """Burner starts counted by SAT (heating and hot water), kept across restarts."""
+
+    _key = "burner-starts"
+    _label = "Burner Starts"
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_icon = "mdi:counter"
+
+    def __init__(self, coordinator, config_entry: ConfigEntry):
+        super().__init__(coordinator, config_entry)
+        self._restored: int = 0
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        if (last_state := await self.async_get_last_state()) is not None:
+            try:
+                self._restored = int(float(last_state.state))
+            except (TypeError, ValueError):
+                self._restored = 0
+
+    @property
+    def native_value(self) -> int:
+        return self._restored + self._coordinator.flame_start_count

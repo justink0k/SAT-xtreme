@@ -482,3 +482,30 @@ Part of the **Xtreme calibration** option (step 5); no new option.
 `custom_components/sat/climate.py`, `custom_components/sat/xtreme_sensor.py`,
 `custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
 `custom_components/sat/manifest.json`, `tests/test_xtreme_calibration.py`.
+
+## Version 15: dashboard with one click (`4.2.1-xtreme.15`, 2026-10-21)
+
+No change to how SAT controls the boiler.
+
+- **Boiler data from SAT itself.** New sensors *Xtreme fork: Boiler Flow*, *Control Setpoint*, *Boiler
+  Modulation* and *Burner Starts* (counted by SAT, heating and hot water, kept across restarts), and
+  binary sensors *Xtreme fork: Flame*, *Hot Water Active* and *Heating Demand* (what SAT asks the
+  boiler). They show the data SAT already has, so the dashboard works with any gateway.
+- **Dashboard builder** (`custom_components/sat/xtreme_dashboard.py`). Looks up the entities of this SAT
+  entry by their unique IDs in the entity registry and builds the *SAT Xtreme* dashboard (icon
+  `mdi:home-thermometer-outline`), leaving out cards of features that are off.
+- **Created with one click, never automatically.** After setup, a repair *Create the SAT Xtreme
+  dashboard* with a fix button; the button *Xtreme fork: Create Dashboard* and the action
+  `sat.create_xtreme_dashboard` rebuild it later. Only the SAT Xtreme dashboard is ever changed.
+- Creating a dashboard from an integration is not an official Home Assistant API (it uses the same
+  storage collection as *Settings → Dashboards*). When that fails, the configuration is shown in a
+  notification to paste by hand.
+
+**Files.** `custom_components/sat/xtreme_dashboard.py` (new), `custom_components/sat/xtreme_binary_sensor.py`
+(new), `custom_components/sat/xtreme_sensor.py`, `custom_components/sat/binary_sensor.py`,
+`custom_components/sat/button.py`, `custom_components/sat/repairs.py`, `custom_components/sat/services.py`,
+`custom_components/sat/services.yaml`, `custom_components/sat/flame.py`, `custom_components/sat/coordinator.py`,
+`custom_components/sat/climate.py`, `custom_components/sat/__init__.py`, `custom_components/sat/const.py`,
+`custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
+`custom_components/sat/manifest.json`, `README.md`, `tests/test_xtreme_dashboard_builder.py` (new),
+`tests/test_xtreme_pid.py`.

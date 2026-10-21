@@ -113,6 +113,7 @@ BOILER_PRESET_CUSTOM = "custom"
 
 SERVICE_START_XTREME_CALIBRATION = "start_xtreme_calibration"
 SERVICE_STOP_XTREME_CALIBRATION = "stop_xtreme_calibration"
+SERVICE_CREATE_XTREME_DASHBOARD = "create_xtreme_dashboard"
 
 HEATING_SYSTEM_UNKNOWN = "unknown"
 HEATING_SYSTEM_HEAT_PUMP = "heat_pump"

@@ -16,6 +16,7 @@ from .const import CONF_MODE, MODE_SERIAL, CONF_NAME, DOMAIN, COORDINATOR, CLIMA
 from .entity import SatClimateEntity, SatEntity
 from .helpers import seconds_since
 from .serial import binary_sensor as serial_binary_sensor
+from .xtreme_binary_sensor import async_setup_xtreme_binary_sensors
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
@@ -39,6 +40,9 @@ async def async_setup_entry(_hass: HomeAssistant, _config_entry: ConfigEntry, _a
 
     if len(_config_entry.options.get(CONF_WINDOW_SENSORS, [])) > 0:
         _async_add_entities([SatWindowSensor(coordinator, _config_entry, climate)])
+
+    # SAT-xtreme: boiler state as SAT sees it, used by the dashboard
+    async_setup_xtreme_binary_sensors(coordinator, _config_entry, climate, _async_add_entities)
 
     _async_add_entities([
         SatFlameHealthSensor(coordinator, _config_entry),

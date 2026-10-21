@@ -351,6 +351,10 @@
     "stop_xtreme_calibration": {
       "name": "Xtreme-kalibratie stoppen (fork)",
       "description": "SAT-xtreme: stop de kalibratie en ga terug naar normaal bedrijf."
+    },
+    "create_xtreme_dashboard": {
+      "name": "Xtreme-dashboard aanmaken (fork)",
+      "description": "SAT-xtreme: maak het dashboard SAT Xtreme aan of bouw het opnieuw op met de entiteiten die er nu zijn."
     }
   },
   "issues": {
@@ -361,6 +365,17 @@
           "confirm": {
             "title": "'De ketel negeert de modulatiegrens' aanzetten?",
             "description": "Tijdens de kalibratie zette SAT-xtreme de maximale modulatie op 0 %, maar de ketel bleef moduleren op ongeveer {modulation} %. Zulke ketels volgen de modulatiegrens (MM=) niet. Met de optie 'De ketel negeert de modulatiegrens' aan stopt SAT met het sturen van de grens en blijft de doorgegeven modulatie gebruiken. Klik op Verzenden om de optie aan te zetten; SAT herlaadt. Negeer deze melding om alles te laten zoals het is."
+          }
+        }
+      }
+    },
+    "create_dashboard": {
+      "title": "Het dashboard SAT Xtreme aanmaken",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Het dashboard SAT Xtreme aanmaken?",
+            "description": "SAT-xtreme kan in de zijbalk een dashboard 'SAT Xtreme' aanmaken met de toestand van de ketel, grafieken van de afgelopen uren, de PID-bijsturing, de PWM-blokken, de geleerde OPV en de kalibratie. Het gebruikt de entiteiten van deze SAT, hoe ze ook heten, en toont alleen kaarten voor de functies die je gebruikt. Klik op Verzenden om het aan te maken. Later kun je het opnieuw opbouwen met de knop 'Xtreme fork: Create Dashboard' (bijvoorbeeld na het aanzetten van een functie); dat verandert alleen het dashboard SAT Xtreme."
           }
         }
       }

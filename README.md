@@ -142,9 +142,9 @@ modified, and how to go back to the official version.
 | Hand over to the thermostat right away when SAT is turned off (CS=0, OpenTherm Gateway via MQTT) | *Configure → Xtreme profile (fork)* | off |
 | Hot water keep-warm switch: turn the boiler's keep-warm (comfort) function off, by hand or with an automation (HW=0 / HW=A, OpenTherm Gateway via MQTT) | *Configure → Xtreme profile (fork)* | off |
 | PID settings: automatic gains, gain factor, maximum rise above the heating curve, manual gains | *Configure → PID settings (fork)* | unchanged |
-| Dashboard | [`dashboards/sat_xtreme.yaml`](dashboards/sat_xtreme.yaml) | – |
+| Dashboard *SAT Xtreme*, created with one click (see [Dashboard](#dashboard)) | *Settings → System → Repairs*, or the button *Xtreme fork: Create Dashboard* | not created until you click |
 
-Entities of the fork (except PID Output, they only exist when the matching switch is on):
+Entities of the fork (the PID output, boiler data and dashboard button always exist; the others only when the matching switch is on):
 
 | Entity | Shows |
 |---|---|
@@ -154,6 +154,9 @@ Entities of the fork (except PID Output, they only exist when the matching switc
 | *Xtreme fork: Learned OPV* | the learned OPV, with its samples (step 4) |
 | *Xtreme fork: Calibration* | phase, progress and the last report of the calibration (step 5) |
 | *Xtreme fork: Start Calibration*, *Xtreme fork: Stop Calibration* | buttons for the calibration (step 5) |
+| *Xtreme fork: Boiler Flow*, *Control Setpoint*, *Boiler Modulation*, *Burner Starts* | boiler data as SAT sees it, for any gateway (burner starts are counted by SAT) |
+| *Xtreme fork: Flame*, *Hot Water Active*, *Heating Demand* | boiler state as SAT sees it; heating demand is what SAT asks the boiler |
+| *Xtreme fork: Create Dashboard* | button that creates or rebuilds the SAT Xtreme dashboard |
 | *Xtreme fork: Hot Water Keep Warm* | switch: on = the boiler keeps hot water warm as set on the boiler, off = no keep-warm |
 
 Actions: `sat.start_xtreme_calibration` and `sat.stop_xtreme_calibration` (step 5).
@@ -238,12 +241,21 @@ See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fi
 
 ### Dashboard
 
-[`dashboards/sat_xtreme.yaml`](dashboards/sat_xtreme.yaml) is a dashboard made of standard Home
-Assistant cards: the current state, a 6-hour graph of setpoint, flow, modulation, flame, heating
-demand and hot water, the PWM blocks (planned on time versus real burn time), burner starts per day,
-the learned OPV, and the calibration with start/stop buttons and the last report. Replace the entity
-IDs listed at the top of the file with yours and paste it into the raw configuration editor of a new
-dashboard.
+SAT-xtreme can create a **SAT Xtreme** dashboard for you. After installing or updating, a repair appears
+under *Settings → System → Repairs*: *Create the SAT Xtreme dashboard*. Click submit and the dashboard
+appears in the sidebar. To rebuild it later (for example after turning on a feature), press the button
+*Xtreme fork: Create Dashboard* or use the action `sat.create_xtreme_dashboard`; this only changes the
+SAT Xtreme dashboard.
+
+The dashboard uses only entities of SAT-xtreme itself, looked up by their unique IDs, so it works with any
+gateway and whatever the entities are called. It shows the current state, graphs of the last hours
+(setpoint, flow, modulation, flame, heating demand, hot water), the PID correction, the PWM blocks and
+burner starts per day, the learned OPV and the calibration, and leaves out cards of features you do not
+use. Only standard Home Assistant cards are used.
+
+Creating a dashboard from an integration is not an official Home Assistant API. If it fails, SAT-xtreme
+shows the configuration in a notification to paste into a new dashboard by hand.
+[`dashboards/sat_xtreme.yaml`](dashboards/sat_xtreme.yaml) stays available as an example.
 
 ### Disclaimer
 
