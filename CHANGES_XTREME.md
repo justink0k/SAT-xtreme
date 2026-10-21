@@ -401,3 +401,22 @@ No change to how SAT controls the boiler, and no change to the stored options.
 `custom_components/sat/translations/nl.json`, `custom_components/sat/manifest.json`,
 `tests/xtreme_helpers.py`, `tests/test_xtreme_presets_and_handover.py`,
 `tests/test_xtreme_prime_setpoint.py`, `tests/test_xtreme_reload.py`.
+
+## Version 12: releases and a new version format (`4.2.1-xtreme.12`, 2026-10-21)
+
+No change to how SAT controls the boiler.
+
+- **New version format: `4.2.1-xtreme.N`** (was `4.2.1+xtreme.N`). Home Assistant and HACS compare
+  versions with AwesomeVersion, which ignores everything after a `+` (semver build metadata), so
+  `4.2.1+xtreme.12` would not count as newer than `4.2.1+xtreme.11`. With a `-`, `4.2.1-xtreme.12` is newer
+  than `4.2.1-xtreme.11` (and `4.2.1-xtreme.10` newer than `4.2.1-xtreme.9`). AwesomeVersion does not treat
+  it as a beta, and HACS only treats a release as a pre-release when it is marked as such on GitHub.
+- **Releases.** This is the first version published as a GitHub release with a tag equal to the version
+  in `manifest.json`, so HACS shows version numbers and offers updates. `RELEASING.md` describes the
+  steps; `tests/test_version.py` checks the version format and that this file has an entry for it.
+- **README corrections:** the tests are described without a number that goes out of date, Home
+  Assistant 2026.12 support is described as "prepared for" (2026.12 is not released yet), and the
+  installation explains refreshing the browser or app cache after an update.
+
+**Files.** `custom_components/sat/manifest.json`, `CHANGES_XTREME.md`, `README.md`, `RELEASING.md` (new),
+`CLAUDE.md` (new), `tests/test_version.py` (new).
