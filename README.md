@@ -12,7 +12,7 @@ off by default: with all switches off, it behaves like upstream SAT 4.2.1 plus t
 below. The goal is a better SAT in general, while the official project has had no new commits since
 March 2026.
 
-### The goal: heating that is calmer, more comfortable and more efficient
+### The goal: heating that is calmer, more comfortable, more efficient and reliable
 
 SAT already decides how warm the water in your radiators should be, instead of switching the boiler
 on and off. SAT-xtreme aims to make that work better in situations where SAT falls short, such as a
@@ -34,12 +34,23 @@ the anti-cycling time of the boiler.
   - Learning is transparent: the self-learning overshoot protection value first only shows what it
     learned, and SAT only uses it when you choose so. The calibration can be stopped at any moment and
     never heats the room more than 1 °C above your target.
-  - Your thermostat stays your fallback: when Home Assistant stops, the thermostat on the bus takes
-    over, and when you turn SAT off it can take over right away.
 - **More efficient (expected, still to be measured).** Every start of the boiler costs gas, because it
   starts at high power; fewer starts save gas. A correct overshoot protection value keeps the water as
   cool as possible, so the boiler condenses better. And no burn time is lost waiting for the setpoint.
   This has not been measured yet; a comparison of gas use per day will be added once it is.
+- **Reliable.**
+  - Your thermostat stays the fallback: when Home Assistant stops, the gateway drops the override and
+    the thermostat on the bus takes over; when you turn SAT off, it can take over right away.
+  - Hard limits: the maximum setpoint is never exceeded, also not during the calibration (upstream
+    could), and hot water stays entirely with the boiler.
+  - Commands arrive: SAT checks whether the boiler confirms the heating demand and sends it again when
+    it does not (upstream could skip turning the demand off).
+  - Safe to stop: the calibration stops cleanly on the stop button, when SAT is turned off and on a
+    restart, and returns to normal operation right away.
+  - Stable start-up: sensors and buttons no longer go missing at start-up, and SAT-xtreme keeps working
+    with Home Assistant 2026.12.
+  - Tested and reversible: 93 automated tests (upstream: 7), and every feature can be turned on and off
+    on its own.
 
 The features were developed for, and so far only tested on, one setup:
 
