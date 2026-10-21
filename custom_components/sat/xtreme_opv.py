@@ -137,10 +137,7 @@ class LearnedOpv:
         }
 
     async def async_initialize(self, hass: HomeAssistant) -> None:
-        """Load the learned value from storage."""
-        if not self.enabled:
-            return
-
+        """Load the learned value from storage (also when learning is off, so a calibration result is kept)."""
         self._store = Store(hass, self._STORAGE_VERSION, self._storage_key)
 
         if not (data := await self._store.async_load()):

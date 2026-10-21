@@ -787,6 +787,7 @@ class SatOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required(CONF_XTREME_LEARNED_OPV, default=options[CONF_XTREME_LEARNED_OPV]): selector.SelectSelector(
                     selector.SelectSelectorConfig(options=["off", "learn", "apply"], translation_key="xtreme_learned_opv")
                 ),
+                vol.Required(CONF_XTREME_CALIBRATION, default=options[CONF_XTREME_CALIBRATION]): bool,
             })
         )
 

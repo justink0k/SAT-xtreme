@@ -2,7 +2,7 @@ import asyncio
 import logging
 import traceback
 
-from homeassistant.components import binary_sensor, climate, number, sensor
+from homeassistant.components import binary_sensor, button, climate, number, sensor
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry
@@ -26,7 +26,7 @@ from .services import async_register_services
 from .util import get_climate_entities
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
-PLATFORMS = [climate.DOMAIN, sensor.DOMAIN, number.DOMAIN, binary_sensor.DOMAIN]
+PLATFORMS = [climate.DOMAIN, sensor.DOMAIN, number.DOMAIN, binary_sensor.DOMAIN, button.DOMAIN]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):

@@ -45,6 +45,7 @@ from .manufacturers.geminox import Geminox
 from .pwm import PWMState
 from .relative_modulation import RelativeModulation, RelativeModulationState
 from .summer_simmer import SummerSimmer
+from .xtreme_calibration import XtremeCalibration
 from .xtreme_opv import LearnedOpv
 from .xtreme_profile import HEATER_COMMAND_REPEAT_SECONDS
 from .util import create_pid_controller, create_heating_curve_controller, create_pwm_controller, create_minimum_setpoint_controller
@@ -194,6 +195,14 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             storage_key=f"sat_xtreme_opv_{config_entry.entry_id}",
         )
 
+        # Xtreme profile: the calibration of the OPV
+        self.xtreme_calibration = XtremeCalibration(
+            climate=self,
+            coordinator=coordinator,
+            learned_opv=self.learned_opv,
+            storage_key=f"sat_xtreme_calibration_{config_entry.entry_id}",
+        )
+
         if self._simulation:
             _LOGGER.warning("Simulation mode!")
 
@@ -212,8 +221,10 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Restore the previous state if available, or set default values
         await self._restore_previous_state_or_set_defaults()
 
-        # Xtreme profile: load the learned OPV
+        # Xtreme profile: load the learned OPV and the last calibration report
         await self.learned_opv.async_initialize(self.hass)
+        await self.xtreme_calibration.async_initialize(self.hass)
+        self.async_on_remove(self.xtreme_calibration.cancel)
 
         # Update a heating curve if outside temperature is available
         if self.current_outside_temperature is not None:
@@ -976,6 +987,12 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             seconds_since_hot_water=self._coordinator.seconds_since_hot_water,
         )
 
+        # Xtreme profile: the calibration sends the setpoint and heater state itself
+        if self.xtreme_calibration.active:
+            _LOGGER.debug("Xtreme profile: calibration running (%s), normal control paused.", self.xtreme_calibration.phase.value)
+            self.async_write_ha_state()
+            return
+
         if self._calculated_setpoint is None:
             # Default to the calculated setpoint
             self._calculated_setpoint = self._calculate_control_setpoint()
@@ -1106,6 +1123,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self._hvac_mode = HVACMode.HEAT
         elif hvac_mode == HVACMode.OFF:
             self._hvac_mode = HVACMode.OFF
+            await self.xtreme_calibration.async_stop("The thermostat was turned off")
             await self.async_set_heater_state(DeviceState.OFF)
         else:
             # If an unsupported mode is passed, log an error message

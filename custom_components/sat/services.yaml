@@ -13,3 +13,15 @@ pulse_width_modulation:
     enabled:
       required: true
       example: true
+
+start_xtreme_calibration:
+  target:
+    entity:
+      domain: climate
+      integration: "sat"
+
+stop_xtreme_calibration:
+  target:
+    entity:
+      domain: climate
+      integration: "sat"

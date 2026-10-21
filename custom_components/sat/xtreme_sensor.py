@@ -28,6 +28,9 @@ def async_setup_xtreme_sensors(coordinator, config_entry: ConfigEntry, climate, 
     if profile.learned_opv != "off":
         entities.append(SatLearnedOpvSensor(coordinator, config_entry, climate))
 
+    if profile.calibration:
+        entities.append(SatCalibrationSensor(coordinator, config_entry, climate))
+
     if entities:
         async_add_entities(entities)
 
@@ -113,3 +116,20 @@ class SatLearnedOpvSensor(SatXtremeSensor):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return self._climate.learned_opv.attributes
+
+
+class SatCalibrationSensor(SatXtremeSensor):
+    """Phase and progress of the Xtreme calibration, with the last report as an attribute."""
+
+    _key = "calibration"
+    _label = "Calibration"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["idle", "waiting", "heating", "paused_hot_water", "paused_comfort", "cooldown", "succeeded", "failed", "cancelled"]
+
+    @property
+    def native_value(self) -> str:
+        return self._climate.xtreme_calibration.phase.value
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return self._climate.xtreme_calibration.attributes

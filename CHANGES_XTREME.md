@@ -197,3 +197,48 @@ boiler overshoots and switches itself off) or too high (more heat than needed in
 `custom_components/sat/climate.py`, `custom_components/sat/coordinator.py`,
 `custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
 `custom_components/sat/manifest.json`, `tests/test_xtreme_learned_opv.py` (new).
+
+## Step 5: calibration for boilers that ignore the modulation limit (`4.2.1+xtreme.5`, 2026-10-21)
+
+Switch: **Xtreme calibration** (`xtreme_calibration`). It adds the buttons **Start Xtreme
+Calibration** and **Stop Xtreme Calibration**, a **Calibration** status sensor, and the actions
+`sat.start_xtreme_calibration` and `sat.stop_xtreme_calibration`.
+
+**Why.** The upstream calibration sets `MM=0` and computes `(100 − modulation) / 100 × setpoint`.
+A boiler that ignores `MM=` keeps modulating, so the result is meaningless (for example 32 °C), and
+it is still reported as successful. It also runs inside the configuration dialog, which does not
+suit a measurement that takes hours.
+
+**How it works** (`custom_components/sat/xtreme_calibration.py`):
+
+- The thermostat must be in heat mode. While the calibration runs, SAT's own control loop does not
+  send setpoints or heater commands. The calibration refreshes the control setpoint every 15
+  seconds, so the gateway keeps the override and drops it as usual when Home Assistant stops.
+- Each round starts at 55 °C (never above the maximum setpoint) once the anti-cycling time has
+  passed. After each step it waits until the flow temperature is stable (within 0.5 °C for 5 minutes,
+  flame on for at least 3 minutes) and then lowers the setpoint by 2 °C (modulation above 20 %) or
+  1 °C. A step that is not stable within 30 minutes is recorded and the setpoint is lowered anyway.
+- A round ends with a **plateau** (minimum modulation, stable flow at least 0.5 °C below the setpoint)
+  or a **shut-off** (the boiler switches itself off at minimum modulation). A round that is still
+  modulating at 35 °C, or gets no flame within 15 minutes, fails. Measurements below 35 °C are
+  rejected.
+- Hot water pauses the calibration and discards the current step; it continues once the
+  anti-cycling time has passed. When the room is more than 1 °C above the target temperature the
+  calibration pauses with the heating demand off until the room is back at the target.
+- 5 valid rounds (at most 8 attempts), 20 minutes of cooldown between rounds, at most 10 hours in
+  total. The result is the median. The calibration fails (and changes nothing) with fewer than 3
+  valid rounds, a result below 35 °C or a spread of more than 6 °C.
+- Stopping (button, action, turning the thermostat off, or a restart of Home Assistant) returns to
+  normal operation immediately and changes nothing.
+- A successful result becomes the starting value of the self-learning OPV (step 4), also when
+  learning is off, so it is used as soon as learning is turned on. The configured OPV is not changed.
+- The report (all rounds and steps, result, spread, minimum, maximum, duration) is shown in a
+  notification and in the attributes of the Calibration sensor, and is stored across restarts.
+
+**Files.** `custom_components/sat/xtreme_calibration.py` (new), `custom_components/sat/button.py`
+(new), `custom_components/sat/xtreme_opv.py`, `custom_components/sat/xtreme_profile.py`,
+`custom_components/sat/xtreme_sensor.py`, `custom_components/sat/const.py`,
+`custom_components/sat/climate.py`, `custom_components/sat/__init__.py`,
+`custom_components/sat/services.py`, `custom_components/sat/services.yaml`,
+`custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
+`custom_components/sat/manifest.json`, `tests/test_xtreme_calibration.py` (new).

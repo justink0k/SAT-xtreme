@@ -21,6 +21,7 @@ from .const import (
     CONF_XTREME_MINIMUM_BURN_TIME,
     CONF_XTREME_MINIMUM_DUTY_CYCLE,
     CONF_XTREME_LEARNED_OPV,
+    CONF_XTREME_CALIBRATION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,6 +60,9 @@ class XtremeProfile:
     # Step 4: learn the OPV during normal operation: "off", "learn" (only show it) or "apply" (use it)
     learned_opv: str = "off"
 
+    # Step 5: a slow calibration of the OPV that does not rely on MM=, started with a button or service
+    calibration: bool = False
+
     @property
     def anti_cycling_wait(self) -> int:
         """Seconds to wait after the last flame before a new on phase may start."""
@@ -85,6 +89,7 @@ class XtremeProfile:
             minimum_burn_time=int(values.get(CONF_XTREME_MINIMUM_BURN_TIME)),
             minimum_duty_cycle=float(values.get(CONF_XTREME_MINIMUM_DUTY_CYCLE)),
             learned_opv=str(values.get(CONF_XTREME_LEARNED_OPV)),
+            calibration=bool(values.get(CONF_XTREME_CALIBRATION)),
         )
 
         if profile.enabled:
@@ -99,6 +104,7 @@ class XtremeProfile:
             ("ignore_modulation_limit", self.ignore_modulation_limit),
             ("boiler_timing", self.boiler_timing),
             (f"learned_opv ({self.learned_opv})", self.learned_opv != "off"),
+            ("calibration", self.calibration),
         )
 
         return [name for name, enabled in switches if enabled]
