@@ -113,6 +113,7 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
 
         self._xtreme_profile: XtremeProfile = XtremeProfile.from_options(self._options)
         self._heater_state_commanded: Optional[DeviceState] = None
+        self._hot_water_last_seen: Optional[float] = None
         self._heater_state_commanded_at: Optional[float] = None
 
         self._manufacturer: Optional[Manufacturer] = None
@@ -249,6 +250,17 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
             return None
 
         return monotonic() - self._heater_state_commanded_at
+
+    @property
+    def seconds_since_hot_water(self) -> Optional[float]:
+        """Return the number of seconds since hot water was last seen active (0 while active), if ever."""
+        if self.hot_water_active:
+            return 0
+
+        if self._hot_water_last_seen is None:
+            return None
+
+        return monotonic() - self._hot_water_last_seen
 
     @property
     def heater_primed_idle(self) -> bool:
@@ -498,6 +510,10 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         """Control the heating loop for the device."""
         # Update Flame State
         self._flame.update(boiler_state=self.boiler, pwm_state=pwm_state)
+
+        # Remember when hot water was last active
+        if self.hot_water_active:
+            self._hot_water_last_seen = monotonic()
 
         # Update Device State
         if not self.device_active:

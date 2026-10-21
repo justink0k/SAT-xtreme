@@ -784,6 +784,9 @@ class SatOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required(CONF_XTREME_MINIMUM_DUTY_CYCLE, default=options[CONF_XTREME_MINIMUM_DUTY_CYCLE]): selector.NumberSelector(
                     selector.NumberSelectorConfig(min=2.5, max=30, step=0.5, unit_of_measurement="%")
                 ),
+                vol.Required(CONF_XTREME_LEARNED_OPV, default=options[CONF_XTREME_LEARNED_OPV]): selector.SelectSelector(
+                    selector.SelectSelectorConfig(options=["off", "learn", "apply"], translation_key="xtreme_learned_opv")
+                ),
             })
         )
 

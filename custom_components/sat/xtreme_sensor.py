@@ -5,7 +5,7 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTime
+from homeassistant.const import UnitOfTemperature, UnitOfTime
 from homeassistant.core import Event, EventStateChangedData
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
@@ -24,6 +24,9 @@ def async_setup_xtreme_sensors(coordinator, config_entry: ConfigEntry, climate, 
             SatPwmBurnTimeSensor(coordinator, config_entry, climate),
             SatAntiCyclingRemainingSensor(coordinator, config_entry, climate),
         ]
+
+    if profile.learned_opv != "off":
+        entities.append(SatLearnedOpvSensor(coordinator, config_entry, climate))
 
     if entities:
         async_add_entities(entities)
@@ -92,3 +95,21 @@ class SatAntiCyclingRemainingSensor(SatXtremeSensor):
     @property
     def native_value(self) -> float:
         return self._climate.pwm.anti_cycling_remaining
+
+
+class SatLearnedOpvSensor(SatXtremeSensor):
+    """The learned overshoot protection value, with the learning details as attributes."""
+
+    _key = "learned-opv"
+    _label = "Learned OPV"
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    @property
+    def native_value(self) -> float:
+        return self._climate.learned_opv.value
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return self._climate.learned_opv.attributes

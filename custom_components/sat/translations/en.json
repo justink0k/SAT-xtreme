@@ -262,7 +262,8 @@
           "xtreme_anti_cycling_time": "Anti-cycling time of the boiler",
           "xtreme_anti_cycling_margin": "Anti-cycling margin",
           "xtreme_minimum_burn_time": "Minimum burn time",
-          "xtreme_minimum_duty_cycle": "Minimum duty cycle"
+          "xtreme_minimum_duty_cycle": "Minimum duty cycle",
+          "xtreme_learned_opv": "Self-learning overshoot protection value (OPV)"
         },
         "data_description": {
           "xtreme_prime_setpoint": "Keep the minimum setpoint on the bus during the PWM off phase and turn the heating demand off explicitly, so the boiler starts right away when the next on phase begins. Helps when a thermostat on the bus rarely sends the control setpoint (MsgID 1).",
@@ -273,7 +274,8 @@
           "xtreme_anti_cycling_time": "The anti-cycling time set in the boiler (Intergas: parameter P036, 5 minutes by default).",
           "xtreme_anti_cycling_margin": "Extra seconds on top of the anti-cycling time.",
           "xtreme_minimum_burn_time": "The shortest burn of a PWM on phase. Longer burns mean fewer starts and longer off phases.",
-          "xtreme_minimum_duty_cycle": "Below this duty cycle SAT does not burn at all (upstream: half of the minimum burn time share)."
+          "xtreme_minimum_duty_cycle": "Below this duty cycle SAT does not burn at all (upstream: half of the minimum burn time share).",
+          "xtreme_learned_opv": "Learn the OPV during normal operation. 'Learn only' shows the learned value in a sensor while SAT keeps using the configured OPV; 'Learn and apply' uses the learned value."
         }
       }
     }
@@ -291,6 +293,15 @@
           "name": "Enabled",
           "description": "The state you want to force."
         }
+      }
+    }
+  },
+  "selector": {
+    "xtreme_learned_opv": {
+      "options": {
+        "off": "Off",
+        "learn": "Learn only",
+        "apply": "Learn and apply"
       }
     }
   }

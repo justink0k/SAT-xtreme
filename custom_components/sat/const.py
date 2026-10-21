@@ -101,6 +101,7 @@ CONF_XTREME_ANTI_CYCLING_TIME = "xtreme_anti_cycling_time"
 CONF_XTREME_ANTI_CYCLING_MARGIN = "xtreme_anti_cycling_margin"
 CONF_XTREME_MINIMUM_BURN_TIME = "xtreme_minimum_burn_time"
 CONF_XTREME_MINIMUM_DUTY_CYCLE = "xtreme_minimum_duty_cycle"
+CONF_XTREME_LEARNED_OPV = "xtreme_learned_opv"
 
 HEATING_SYSTEM_UNKNOWN = "unknown"
 HEATING_SYSTEM_HEAT_PUMP = "heat_pump"
@@ -176,6 +177,7 @@ OPTIONS_DEFAULTS = {
     CONF_XTREME_ANTI_CYCLING_MARGIN: 15,
     CONF_XTREME_MINIMUM_BURN_TIME: 360,
     CONF_XTREME_MINIMUM_DUTY_CYCLE: 7.5,
+    CONF_XTREME_LEARNED_OPV: "off",
 }
 
 # Overshoot protection

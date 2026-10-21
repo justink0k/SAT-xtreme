@@ -45,6 +45,7 @@ from .manufacturers.geminox import Geminox
 from .pwm import PWMState
 from .relative_modulation import RelativeModulation, RelativeModulationState
 from .summer_simmer import SummerSimmer
+from .xtreme_opv import LearnedOpv
 from .xtreme_profile import HEATER_COMMAND_REPEAT_SECONDS
 from .util import create_pid_controller, create_heating_curve_controller, create_pwm_controller, create_minimum_setpoint_controller
 
@@ -185,6 +186,14 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Create a PWM controller with given configuration options
         self.pwm = create_pwm_controller(self.heating_curve, coordinator.supports_relative_modulation_management, config_entry.data, config_options, coordinator.xtreme_profile)
 
+        # Xtreme profile: learn the OPV during normal operation
+        self.learned_opv = LearnedOpv(
+            mode=coordinator.xtreme_profile.learned_opv,
+            configured_value=coordinator.minimum_setpoint,
+            maximum_setpoint=coordinator.maximum_setpoint,
+            storage_key=f"sat_xtreme_opv_{config_entry.entry_id}",
+        )
+
         if self._simulation:
             _LOGGER.warning("Simulation mode!")
 
@@ -202,6 +211,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         # Restore the previous state if available, or set default values
         await self._restore_previous_state_or_set_defaults()
+
+        # Xtreme profile: load the learned OPV
+        await self.learned_opv.async_initialize(self.hass)
 
         # Update a heating curve if outside temperature is available
         if self.current_outside_temperature is not None:
@@ -561,6 +573,10 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         if not self._overshoot_protection or self._calculated_setpoint is None:
             return False
 
+        # Xtreme profile: the learned OPV replaces the configured one
+        if self.learned_opv.applied:
+            return self.learned_opv.value > self._calculated_setpoint
+
         if not self._dynamic_minimum_setpoint:
             return self._coordinator.minimum_setpoint > self._calculated_setpoint
 
@@ -583,6 +599,10 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
     @property
     def minimum_setpoint_value(self) -> float:
         """Get the minimum allowable setpoint temperature."""
+        # Xtreme profile: the learned OPV replaces the configured one
+        if self.learned_opv.applied:
+            return self.learned_opv.value
+
         if self._dynamic_minimum_setpoint:
             # Version 1: Use MinimumSetpoint controller
             if self._minimum_setpoint_version == 1:
@@ -947,6 +967,14 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         # Control the heating through the coordinator
         await self._coordinator.async_control_heating_loop(climate=self, pwm_state=self.pwm.state)
+
+        # Xtreme profile: learn the OPV from what the boiler did since the last loop
+        self.learned_opv.observe(
+            boiler=self._coordinator.boiler,
+            flame=self._coordinator.flame,
+            heating_demand=self._coordinator.heater_state_commanded == DeviceState.ON,
+            seconds_since_hot_water=self._coordinator.seconds_since_hot_water,
+        )
 
         if self._calculated_setpoint is None:
             # Default to the calculated setpoint

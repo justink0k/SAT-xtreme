@@ -163,3 +163,37 @@ time of the boiler, and burns of 3 minutes, which barely pay off the start.
 `custom_components/sat/util.py`, `custom_components/sat/sensor.py`,
 `custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
 `custom_components/sat/manifest.json`, `tests/test_xtreme_boiler_timing.py` (new).
+
+## Step 4: self-learning overshoot protection value (`4.2.1+xtreme.4`, 2026-10-21)
+
+Switch: **Self-learning overshoot protection value (OPV)** (`xtreme_learned_opv`) with three modes:
+*Off*, *Learn only* (the learned value is shown in a sensor, SAT keeps using the configured OPV) and
+*Learn and apply* (SAT uses the learned value as the minimum setpoint and to decide when to use PWM).
+
+**Why.** The OPV of the boiler is not fixed: it depends on how much heat the house takes at the
+moment (room temperature, open or closed radiator valves). A fixed value is either too low (the
+boiler overshoots and switches itself off) or too high (more heat than needed in every burn).
+
+**How it learns** (`custom_components/sat/xtreme_opv.py`):
+
+- A sample is only taken while the heating demand is on, the flame burns for at least 3 minutes,
+  the modulation is at most 2 %, and there was no hot water in the last 5 minutes.
+- **Plateau:** the flow temperature stays within 0.5 °C for 3 minutes, at least 0.5 °C below the
+  setpoint. At minimum power the boiler cannot go lower, so this is a direct measurement of the OPV.
+  It can move the estimate up and down; at most one plateau sample per burn.
+- **Self shut-off:** the boiler switches itself off at minimum modulation while the heating demand is
+  still on. The balance lies above this flow temperature, so this sample can only raise the
+  estimate. Shut-offs caused by SAT (end of a PWM on phase) are ignored. Using the shut-off flow in
+  both directions would be circular: in PWM mode the setpoint is the OPV itself.
+- Update: `estimate += 0.1 × (sample − estimate)`, at most 1 °C per sample. The applied OPV is the
+  estimate plus a margin of 1 °C, within 40–55 °C and never above the maximum setpoint.
+- The estimate starts so that the applied value equals the configured OPV (or the result of the
+  calibration of step 5), and is stored so it survives a restart.
+- New sensor **Learned OPV** with the mode, estimate, margin, source, number of samples, last update
+  and the last 20 samples as attributes.
+
+**Files.** `custom_components/sat/xtreme_opv.py` (new), `custom_components/sat/xtreme_profile.py`,
+`custom_components/sat/xtreme_sensor.py`, `custom_components/sat/const.py`,
+`custom_components/sat/climate.py`, `custom_components/sat/coordinator.py`,
+`custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
+`custom_components/sat/manifest.json`, `tests/test_xtreme_learned_opv.py` (new).
