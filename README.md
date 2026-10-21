@@ -21,8 +21,10 @@ the anti-cycling time of the boiler.
 
 - **Calmer.** Fewer and longer burns instead of short bursts: the boiler starts right away when SAT asks
   for heat, every PWM block gets the burn time it was planned for, and SAT waits for the anti-cycling
-  time of the boiler instead of asking for heat it cannot deliver yet. This is measurable on the
-  dashboard: time from heating demand to flame, burn time per block and burner starts per day.
+  time of the boiler instead of asking for heat it cannot deliver yet. Optionally, the keep-warm
+  function for hot water can be turned off (for example at night), which removes short hot water burns
+  that restart the anti-cycling time. This is measurable on the dashboard: time from heating demand to
+  flame, burn time per block and burner starts per day.
 - **More comfortable, because you stay in control.**
   - Nothing changes behind your back: every feature has its own switch and is off by default, and a
     boiler preset only fills in numbers, it never turns a switch on.
@@ -77,7 +79,9 @@ consider [adding a boiler preset](docs/boiler_presets.md#adding-a-preset-for-you
 | Overshoot protection value (OPV) | A fixed value. | Learned during normal operation, shown in a sensor, used only when you choose so. | step 4 |
 | Calibration | Relies on `MM=0`, runs about 20 minutes in the setup wizard, can report a meaningless value (for example 32 °C) as successful, and could send a setpoint above the configured maximum. | First tests whether the boiler follows `MM=0`: if so, measures at minimum power (about 2 hours); if not, lowers the setpoint step by step (5 to 6 hours) and offers a one-click repair to turn on *ignore the modulation limit*. Median of 5 rounds, rejects unrealistic results, pauses for hot water and a too warm room, start/stop buttons and a report; never above the maximum setpoint. | step 5 (maximum: always) |
 | PID strength | Only adjustable through the heating curve coefficient, which also moves the whole heating curve. The *Automatic gains* choice of the setup wizard was ignored. | Gain factor, maximum rise above the heating curve, and manual gains on their own page; the wizard choice is used. | PID page (wizard: always) |
-| Insight | – | Sensors for the PID correction, PWM burn time, remaining anti-cycling time, learned OPV and calibration status, and a ready-made dashboard. | with the matching switches |
+| Hot water keep-warm | – (left to the boiler and the thermostat on the bus). | A switch to turn the keep-warm function off (`HW=0`) and back to normal (`HW=A`), by hand or with an automation. | keep-warm switch |
+| Insight | – | Sensors for the boiler data (flow, setpoint, modulation, burner starts, flame, hot water, heating demand), the PID correction, PWM burn time, remaining anti-cycling time, learned OPV and calibration status. | boiler data and PID: always; the rest with the matching switches |
+| Dashboard | – | The *SAT Xtreme* dashboard, created with one click from the entities that exist, with any gateway. | with one click |
 | Turning SAT off | The thermostat on the bus takes over after the gateway heartbeat expires (about a minute). | Optionally right away (`CS=0`). | handover |
 | Boiler presets | – | A preset list and a template to add your boiler. | preset |
 | Home Assistant 2026.12 | Uses an update listener that will stop working. | Prepared: uses `OptionsFlowWithReload`. | always |
@@ -98,6 +102,15 @@ first day with step 1 on, comparing PWM blocks of the same day:
 This is a first measurement of a few hours, in the evening (with longer blocks than on a mild
 afternoon). Results for step 3 (burn time per block, starts per day) will be added once measured.
 
+Hot water keep-warm off (`HW=0`, sent by hand on the same day, before the switch existed):
+
+| | Keep-warm normal (about 3 hours) | Keep-warm off (first 3 hours) |
+|---|---|---|
+| Short hot water burns (under 30 s) | 9, about 3 per hour | 0 |
+| Hot water at the tap | normal | normal (a tap of more than a minute; it only takes longer to get warm) |
+
+The gateway kept `HW=0` across four restarts of Home Assistant, until it was changed again.
+
 ### What it improves
 
 - **Slow setpoint with a thermostat on the bus.** In gateway mode the OpenTherm Gateway only replaces
@@ -116,6 +129,10 @@ afternoon). Results for step 3 (burn time per block, starts per day) will be add
 - **A fixed overshoot protection value.** SAT-xtreme can learn the OPV during normal operation (step 4).
 - **A PID correction that is too strong or too weak.** Gain factor, a maximum rise above the heating
   curve and manual gains on their own options page.
+- **Short hot water burns from the keep-warm function.** An optional switch turns keep-warm off and on
+  again, for example with an automation at night (see [Hot water keep-warm at night](#hot-water-keep-warm-at-night)).
+- **Not seeing what the boiler does.** Boiler data sensors that work with any gateway, and the *SAT
+  Xtreme* dashboard with one click (see [Dashboard](#dashboard)).
 - **Bug fixes** that apply to everyone (see below).
 
 The boiler settings that come with the fork (19.5 / 3.9 kW rated power, 300 s anti-cycling time) are
@@ -157,7 +174,7 @@ Entities of the fork (the PID output, boiler data and dashboard button always ex
 | *Xtreme fork: Boiler Flow*, *Control Setpoint*, *Boiler Modulation*, *Burner Starts* | boiler data as SAT sees it, for any gateway (burner starts are counted by SAT) |
 | *Xtreme fork: Flame*, *Hot Water Active*, *Heating Demand* | boiler state as SAT sees it; heating demand is what SAT asks the boiler |
 | *Xtreme fork: Create Dashboard* | button that creates or rebuilds the SAT Xtreme dashboard |
-| *Xtreme fork: Hot Water Keep Warm* | switch: on = the boiler keeps hot water warm as set on the boiler, off = no keep-warm |
+| *Xtreme fork: Hot Water Keep Warm* | switch: on = normal (`HW=A`: the DHW enable bit follows the thermostat on the bus, so keep-warm works as set on the boiler), off = no keep-warm (`HW=0`) |
 
 Actions: `sat.start_xtreme_calibration` and `sat.stop_xtreme_calibration` (step 5).
 
@@ -188,9 +205,20 @@ example only during the day:
         entity_id: switch.xtreme_fork_hot_water_keep_warm_sat
 ```
 
-With the switch off, hot water still comes out of the tap on the tested Intergas Xtreme 30, it only takes
-longer. Some boilers may block hot water completely when the DHW enable bit is off: test this first. The
-gateway keeps the last setting when Home Assistant is down.
+How it works: the OpenTherm Gateway command `HW=0` clears the DHW enable bit that goes to the boiler,
+and `HW=A` gives that bit back to the thermostat on the bus (normal operation). The switch only sends
+these commands; it never changes the hot water setpoint.
+
+- With the switch off, hot water still comes out of the tap on the tested Intergas Xtreme 30, it only
+  takes longer. Some boilers may block hot water completely when the DHW enable bit is off: test this
+  first.
+- If the thermostat on the bus itself turns hot water off (for example a hot water schedule), the
+  switch on (`HW=A`) follows that thermostat.
+- The gateway keeps the last setting, also when Home Assistant is down. Turning the option off sends
+  `HW=A` once; turn the switch on before you remove SAT-xtreme.
+- The entity ID of the switch depends on the name of your SAT (and sometimes the area of the device);
+  look it up under *Settings → Entities* and replace `switch.xtreme_fork_hot_water_keep_warm_sat` in the
+  example.
 
 ### Bug fixes
 
@@ -237,7 +265,11 @@ See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fi
    After every update, also refresh the cache of your browser (Ctrl+Shift+R, or Cmd+Shift+R on a Mac)
    or reset the frontend cache in the companion app; otherwise the options pages may still show old
    texts.
-4. Enable the switches you want under *Xtreme profile* in the SAT options.
+4. Create the dashboard: open *Settings → System → Repairs → Create the SAT Xtreme dashboard* and
+   submit.
+5. Enable the options you want, one at a time, under *Configure → Xtreme profile (fork)* and
+   *Configure → PID settings (fork)*. Press *Xtreme fork: Create Dashboard* afterwards to add their cards
+   to the dashboard.
 
 ### Dashboard
 
