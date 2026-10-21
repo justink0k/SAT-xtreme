@@ -14,6 +14,7 @@ from custom_components.sat.coordinator import DeviceState
 from custom_components.sat.fake import SatFakeCoordinator
 from custom_components.sat.flame import Flame
 from custom_components.sat.xtreme_profile import XtremeProfile
+from tests.xtreme_helpers import xtreme_profile_input
 
 MINIMUM_SETPOINT_VALUE = 46
 
@@ -259,6 +260,6 @@ async def test_options_flow_has_xtreme_profile_switch(hass: HomeAssistant, entry
     result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "xtreme_profile"})
     assert result["step_id"] == "xtreme_profile"
 
-    result = await hass.config_entries.options.async_configure(result["flow_id"], {CONF_XTREME_PRIME_SETPOINT: True})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], xtreme_profile_input(**{CONF_XTREME_PRIME_SETPOINT: True}))
     assert result["type"] == "create_entry"
     assert entry.options[CONF_XTREME_PRIME_SETPOINT] is True

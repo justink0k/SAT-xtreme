@@ -383,3 +383,21 @@ No switch: these are fixes.
 (was *SAT (Intergas Xtreme fork)*), to match the broader goal of the fork. The domain stays `sat`, so
 existing configurations are kept (`custom_components/sat/manifest.json`, `hacs.json`, `README.md`,
 `custom_components/sat/translations/en.json`, `dashboards/sat_xtreme.yaml`).
+
+## Version 11: clearer options pages (`4.2.1+xtreme.11`, 2026-10-21)
+
+No change to how SAT controls the boiler, and no change to the stored options.
+
+- The *Xtreme profile (fork)* page is split into three groups: **Thermostat on the bus** (keep the
+  setpoint ready, hand over), **Boiler** (preset, modulation limit, heating output, PWM timing,
+  anti-cycling, burn time) and **Learning and calibration** (self-learning OPV, calibration). The values
+  are still stored as the same flat options.
+- All texts of the fork's options pages are rewritten for any boiler (no Intergas-specific wording
+  outside examples) and every option has an explanation, including kP, kI and kD on the manual gains
+  page. The boiler preset names are translatable.
+- Dutch translation of all texts of the fork (`nl.json`); other languages fall back to English.
+
+**Files.** `custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
+`custom_components/sat/translations/nl.json`, `custom_components/sat/manifest.json`,
+`tests/xtreme_helpers.py`, `tests/test_xtreme_presets_and_handover.py`,
+`tests/test_xtreme_prime_setpoint.py`, `tests/test_xtreme_reload.py`.

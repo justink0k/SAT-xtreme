@@ -9,6 +9,7 @@ from homeassistant.components import sensor, switch, valve, weather, binary_sens
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import section
 from homeassistant.helpers import selector, entity_registry
 from homeassistant.helpers.selector import SelectSelectorMode, SelectOptionDict
 from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
@@ -19,6 +20,11 @@ from voluptuous import Marker
 from . import SatDataUpdateCoordinatorFactory
 from .const import *
 from .xtreme_profile import BOILER_PRESETS, apply_boiler_preset
+
+# Sections of the Xtreme profile page
+XTREME_SECTION_THERMOSTAT = "thermostat"
+XTREME_SECTION_BOILER = "boiler"
+XTREME_SECTION_LEARNING = "learning"
 from .coordinator import SatDataUpdateCoordinator
 from .helpers import calculate_default_maximum_setpoint, snake_case
 from .manufacturer import ManufacturerFactory, MANUFACTURERS
@@ -767,47 +773,60 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
 
     async def async_step_xtreme_profile(self, _user_input: dict[str, Any] | None = None):
         if _user_input is not None:
-            return await self.update_options(apply_boiler_preset(await self.get_options(), _user_input))
+            # The fields are grouped in sections on the page, but stored as flat options
+            submitted = {key: value for group in _user_input.values() if isinstance(group, dict) for key, value in group.items()}
+            return await self.update_options(apply_boiler_preset(await self.get_options(), submitted))
 
         options = await self.get_options()
+
+        thermostat = vol.Schema({
+            vol.Required(CONF_XTREME_PRIME_SETPOINT, default=options[CONF_XTREME_PRIME_SETPOINT]): bool,
+            vol.Required(CONF_XTREME_HANDOVER_ON_OFF, default=options[CONF_XTREME_HANDOVER_ON_OFF]): bool,
+        })
+
+        boiler = vol.Schema({
+            vol.Required(CONF_XTREME_BOILER_PRESET, default=options[CONF_XTREME_BOILER_PRESET]): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    mode=SelectSelectorMode.DROPDOWN,
+                    options=[BOILER_PRESET_CUSTOM] + list(BOILER_PRESETS),
+                    translation_key="xtreme_boiler_preset",
+                )
+            ),
+            vol.Required(CONF_XTREME_IGNORE_MODULATION_LIMIT, default=options[CONF_XTREME_IGNORE_MODULATION_LIMIT]): bool,
+            vol.Required(CONF_XTREME_BOILER_MAXIMUM_POWER, default=options[CONF_XTREME_BOILER_MAXIMUM_POWER]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=1, max=100, step=0.1, unit_of_measurement="kW")
+            ),
+            vol.Required(CONF_XTREME_BOILER_MINIMUM_POWER, default=options[CONF_XTREME_BOILER_MINIMUM_POWER]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0.5, max=50, step=0.1, unit_of_measurement="kW")
+            ),
+            vol.Required(CONF_XTREME_BOILER_TIMING, default=options[CONF_XTREME_BOILER_TIMING]): bool,
+            vol.Required(CONF_XTREME_ANTI_CYCLING_TIME, default=options[CONF_XTREME_ANTI_CYCLING_TIME]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0, max=1800, step=10, unit_of_measurement="s")
+            ),
+            vol.Required(CONF_XTREME_ANTI_CYCLING_MARGIN, default=options[CONF_XTREME_ANTI_CYCLING_MARGIN]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0, max=120, step=5, unit_of_measurement="s")
+            ),
+            vol.Required(CONF_XTREME_MINIMUM_BURN_TIME, default=options[CONF_XTREME_MINIMUM_BURN_TIME]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=240, max=600, step=30, unit_of_measurement="s")
+            ),
+            vol.Required(CONF_XTREME_MINIMUM_DUTY_CYCLE, default=options[CONF_XTREME_MINIMUM_DUTY_CYCLE]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=2.5, max=30, step=0.5, unit_of_measurement="%")
+            ),
+        })
+
+        learning = vol.Schema({
+            vol.Required(CONF_XTREME_LEARNED_OPV, default=options[CONF_XTREME_LEARNED_OPV]): selector.SelectSelector(
+                selector.SelectSelectorConfig(options=["off", "learn", "apply"], translation_key="xtreme_learned_opv")
+            ),
+            vol.Required(CONF_XTREME_CALIBRATION, default=options[CONF_XTREME_CALIBRATION]): bool,
+        })
 
         return self.async_show_form(
             step_id="xtreme_profile",
             data_schema=vol.Schema({
-                vol.Required(CONF_XTREME_BOILER_PRESET, default=options[CONF_XTREME_BOILER_PRESET]): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        mode=SelectSelectorMode.DROPDOWN,
-                        options=[selector.SelectOptionDict(value=BOILER_PRESET_CUSTOM, label="Custom")] + [
-                            selector.SelectOptionDict(value=key, label=preset.name) for key, preset in BOILER_PRESETS.items()
-                        ],
-                    )
-                ),
-                vol.Required(CONF_XTREME_PRIME_SETPOINT, default=options[CONF_XTREME_PRIME_SETPOINT]): bool,
-                vol.Required(CONF_XTREME_HANDOVER_ON_OFF, default=options[CONF_XTREME_HANDOVER_ON_OFF]): bool,
-                vol.Required(CONF_XTREME_IGNORE_MODULATION_LIMIT, default=options[CONF_XTREME_IGNORE_MODULATION_LIMIT]): bool,
-                vol.Required(CONF_XTREME_BOILER_MAXIMUM_POWER, default=options[CONF_XTREME_BOILER_MAXIMUM_POWER]): selector.NumberSelector(
-                    selector.NumberSelectorConfig(min=1, max=100, step=0.1, unit_of_measurement="kW")
-                ),
-                vol.Required(CONF_XTREME_BOILER_MINIMUM_POWER, default=options[CONF_XTREME_BOILER_MINIMUM_POWER]): selector.NumberSelector(
-                    selector.NumberSelectorConfig(min=0.5, max=50, step=0.1, unit_of_measurement="kW")
-                ),
-                vol.Required(CONF_XTREME_BOILER_TIMING, default=options[CONF_XTREME_BOILER_TIMING]): bool,
-                vol.Required(CONF_XTREME_ANTI_CYCLING_TIME, default=options[CONF_XTREME_ANTI_CYCLING_TIME]): selector.NumberSelector(
-                    selector.NumberSelectorConfig(min=0, max=1800, step=10, unit_of_measurement="s")
-                ),
-                vol.Required(CONF_XTREME_ANTI_CYCLING_MARGIN, default=options[CONF_XTREME_ANTI_CYCLING_MARGIN]): selector.NumberSelector(
-                    selector.NumberSelectorConfig(min=0, max=120, step=5, unit_of_measurement="s")
-                ),
-                vol.Required(CONF_XTREME_MINIMUM_BURN_TIME, default=options[CONF_XTREME_MINIMUM_BURN_TIME]): selector.NumberSelector(
-                    selector.NumberSelectorConfig(min=240, max=600, step=30, unit_of_measurement="s")
-                ),
-                vol.Required(CONF_XTREME_MINIMUM_DUTY_CYCLE, default=options[CONF_XTREME_MINIMUM_DUTY_CYCLE]): selector.NumberSelector(
-                    selector.NumberSelectorConfig(min=2.5, max=30, step=0.5, unit_of_measurement="%")
-                ),
-                vol.Required(CONF_XTREME_LEARNED_OPV, default=options[CONF_XTREME_LEARNED_OPV]): selector.SelectSelector(
-                    selector.SelectSelectorConfig(options=["off", "learn", "apply"], translation_key="xtreme_learned_opv")
-                ),
-                vol.Required(CONF_XTREME_CALIBRATION, default=options[CONF_XTREME_CALIBRATION]): bool,
+                vol.Required(XTREME_SECTION_THERMOSTAT): section(thermostat, {"collapsed": False}),
+                vol.Required(XTREME_SECTION_BOILER): section(boiler, {"collapsed": False}),
+                vol.Required(XTREME_SECTION_LEARNING): section(learning, {"collapsed": False}),
             })
         )
 

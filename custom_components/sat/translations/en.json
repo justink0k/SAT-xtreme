@@ -253,59 +253,86 @@
       },
       "xtreme_profile": {
         "title": "Xtreme profile (fork)",
-        "description": "This page belongs to SAT-xtreme, an unofficial fork of SAT, not to the official SAT. Opt-in adjustments for an Intergas Xtreme boiler behind an OpenTherm Gateway. Every switch is off by default; with all switches off SAT behaves like upstream. See CHANGES_XTREME.md.",
-        "data": {
-          "xtreme_prime_setpoint": "Prime the setpoint during the PWM off phase",
-          "xtreme_ignore_modulation_limit": "Do not manage the modulation limit",
-          "xtreme_boiler_maximum_power": "Rated maximum heating power",
-          "xtreme_boiler_minimum_power": "Rated minimum heating power",
-          "xtreme_boiler_timing": "Align PWM with the boiler timing",
-          "xtreme_anti_cycling_time": "Anti-cycling time of the boiler",
-          "xtreme_anti_cycling_margin": "Anti-cycling margin",
-          "xtreme_minimum_burn_time": "Minimum burn time",
-          "xtreme_minimum_duty_cycle": "Minimum duty cycle",
-          "xtreme_learned_opv": "Self-learning overshoot protection value (OPV)",
-          "xtreme_calibration": "Xtreme calibration",
-          "xtreme_boiler_preset": "Boiler preset",
-          "xtreme_handover_on_off": "Hand over to the thermostat when SAT is turned off"
-        },
-        "data_description": {
-          "xtreme_prime_setpoint": "Keep the minimum setpoint on the bus during the PWM off phase and turn the heating demand off explicitly, so the boiler starts right away when the next on phase begins. Helps when a thermostat on the bus rarely sends the control setpoint (MsgID 1).",
-          "xtreme_ignore_modulation_limit": "For boilers that ignore the maximum relative modulation (MM=) but do report their modulation. SAT stops sending the modulation limit and keeps using the reported modulation.",
-          "xtreme_boiler_maximum_power": "Used for the power sensor when the boiler does not report its capacity (MsgID 15). Take the heating output (Pn) from the rating plate.",
-          "xtreme_boiler_minimum_power": "Used for the power sensor when the boiler does not report its minimum modulation level. Take the minimum heating output (Pn) from the rating plate.",
-          "xtreme_boiler_timing": "The on time counts burn time (flame on for heating), a new on phase waits until the anti-cycling time after the last flame (heating or hot water) has passed, and every burn lasts at least the minimum burn time.",
-          "xtreme_anti_cycling_time": "The anti-cycling time set in the boiler (Intergas: parameter P036, 5 minutes by default).",
-          "xtreme_anti_cycling_margin": "Extra seconds on top of the anti-cycling time.",
-          "xtreme_minimum_burn_time": "The shortest burn of a PWM on phase. Longer burns mean fewer starts and longer off phases.",
-          "xtreme_minimum_duty_cycle": "Below this duty cycle SAT does not burn at all (upstream: half of the minimum burn time share).",
-          "xtreme_learned_opv": "Learn the OPV during normal operation. 'Learn only' shows the learned value in a sensor while SAT keeps using the configured OPV; 'Learn and apply' uses the learned value.",
-          "xtreme_calibration": "Adds start and stop buttons and a status sensor for a slow calibration of the OPV (up to 10 hours) that does not rely on the maximum modulation. The result becomes the starting value of the self-learning OPV.",
-          "xtreme_boiler_preset": "Fills in the rated power and the anti-cycling time for a known boiler model. It never turns a switch on or off. Changing one of those values by hand sets the preset back to Custom. Your rating plate is the best source for your own boiler.",
-          "xtreme_handover_on_off": "When the SAT thermostat is turned off, release the control setpoint of the OpenTherm Gateway right away (CS=0), so the thermostat on the bus takes over immediately instead of after about a minute. OpenTherm Gateway (MQTT) only."
+        "description": "This page belongs to SAT-xtreme, an unofficial fork of SAT, not to the official SAT. Every option is off by default; with everything off, SAT behaves like the official version. Turn on one option at a time and watch the effect for a few days.",
+        "sections": {
+          "thermostat": {
+            "name": "Thermostat on the bus",
+            "description": "For an OpenTherm Gateway with a thermostat (for example a Nest) still connected to the boiler.",
+            "data": {
+              "xtreme_prime_setpoint": "Keep the setpoint ready between PWM blocks",
+              "xtreme_handover_on_off": "Hand over to the thermostat when SAT is turned off"
+            },
+            "data_description": {
+              "xtreme_prime_setpoint": "Between PWM blocks SAT normally lowers the setpoint to 10 °C. With a thermostat on the bus the new setpoint then reaches the boiler late (with a Nest up to 2.5 minutes), so every block loses burn time. With this on, the setpoint stays at the overshoot protection value and only the heating demand is turned off, so the boiler starts within seconds.",
+              "xtreme_handover_on_off": "When you turn the SAT thermostat off, the gateway hands control back to the thermostat on the bus right away (CS=0), instead of after about a minute. If Home Assistant stops, the gateway still does this after about a minute. Only for the OpenTherm Gateway over MQTT."
+            }
+          },
+          "boiler": {
+            "name": "Boiler",
+            "description": "Settings for your boiler. Take the values from the rating plate and the installation manual of your boiler, or choose a preset.",
+            "data": {
+              "xtreme_boiler_preset": "Boiler preset",
+              "xtreme_ignore_modulation_limit": "The boiler ignores the modulation limit",
+              "xtreme_boiler_maximum_power": "Maximum heating output",
+              "xtreme_boiler_minimum_power": "Minimum heating output",
+              "xtreme_boiler_timing": "Align PWM with the boiler",
+              "xtreme_anti_cycling_time": "Anti-cycling time of the boiler",
+              "xtreme_anti_cycling_margin": "Extra margin on the anti-cycling time",
+              "xtreme_minimum_burn_time": "Minimum burn time per PWM block",
+              "xtreme_minimum_duty_cycle": "Do not heat below this duty cycle"
+            },
+            "data_description": {
+              "xtreme_boiler_preset": "Fills in the heating output and anti-cycling time of a known boiler. It never turns an option on or off. When you change one of these values yourself, the preset goes back to Custom.",
+              "xtreme_ignore_modulation_limit": "Turn on when your boiler does not follow the maximum modulation that SAT sends (MM=), but does report its modulation. SAT then stops sending the limit and keeps using the reported modulation. On an OpenTherm Gateway you can recognise this in the log: message 14 is answered with Data-Invalid.",
+              "xtreme_boiler_maximum_power": "Rated heating output for central heating (Pn at 80/60 °C), maximum, from the rating plate. Only used for the power sensor when the boiler does not report its capacity.",
+              "xtreme_boiler_minimum_power": "Rated heating output for central heating (Pn at 80/60 °C), minimum, from the rating plate. Only used for the power sensor when the boiler does not report its minimum.",
+              "xtreme_boiler_timing": "PWM counts real burn time instead of time since the heating demand, waits for the anti-cycling time after every flame (also short hot water flames), and burns at least the minimum burn time. Fill in the anti-cycling time below first.",
+              "xtreme_anti_cycling_time": "How long your boiler waits before it starts again after switching off. See the installation manual (for example parameter P036 on Intergas, HG09 on Wolf). Only used with 'Align PWM with the boiler'.",
+              "xtreme_anti_cycling_margin": "Seconds added to the anti-cycling time, so SAT never asks for heat just before the boiler may start.",
+              "xtreme_minimum_burn_time": "The shortest burn of a PWM block. Longer burns mean fewer starts and longer pauses. Default 6 minutes.",
+              "xtreme_minimum_duty_cycle": "When the house needs less heat than this share of the time, SAT does not heat at all until the demand rises. Default 7.5 %."
+            }
+          },
+          "learning": {
+            "name": "Learning and calibration",
+            "description": "Find the overshoot protection value (OPV): the lowest flow temperature at which your boiler burns steadily at minimum power.",
+            "data": {
+              "xtreme_learned_opv": "Self-learning OPV",
+              "xtreme_calibration": "Calibration buttons"
+            },
+            "data_description": {
+              "xtreme_learned_opv": "SAT learns the OPV during normal heating. 'Learn only' shows the learned value in a sensor while SAT keeps using your own OPV. 'Learn and apply' lets SAT use the learned value.",
+              "xtreme_calibration": "Adds a start and stop button and a status sensor for a slow, careful calibration of the OPV (up to 10 hours). It does not rely on the modulation limit, pauses for hot water and a too warm room, and can be stopped at any time. The result becomes the starting value of the self-learning OPV."
+            }
+          }
         }
       },
       "pid_settings": {
         "title": "PID settings (fork)",
-        "description": "This page belongs to SAT-xtreme, an unofficial fork of SAT, not to the official SAT. SAT adds a correction (PID) to the heating curve: setpoint = heating curve + correction. Here you choose how strong that correction is.",
+        "description": "This page belongs to SAT-xtreme, an unofficial fork of SAT, not to the official SAT. SAT calculates the water temperature as: heating curve + correction (PID). Here you choose how strong that correction is.",
         "data": {
           "automatic_gains": "Automatic gains",
           "xtreme_pid_gain_factor": "Gain factor",
           "xtreme_maximum_setpoint_rise": "Maximum rise above the heating curve"
         },
         "data_description": {
-          "automatic_gains": "SAT calculates the gains from the heating curve. Turn off to enter kP, kI and kD yourself on the next page (prefilled with the gains in use now).",
-          "xtreme_pid_gain_factor": "Multiplies the automatically calculated gains (kP, kI and kD alike). Below 1.0 the correction is calmer, above 1.0 stronger. 1.0 = unchanged. Not used with manual gains.",
-          "xtreme_maximum_setpoint_rise": "The setpoint never rises more than this above the heating curve. 0 = no limit. Also limits the morning warm-up."
+          "automatic_gains": "SAT calculates the strength of the correction from the heating curve. Turn off to enter kP, kI and kD yourself on the next page; it is prefilled with the values SAT uses now.",
+          "xtreme_pid_gain_factor": "Makes the automatic correction calmer (below 1.0) or stronger (above 1.0). For example 0.5: a room that is 1 °C too cold makes the water about half as hot extra. 1.0 = unchanged. Not used with manual gains.",
+          "xtreme_maximum_setpoint_rise": "The water never gets more than this hotter than the heating curve. 0 = no limit. Note: this also slows down warming up in the morning."
         }
       },
       "manual_gains": {
         "title": "Manual gains (fork)",
-        "description": "This page belongs to SAT-xtreme, an unofficial fork of SAT, not to the official SAT. The fields are prefilled with the gains SAT uses right now, so saving them unchanged does not change the control.",
+        "description": "This page belongs to SAT-xtreme, an unofficial fork of SAT, not to the official SAT. The fields are prefilled with the values SAT uses now, so saving them unchanged does not change the control.",
         "data": {
           "proportional": "Proportional (kP)",
           "integral": "Integral (kI)",
           "derivative": "Derivative (kD)"
+        },
+        "data_description": {
+          "proportional": "How strongly SAT reacts to the difference between the room and the target: °C of extra water temperature per °C that the room is too cold.",
+          "integral": "How fast SAT removes a small difference that remains over time. SAT only uses this part when the room is within 0.1 °C of the target.",
+          "derivative": "How strongly SAT reacts to how fast the room temperature changes. It brakes when the room warms up quickly and helps when it cools down quickly."
         }
       }
     }
@@ -327,11 +354,11 @@
     },
     "start_xtreme_calibration": {
       "name": "Start Xtreme calibration (fork)",
-      "description": "Xtreme fork: start the slow calibration of the overshoot protection value."
+      "description": "SAT-xtreme: start the slow calibration of the overshoot protection value."
     },
     "stop_xtreme_calibration": {
       "name": "Stop Xtreme calibration (fork)",
-      "description": "Xtreme fork: stop the calibration and return to normal operation."
+      "description": "SAT-xtreme: stop the calibration and return to normal operation."
     }
   },
   "selector": {
@@ -340,6 +367,12 @@
         "off": "Off",
         "learn": "Learn only",
         "apply": "Learn and apply"
+      }
+    },
+    "xtreme_boiler_preset": {
+      "options": {
+        "custom": "Custom",
+        "intergas_xtreme_30_2024": "Intergas Xtreme 30 (2024)"
       }
     }
   }

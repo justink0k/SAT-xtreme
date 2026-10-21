@@ -205,7 +205,9 @@
           "advanced": "Geavanceerde Opties",
           "general": "Algemeen",
           "presets": "Voorinstellingen",
-          "system_configuration": "Systeemconfiguratie"
+          "system_configuration": "Systeemconfiguratie",
+          "xtreme_profile": "Xtreme-profiel (fork)",
+          "pid_settings": "PID-instellingen (fork)"
         }
       },
       "presets": {
@@ -237,7 +239,116 @@
         },
         "description": "Voor fijnafstelling en aanpassing.",
         "title": "Systeemconfiguratie"
+      },
+      "xtreme_profile": {
+        "title": "Xtreme-profiel (fork)",
+        "description": "Deze pagina hoort bij SAT-xtreme, een onofficiële fork van SAT, niet bij de officiële SAT. Alles staat standaard uit; met alles uit werkt SAT zoals de officiële versie. Zet één optie tegelijk aan en volg het effect een paar dagen.",
+        "sections": {
+          "thermostat": {
+            "name": "Thermostaat op de bus",
+            "description": "Voor een OpenTherm Gateway waarbij een thermostaat (bijvoorbeeld een Nest) nog op de ketel is aangesloten.",
+            "data": {
+              "xtreme_prime_setpoint": "Setpoint klaar houden tussen PWM-blokken",
+              "xtreme_handover_on_off": "Overdragen aan de thermostaat als SAT uit gaat"
+            },
+            "data_description": {
+              "xtreme_prime_setpoint": "Tussen PWM-blokken verlaagt SAT het setpoint normaal naar 10 °C. Met een thermostaat op de bus komt het nieuwe setpoint dan laat bij de ketel aan (bij een Nest tot 2,5 minuut), zodat elk blok brandtijd verliest. Met deze optie blijft het setpoint op de overshoot-beveiligingswaarde staan en gaat alleen de warmtevraag uit, zodat de ketel binnen enkele seconden start.",
+              "xtreme_handover_on_off": "Zet je de SAT-thermostaat uit, dan geeft de gateway de regeling direct terug aan de thermostaat op de bus (CS=0), in plaats van na ongeveer een minuut. Stopt Home Assistant, dan doet de gateway dit nog steeds na ongeveer een minuut. Alleen voor de OpenTherm Gateway via MQTT."
+            }
+          },
+          "boiler": {
+            "name": "Ketel",
+            "description": "Instellingen voor je ketel. Neem de waarden over van het typeplaatje en uit de installatiehandleiding, of kies een preset.",
+            "data": {
+              "xtreme_boiler_preset": "Ketelpreset",
+              "xtreme_ignore_modulation_limit": "De ketel negeert de modulatiegrens",
+              "xtreme_boiler_maximum_power": "Maximaal vermogen cv",
+              "xtreme_boiler_minimum_power": "Minimaal vermogen cv",
+              "xtreme_boiler_timing": "PWM afstemmen op de ketel",
+              "xtreme_anti_cycling_time": "Anti-pendeltijd van de ketel",
+              "xtreme_anti_cycling_margin": "Extra marge op de anti-pendeltijd",
+              "xtreme_minimum_burn_time": "Minimale brandtijd per PWM-blok",
+              "xtreme_minimum_duty_cycle": "Niet stoken onder deze duty cycle"
+            },
+            "data_description": {
+              "xtreme_boiler_preset": "Vult het vermogen en de anti-pendeltijd in van een bekende ketel. Zet nooit een optie aan of uit. Wijzig je zelf een van deze waarden, dan gaat de preset terug naar Aangepast.",
+              "xtreme_ignore_modulation_limit": "Zet aan als je ketel de maximale modulatie die SAT stuurt (MM=) niet volgt, maar zijn modulatie wel doorgeeft. SAT stopt dan met het sturen van de grens en blijft de doorgegeven modulatie gebruiken. Op een OpenTherm Gateway herken je dit in het log: bericht 14 krijgt Data-Invalid als antwoord.",
+              "xtreme_boiler_maximum_power": "Nominaal vermogen voor cv (Pn bij 80/60 °C), maximum, van het typeplaatje. Alleen gebruikt voor de vermogenssensor als de ketel zijn capaciteit niet doorgeeft.",
+              "xtreme_boiler_minimum_power": "Nominaal vermogen voor cv (Pn bij 80/60 °C), minimum, van het typeplaatje. Alleen gebruikt voor de vermogenssensor als de ketel zijn minimum niet doorgeeft.",
+              "xtreme_boiler_timing": "PWM telt echte brandtijd in plaats van de tijd sinds de warmtevraag, wacht de anti-pendeltijd af na elke vlam (ook korte warmwatervlammen) en brandt minstens de minimale brandtijd. Vul eerst hieronder de anti-pendeltijd in.",
+              "xtreme_anti_cycling_time": "Hoe lang je ketel wacht voordat hij na het afslaan weer start. Zie de installatiehandleiding (bijvoorbeeld parameter P036 bij Intergas, HG09 bij Wolf). Alleen gebruikt bij 'PWM afstemmen op de ketel'.",
+              "xtreme_anti_cycling_margin": "Seconden bovenop de anti-pendeltijd, zodat SAT nooit warmte vraagt net voordat de ketel weer mag starten.",
+              "xtreme_minimum_burn_time": "De kortste brand van een PWM-blok. Langer branden betekent minder starts en langere pauzes. Standaard 6 minuten.",
+              "xtreme_minimum_duty_cycle": "Heeft het huis minder warmte nodig dan dit deel van de tijd, dan stookt SAT helemaal niet tot de vraag stijgt. Standaard 7,5 %."
+            }
+          },
+          "learning": {
+            "name": "Leren en kalibreren",
+            "description": "Bepaal de overshoot-beveiligingswaarde (OPV): de laagste aanvoertemperatuur waarbij je ketel rustig op minimaal vermogen brandt.",
+            "data": {
+              "xtreme_learned_opv": "Zelflerende OPV",
+              "xtreme_calibration": "Kalibratieknoppen"
+            },
+            "data_description": {
+              "xtreme_learned_opv": "SAT leert de OPV tijdens gewoon stoken. 'Alleen leren' toont de geleerde waarde in een sensor terwijl SAT je eigen OPV blijft gebruiken. 'Leren en gebruiken' laat SAT de geleerde waarde gebruiken.",
+              "xtreme_calibration": "Voegt een start- en stopknop en een statussensor toe voor een langzame, zorgvuldige kalibratie van de OPV (tot 10 uur). Hangt niet af van de modulatiegrens, pauzeert bij warm water en een te warme kamer, en is altijd te stoppen. De uitkomst wordt de beginwaarde van de zelflerende OPV."
+            }
+          }
+        }
+      },
+      "pid_settings": {
+        "title": "PID-instellingen (fork)",
+        "description": "Deze pagina hoort bij SAT-xtreme, een onofficiële fork van SAT, niet bij de officiële SAT. SAT berekent de watertemperatuur als: stooklijn + bijsturing (PID). Hier kies je hoe sterk die bijsturing is.",
+        "data": {
+          "automatic_gains": "Automatische versterking",
+          "xtreme_pid_gain_factor": "Dempingsfactor",
+          "xtreme_maximum_setpoint_rise": "Maximale stijging boven de stooklijn"
+        },
+        "data_description": {
+          "automatic_gains": "SAT berekent de sterkte van de bijsturing uit de stooklijn. Zet uit om kP, kI en kD zelf in te vullen op de volgende pagina; die is vooraf ingevuld met de waarden die SAT nu gebruikt.",
+          "xtreme_pid_gain_factor": "Maakt de automatische bijsturing rustiger (onder 1,0) of feller (boven 1,0). Bijvoorbeeld 0,5: een kamer die 1 °C te koud is, maakt het water ongeveer half zo veel extra warm. 1,0 = ongewijzigd. Niet gebruikt bij handmatige waarden.",
+          "xtreme_maximum_setpoint_rise": "Het water wordt nooit meer dan dit warmer dan de stooklijn. 0 = geen grens. Let op: dit vertraagt ook het opwarmen in de ochtend."
+        }
+      },
+      "manual_gains": {
+        "title": "Handmatige versterking (fork)",
+        "description": "Deze pagina hoort bij SAT-xtreme, een onofficiële fork van SAT, niet bij de officiële SAT. De velden zijn ingevuld met de waarden die SAT nu gebruikt, dus ongewijzigd opslaan verandert de regeling niet.",
+        "data": {
+          "proportional": "Proportioneel (kP)",
+          "integral": "Integrerend (kI)",
+          "derivative": "Differentiërend (kD)"
+        },
+        "data_description": {
+          "proportional": "Hoe sterk SAT reageert op het verschil tussen kamer en doel: °C extra watertemperatuur per °C dat de kamer te koud is.",
+          "integral": "Hoe snel SAT een klein verschil wegwerkt dat blijft hangen. SAT gebruikt dit deel alleen als de kamer binnen 0,1 °C van het doel is.",
+          "derivative": "Hoe sterk SAT reageert op hoe snel de kamertemperatuur verandert. Remt af als de kamer snel opwarmt en helpt als hij snel afkoelt."
+        }
       }
+    }
+  },
+  "selector": {
+    "xtreme_learned_opv": {
+      "options": {
+        "off": "Uit",
+        "learn": "Alleen leren",
+        "apply": "Leren en gebruiken"
+      }
+    },
+    "xtreme_boiler_preset": {
+      "options": {
+        "custom": "Aangepast",
+        "intergas_xtreme_30_2024": "Intergas Xtreme 30 (2024)"
+      }
+    }
+  },
+  "services": {
+    "start_xtreme_calibration": {
+      "name": "Xtreme-kalibratie starten (fork)",
+      "description": "SAT-xtreme: start de langzame kalibratie van de overshoot-beveiligingswaarde."
+    },
+    "stop_xtreme_calibration": {
+      "name": "Xtreme-kalibratie stoppen (fork)",
+      "description": "SAT-xtreme: stop de kalibratie en ga terug naar normaal bedrijf."
     }
   }
 }

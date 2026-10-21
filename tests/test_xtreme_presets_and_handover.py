@@ -15,7 +15,7 @@ from custom_components.sat.manufacturers.remeha import Remeha
 from custom_components.sat.mqtt.opentherm import SatOpenThermMqttCoordinator
 from custom_components.sat.xtreme_profile import BOILER_PRESETS, apply_boiler_preset
 from tests.const import DEFAULT_USER_DATA
-from tests.xtreme_helpers import parameters
+from tests.xtreme_helpers import parameters, xtreme_profile_input
 
 PRESET = "intergas_xtreme_30_2024"
 
@@ -70,12 +70,14 @@ async def test_preset_in_the_options_flow(hass: HomeAssistant, entry: MockConfig
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "xtreme_profile"})
 
-    defaults = {str(key): key.default() for key in result["data_schema"].schema}
+    boiler = result["data_schema"].schema["boiler"].schema
+    defaults = {str(key): key.default() for key in boiler.schema}
     assert defaults[CONF_XTREME_BOILER_PRESET] == BOILER_PRESET_CUSTOM
 
-    defaults[CONF_XTREME_BOILER_PRESET] = PRESET
-    defaults[CONF_XTREME_BOILER_MAXIMUM_POWER] = 30.0
-    result = await hass.config_entries.options.async_configure(result["flow_id"], defaults)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], xtreme_profile_input(**{
+        CONF_XTREME_BOILER_PRESET: PRESET,
+        CONF_XTREME_BOILER_MAXIMUM_POWER: 30.0,
+    }))
     await hass.async_block_till_done()
 
     assert result["type"] == "create_entry"
@@ -158,3 +160,36 @@ async def test_minimum_setpoint_storage_is_loaded(hass: HomeAssistant, hass_stor
 
     climate = hass.data[DOMAIN][sat_entry.entry_id][CLIMATE]
     assert climate.minimum_setpoint._base_return_temperature.value == 33.5
+
+
+@pytest.mark.parametrize(*parameters())
+async def test_xtreme_profile_page_has_three_sections(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "xtreme_profile"})
+
+    assert [str(key) for key in result["data_schema"].schema] == ["thermostat", "boiler", "learning"]
+
+    # The sections are stored as flat options
+    result = await hass.config_entries.options.async_configure(result["flow_id"], xtreme_profile_input(**{CONF_XTREME_HANDOVER_ON_OFF: True, CONF_XTREME_LEARNED_OPV: "learn"}))
+    assert result["type"] == "create_entry"
+    assert entry.options[CONF_XTREME_HANDOVER_ON_OFF] is True
+    assert entry.options[CONF_XTREME_LEARNED_OPV] == "learn"
+    assert "thermostat" not in entry.options
+
+
+def test_every_fork_option_is_explained_in_english_and_dutch():
+    import json
+    from pathlib import Path
+
+    folder = Path(__file__).parent.parent / "custom_components" / "sat" / "translations"
+    for language in ("en", "nl"):
+        steps = json.loads((folder / f"{language}.json").read_text())["options"]["step"]
+
+        for section in steps["xtreme_profile"]["sections"].values():
+            assert section["name"] and section["description"]
+            assert set(section["data"]) == set(section["data_description"]), (language, section["name"])
+
+        for step in ("pid_settings", "manual_gains"):
+            assert set(steps[step]["data"]) == set(steps[step]["data_description"]), (language, step)
+
+        assert "Intergas Xtreme boiler" not in steps["xtreme_profile"]["description"]
