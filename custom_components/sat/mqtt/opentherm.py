@@ -188,6 +188,16 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
 
         await super().async_set_control_setpoint(value)
 
+    @property
+    def supports_setpoint_release(self) -> bool:
+        return True
+
+    async def async_release_control_setpoint(self) -> None:
+        # CS=0 hands the control setpoint (and the central heating enable bit) back to the thermostat
+        await self._publish_command("CS=0")
+
+        await super().async_release_control_setpoint()
+
     async def async_set_control_hot_water_setpoint(self, value: float) -> None:
         await self._publish_command(f"SW={value}")
 

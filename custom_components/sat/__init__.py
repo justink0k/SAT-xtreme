@@ -56,8 +56,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     # Making sure everything is loaded
     await hass.data[DOMAIN][entry.entry_id][COORDINATOR].async_setup()
 
-    # Forward entry setup for used platforms
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # Forward entry setup for used platforms. The climate (PLATFORMS[0]) goes first: the other platforms
+    # need it, and setting them up at the same time could skip their entities when it was not ready yet.
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS[:1])
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS[1:])
 
     # Register the services
     await async_register_services(hass)

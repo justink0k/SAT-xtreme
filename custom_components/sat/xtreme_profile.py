@@ -24,9 +24,72 @@ from .const import (
     CONF_XTREME_CALIBRATION,
     CONF_XTREME_PID_GAIN_FACTOR,
     CONF_XTREME_MAXIMUM_SETPOINT_RISE,
+    CONF_XTREME_BOILER_PRESET,
+    CONF_XTREME_HANDOVER_ON_OFF,
+    BOILER_PRESET_CUSTOM,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class BoilerPreset:
+    """Default values for a boiler model. Only fills in numbers, never turns a switch on or off."""
+    name: str
+    manufacturer: str
+    maximum_power: float
+    minimum_power: float
+    anti_cycling_time: int
+    source: str
+
+
+# Presets with a verified source. See docs/boiler_presets.md for how to add one.
+BOILER_PRESETS: dict[str, BoilerPreset] = {
+    "intergas_xtreme_30_2024": BoilerPreset(
+        name="Intergas Xtreme 30 (2024)",
+        manufacturer="Intergas",
+        maximum_power=19.5,
+        minimum_power=3.9,
+        anti_cycling_time=300,
+        source="Rating plate of a 2024 unit (G25.3, Pn 80/60) and the factory value of parameter P036",
+    ),
+}
+
+# Options that a preset fills in
+PRESET_OPTIONS = {
+    CONF_XTREME_BOILER_MAXIMUM_POWER: "maximum_power",
+    CONF_XTREME_BOILER_MINIMUM_POWER: "minimum_power",
+    CONF_XTREME_ANTI_CYCLING_TIME: "anti_cycling_time",
+}
+
+
+def apply_boiler_preset(previous: dict[str, Any], submitted: dict[str, Any]) -> dict[str, Any]:
+    """Apply the boiler preset to the submitted options.
+
+    A newly chosen preset fills in its values. When the preset stays the same but one of its values was
+    changed by hand, the preset falls back to custom, so it is always clear which values are in use.
+    """
+    result = dict(submitted)
+    preset_key = result.get(CONF_XTREME_BOILER_PRESET, BOILER_PRESET_CUSTOM)
+
+    if (preset := BOILER_PRESETS.get(preset_key)) is None:
+        result[CONF_XTREME_BOILER_PRESET] = BOILER_PRESET_CUSTOM
+        return result
+
+    if previous.get(CONF_XTREME_BOILER_PRESET, BOILER_PRESET_CUSTOM) != preset_key:
+        for option, attribute in PRESET_OPTIONS.items():
+            result[option] = getattr(preset, attribute)
+
+        _LOGGER.info("Xtreme profile: boiler preset '%s' applied.", preset.name)
+        return result
+
+    for option, attribute in PRESET_OPTIONS.items():
+        if option in result and float(result[option]) != float(getattr(preset, attribute)):
+            result[CONF_XTREME_BOILER_PRESET] = BOILER_PRESET_CUSTOM
+            _LOGGER.info("Xtreme profile: '%s' was changed by hand, boiler preset set to custom.", option)
+            break
+
+    return result
+
 
 # Do not resend the same heater state (CH=0 / CH=1) within this window while the
 # status bit on the bus has not caught up yet (MsgID 0 every few seconds plus the
@@ -70,6 +133,13 @@ class XtremeProfile:
     pid_gain_factor: float = 1.0
     maximum_setpoint_rise: float = 0
 
+    # The boiler preset that filled in the values above ("custom" when they were entered by hand)
+    boiler_preset: str = BOILER_PRESET_CUSTOM
+
+    # Hand the boiler back to the thermostat on the bus right away when SAT is turned off (CS=0),
+    # instead of waiting for the heartbeat of the gateway to expire
+    handover_on_off: bool = False
+
     @property
     def anti_cycling_wait(self) -> int:
         """Seconds to wait after the last flame before a new on phase may start."""
@@ -99,6 +169,8 @@ class XtremeProfile:
             calibration=bool(values.get(CONF_XTREME_CALIBRATION)),
             pid_gain_factor=float(values.get(CONF_XTREME_PID_GAIN_FACTOR)),
             maximum_setpoint_rise=float(values.get(CONF_XTREME_MAXIMUM_SETPOINT_RISE)),
+            boiler_preset=str(values.get(CONF_XTREME_BOILER_PRESET)),
+            handover_on_off=bool(values.get(CONF_XTREME_HANDOVER_ON_OFF)),
         )
 
         if profile.enabled:
@@ -116,6 +188,8 @@ class XtremeProfile:
             ("calibration", self.calibration),
             (f"pid_gain_factor ({self.pid_gain_factor})", self.pid_gain_factor != 1.0),
             (f"maximum_setpoint_rise ({self.maximum_setpoint_rise})", self.maximum_setpoint_rise > 0),
+            (f"boiler_preset ({self.boiler_preset})", self.boiler_preset != BOILER_PRESET_CUSTOM),
+            ("handover_on_off", self.handover_on_off),
         )
 
         return [name for name, enabled in switches if enabled]

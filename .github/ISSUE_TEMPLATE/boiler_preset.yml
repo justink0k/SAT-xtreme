@@ -1,0 +1,63 @@
+name: Boiler preset
+description: Propose a boiler preset for the SAT-xtreme fork (rated power and anti-cycling time of a boiler model).
+title: "[Preset] <brand> <model> (<year>)"
+labels: ["boiler preset"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A preset only fills in numbers in *Configure → Xtreme profile (fork)*. Every value needs a source,
+        because a wrong preset is worse than no preset. See `docs/boiler_presets.md`.
+        This is the issue tracker of the unofficial SAT-xtreme fork, not of the official SAT.
+  - type: input
+    id: model
+    attributes:
+      label: Brand, model and year of manufacture
+      placeholder: "Intergas Xtreme 30, 2024"
+    validations:
+      required: true
+  - type: input
+    id: gas
+    attributes:
+      label: Gas type and country
+      placeholder: "G25.3, Netherlands"
+    validations:
+      required: true
+  - type: input
+    id: power
+    attributes:
+      label: Rated heating output for central heating (Pn, 80/60 °C), minimum – maximum in kW
+      description: From the rating plate (not the hot water values).
+      placeholder: "3.9 – 19.5"
+    validations:
+      required: true
+  - type: textarea
+    id: rating_plate
+    attributes:
+      label: Photo of the rating plate
+      description: Drag a photo of the rating plate here. Hide the serial number if you want.
+    validations:
+      required: true
+  - type: input
+    id: anti_cycling
+    attributes:
+      label: Anti-cycling time (factory value) and parameter name
+      placeholder: "5 minutes, parameter P036"
+  - type: input
+    id: anti_cycling_source
+    attributes:
+      label: Source of the anti-cycling time
+      description: Manual title, document number, version and page, or "measured" with how you measured it.
+  - type: dropdown
+    id: modulation_limit
+    attributes:
+      label: Does the boiler ignore the maximum modulation (MM=)?
+      options:
+        - Not tested
+        - "Yes: MsgID 14 is answered with Data-Invalid, or it modulates above the limit"
+        - "No: it stays below the limit"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Gateway (OTGW via MQTT or serial, ESPHome, EMS-ESP), thermostat on the bus, anything else.

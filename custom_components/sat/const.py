@@ -105,6 +105,10 @@ CONF_XTREME_LEARNED_OPV = "xtreme_learned_opv"
 CONF_XTREME_CALIBRATION = "xtreme_calibration"
 CONF_XTREME_PID_GAIN_FACTOR = "xtreme_pid_gain_factor"
 CONF_XTREME_MAXIMUM_SETPOINT_RISE = "xtreme_maximum_setpoint_rise"
+CONF_XTREME_BOILER_PRESET = "xtreme_boiler_preset"
+CONF_XTREME_HANDOVER_ON_OFF = "xtreme_handover_on_off"
+
+BOILER_PRESET_CUSTOM = "custom"
 
 SERVICE_START_XTREME_CALIBRATION = "start_xtreme_calibration"
 SERVICE_STOP_XTREME_CALIBRATION = "stop_xtreme_calibration"
@@ -187,6 +191,8 @@ OPTIONS_DEFAULTS = {
     CONF_XTREME_CALIBRATION: False,
     CONF_XTREME_PID_GAIN_FACTOR: 1.0,
     CONF_XTREME_MAXIMUM_SETPOINT_RISE: 0,
+    CONF_XTREME_BOILER_PRESET: "custom",
+    CONF_XTREME_HANDOVER_ON_OFF: False,
 }
 
 # Overshoot protection

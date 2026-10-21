@@ -47,7 +47,7 @@ from .relative_modulation import RelativeModulation, RelativeModulationState
 from .summer_simmer import SummerSimmer
 from .xtreme_calibration import XtremeCalibration
 from .xtreme_opv import LearnedOpv
-from .xtreme_profile import HEATER_COMMAND_REPEAT_SECONDS
+from .xtreme_profile import BOILER_PRESETS, HEATER_COMMAND_REPEAT_SECONDS
 from .util import create_pid_controller, create_heating_curve_controller, create_pwm_controller, create_minimum_setpoint_controller
 
 ATTR_ROOMS = "rooms"
@@ -142,6 +142,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         self._control_heating_loop_unsub: Optional[Callable[[], None]] = None
         self._xtreme_modulation_limit_reset: bool = False
+        self._xtreme_preset_checked: bool = False
 
         # System Configuration
         self._attr_name = str(config_entry.data.get(CONF_NAME))
@@ -220,6 +221,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         # Restore the previous state if available, or set default values
         await self._restore_previous_state_or_set_defaults()
+
+        # Load the stored base return temperature of the dynamic minimum setpoint (never loaded upstream)
+        await self.minimum_setpoint.async_initialize(self.hass)
 
         # Xtreme profile: load the learned OPV and the last calibration report
         await self.learned_opv.async_initialize(self.hass)
@@ -993,6 +997,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Control the heating through the coordinator
         await self._coordinator.async_control_heating_loop(climate=self, pwm_state=self.pwm.state)
 
+        # Xtreme profile: warn once when the boiler preset does not match the detected manufacturer
+        self._check_boiler_preset()
+
         # Xtreme profile: learn the OPV from what the boiler did since the last loop
         self.learned_opv.observe(
             boiler=self._coordinator.boiler,
@@ -1051,6 +1058,34 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         await self.async_set_heater_state(self._desired_heater_state())
 
         self.async_write_ha_state()
+
+    def _check_boiler_preset(self) -> None:
+        """Xtreme profile: log a warning when the boiler preset is for another manufacturer than the detected one."""
+        if self._xtreme_preset_checked or (manufacturer := self._coordinator.manufacturer) is None:
+            return
+
+        self._xtreme_preset_checked = True
+
+        if (preset := BOILER_PRESETS.get(self._coordinator.xtreme_profile.boiler_preset)) is None:
+            return
+
+        if manufacturer.friendly_name != preset.manufacturer:
+            _LOGGER.warning(
+                "Xtreme profile: the boiler preset '%s' is for %s, but the boiler reports itself as %s. Check the preset and your rating plate.",
+                preset.name, preset.manufacturer, manufacturer.friendly_name
+            )
+
+    async def _async_handover_to_thermostat(self) -> None:
+        """Xtreme profile: release the control setpoint, so the thermostat on the bus takes over right away."""
+        if not self._coordinator.xtreme_profile.handover_on_off:
+            return
+
+        if not self._coordinator.supports_setpoint_release:
+            _LOGGER.debug("Xtreme profile: handing over is only supported by the OpenTherm Gateway, skipped.")
+            return
+
+        _LOGGER.info("Xtreme profile: SAT turned off, releasing the control setpoint (CS=0) so the thermostat takes over.")
+        await self._coordinator.async_release_control_setpoint()
 
     def _desired_heater_state(self) -> DeviceState:
         """Determine the heater state for the current setpoint and PWM state."""
@@ -1139,6 +1174,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self._hvac_mode = HVACMode.OFF
             await self.xtreme_calibration.async_stop("The thermostat was turned off")
             await self.async_set_heater_state(DeviceState.OFF)
+            await self._async_handover_to_thermostat()
         else:
             # If an unsupported mode is passed, log an error message
             _LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)

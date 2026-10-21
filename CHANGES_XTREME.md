@@ -324,3 +324,35 @@ wizard, and that choice was not even used (see the fix below).
 `custom_components/sat/xtreme_calibration.py`, `custom_components/sat/translations/en.json`,
 `custom_components/sat/manifest.json`, `dashboards/sat_xtreme.yaml`, `README.md`,
 `tests/test_xtreme_pid.py` (new), `tests/test_xtreme_dashboard.py`.
+
+## Version 9: boiler preset, handover and two bug fixes (`4.2.1+xtreme.9`, 2026-10-21)
+
+**Boiler preset** (`xtreme_boiler_preset`, *Configure → Xtreme profile (fork)*, default Custom). Fills in
+the rated maximum and minimum heating power and the anti-cycling time of a known boiler. The first and
+only preset is *Intergas Xtreme 30 (2024)*: 19.5 / 3.9 kW and 300 s (rating plate of a 2024 unit,
+factory value of P036). A preset never turns a switch on or off. Choosing a preset fills in its values;
+changing one of them by hand sets the preset back to Custom. When the preset is for another
+manufacturer than the boiler reports, a warning is logged once. New presets come from users with the
+boiler, through the *Boiler preset* issue template; `docs/boiler_presets.md` has the research notes and
+the requirements.
+
+**Hand over to the thermostat** (`xtreme_handover_on_off`, default off). When the SAT thermostat is
+turned off, SAT sends `CS=0` once, so the OpenTherm Gateway hands the setpoint and the heating demand
+back to the thermostat on the bus right away instead of after about a minute. If Home Assistant stops,
+the heartbeat of the gateway still does this. Only for the OpenTherm Gateway over MQTT; other devices
+ignore the switch.
+
+**Bug fixes** (no switch):
+
+- The climate platform is set up before the other platforms. They need the climate entity, and setting
+  them up at the same time could skip their entities or fail with `KeyError: 'climate'`.
+- The stored base return temperature of the dynamic minimum setpoint is loaded after a restart (upstream
+  saved it but never loaded it). Only matters when the dynamic minimum setpoint is on.
+
+**Files.** `custom_components/sat/xtreme_profile.py`, `custom_components/sat/const.py`,
+`custom_components/sat/config_flow.py`, `custom_components/sat/climate.py`,
+`custom_components/sat/coordinator.py`, `custom_components/sat/mqtt/opentherm.py`,
+`custom_components/sat/__init__.py`, `custom_components/sat/translations/en.json`,
+`custom_components/sat/manifest.json`, `docs/boiler_presets.md` (new),
+`.github/ISSUE_TEMPLATE/boiler_preset.yml` (new), `README.md`,
+`tests/test_xtreme_presets_and_handover.py` (new).

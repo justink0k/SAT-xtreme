@@ -486,6 +486,15 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         return True
 
     @property
+    def supports_setpoint_release(self) -> bool:
+        """Xtreme fork: whether the device can hand the setpoint back to the thermostat on the bus (OpenTherm Gateway CS=0)."""
+        return False
+
+    async def async_release_control_setpoint(self) -> None:
+        """Xtreme fork: hand the control setpoint back to the thermostat on the bus."""
+        _LOGGER.info("Released the control setpoint to the thermostat")
+
+    @property
     def supports_maximum_setpoint_management(self):
         """Returns whether the device supports setting a maximum setpoint.
 

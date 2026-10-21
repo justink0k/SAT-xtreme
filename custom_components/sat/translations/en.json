@@ -265,7 +265,9 @@
           "xtreme_minimum_burn_time": "Minimum burn time",
           "xtreme_minimum_duty_cycle": "Minimum duty cycle",
           "xtreme_learned_opv": "Self-learning overshoot protection value (OPV)",
-          "xtreme_calibration": "Xtreme calibration"
+          "xtreme_calibration": "Xtreme calibration",
+          "xtreme_boiler_preset": "Boiler preset",
+          "xtreme_handover_on_off": "Hand over to the thermostat when SAT is turned off"
         },
         "data_description": {
           "xtreme_prime_setpoint": "Keep the minimum setpoint on the bus during the PWM off phase and turn the heating demand off explicitly, so the boiler starts right away when the next on phase begins. Helps when a thermostat on the bus rarely sends the control setpoint (MsgID 1).",
@@ -278,7 +280,9 @@
           "xtreme_minimum_burn_time": "The shortest burn of a PWM on phase. Longer burns mean fewer starts and longer off phases.",
           "xtreme_minimum_duty_cycle": "Below this duty cycle SAT does not burn at all (upstream: half of the minimum burn time share).",
           "xtreme_learned_opv": "Learn the OPV during normal operation. 'Learn only' shows the learned value in a sensor while SAT keeps using the configured OPV; 'Learn and apply' uses the learned value.",
-          "xtreme_calibration": "Adds start and stop buttons and a status sensor for a slow calibration of the OPV (up to 10 hours) that does not rely on the maximum modulation. The result becomes the starting value of the self-learning OPV."
+          "xtreme_calibration": "Adds start and stop buttons and a status sensor for a slow calibration of the OPV (up to 10 hours) that does not rely on the maximum modulation. The result becomes the starting value of the self-learning OPV.",
+          "xtreme_boiler_preset": "Fills in the rated power and the anti-cycling time for a known boiler model. It never turns a switch on or off. Changing one of those values by hand sets the preset back to Custom. Your rating plate is the best source for your own boiler.",
+          "xtreme_handover_on_off": "When the SAT thermostat is turned off, release the control setpoint of the OpenTherm Gateway right away (CS=0), so the thermostat on the bus takes over immediately instead of after about a minute. OpenTherm Gateway (MQTT) only."
         }
       },
       "pid_settings": {

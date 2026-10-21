@@ -47,6 +47,8 @@ modified, and how to go back to the official version.
 | Step 4: self-learning overshoot protection value (OPV) | *Configure → Xtreme profile (fork)* | off |
 | Step 5: slow calibration of the OPV, with start/stop buttons | *Configure → Xtreme profile (fork)* | off |
 | Step 6: ready for Home Assistant 2026.12 | built in | always |
+| Boiler preset: fills in the rated power and anti-cycling time of a known boiler ([how to add yours](docs/boiler_presets.md#adding-a-preset-for-your-boiler)) | *Configure → Xtreme profile (fork)* | Custom |
+| Hand over to the thermostat right away when SAT is turned off (CS=0, OpenTherm Gateway via MQTT) | *Configure → Xtreme profile (fork)* | off |
 | PID settings: automatic gains, gain factor, maximum rise above the heating curve, manual gains | *Configure → PID settings (fork)* | unchanged |
 | Dashboard | [`dashboards/sat_xtreme.yaml`](dashboards/sat_xtreme.yaml) | – |
 
@@ -80,9 +82,12 @@ These fixes apply to everyone, without a switch:
   before the calibration in the wizard starts (`7d43560`), the heater state command of EMS-ESP
   (`042dcca`), and turning the heater off when all valves close (`6e05470`).
 
-Known issue of upstream that is **not** fixed: the stored value of the dynamic minimum setpoint
-(`minimum_setpoint.py`) is never loaded after a restart. It does not matter when the dynamic minimum
-setpoint is off.
+- **Sensors or buttons missing after a restart.** All platforms were set up at the same time, while the
+  sensors, binary sensors and buttons need the climate entity; when it was not ready yet, their entities
+  were silently skipped (or failed with `KeyError: 'climate'`). The climate is now set up first.
+- **Stored dynamic minimum setpoint never loaded.** The base return temperature of the dynamic minimum
+  setpoint was saved but never loaded after a restart. It is now loaded. This only matters when the
+  dynamic minimum setpoint is on.
 
 See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fix.
 

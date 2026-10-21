@@ -18,6 +18,7 @@ from voluptuous import Marker
 
 from . import SatDataUpdateCoordinatorFactory
 from .const import *
+from .xtreme_profile import BOILER_PRESETS, apply_boiler_preset
 from .coordinator import SatDataUpdateCoordinator
 from .helpers import calculate_default_maximum_setpoint, snake_case
 from .manufacturer import ManufacturerFactory, MANUFACTURERS
@@ -766,14 +767,23 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
 
     async def async_step_xtreme_profile(self, _user_input: dict[str, Any] | None = None):
         if _user_input is not None:
-            return await self.update_options(_user_input)
+            return await self.update_options(apply_boiler_preset(await self.get_options(), _user_input))
 
         options = await self.get_options()
 
         return self.async_show_form(
             step_id="xtreme_profile",
             data_schema=vol.Schema({
+                vol.Required(CONF_XTREME_BOILER_PRESET, default=options[CONF_XTREME_BOILER_PRESET]): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        mode=SelectSelectorMode.DROPDOWN,
+                        options=[selector.SelectOptionDict(value=BOILER_PRESET_CUSTOM, label="Custom")] + [
+                            selector.SelectOptionDict(value=key, label=preset.name) for key, preset in BOILER_PRESETS.items()
+                        ],
+                    )
+                ),
                 vol.Required(CONF_XTREME_PRIME_SETPOINT, default=options[CONF_XTREME_PRIME_SETPOINT]): bool,
+                vol.Required(CONF_XTREME_HANDOVER_ON_OFF, default=options[CONF_XTREME_HANDOVER_ON_OFF]): bool,
                 vol.Required(CONF_XTREME_IGNORE_MODULATION_LIMIT, default=options[CONF_XTREME_IGNORE_MODULATION_LIMIT]): bool,
                 vol.Required(CONF_XTREME_BOILER_MAXIMUM_POWER, default=options[CONF_XTREME_BOILER_MAXIMUM_POWER]): selector.NumberSelector(
                     selector.NumberSelectorConfig(min=1, max=100, step=0.1, unit_of_measurement="kW")
