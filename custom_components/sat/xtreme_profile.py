@@ -22,6 +22,8 @@ from .const import (
     CONF_XTREME_MINIMUM_DUTY_CYCLE,
     CONF_XTREME_LEARNED_OPV,
     CONF_XTREME_CALIBRATION,
+    CONF_XTREME_PID_GAIN_FACTOR,
+    CONF_XTREME_MAXIMUM_SETPOINT_RISE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -63,6 +65,11 @@ class XtremeProfile:
     # Step 5: a slow calibration of the OPV that does not rely on MM=, started with a button or service
     calibration: bool = False
 
+    # PID settings: a factor on the automatically calculated gains, and a limit on how far the
+    # requested setpoint may rise above the heating curve (0 = no limit)
+    pid_gain_factor: float = 1.0
+    maximum_setpoint_rise: float = 0
+
     @property
     def anti_cycling_wait(self) -> int:
         """Seconds to wait after the last flame before a new on phase may start."""
@@ -90,6 +97,8 @@ class XtremeProfile:
             minimum_duty_cycle=float(values.get(CONF_XTREME_MINIMUM_DUTY_CYCLE)),
             learned_opv=str(values.get(CONF_XTREME_LEARNED_OPV)),
             calibration=bool(values.get(CONF_XTREME_CALIBRATION)),
+            pid_gain_factor=float(values.get(CONF_XTREME_PID_GAIN_FACTOR)),
+            maximum_setpoint_rise=float(values.get(CONF_XTREME_MAXIMUM_SETPOINT_RISE)),
         )
 
         if profile.enabled:
@@ -105,6 +114,8 @@ class XtremeProfile:
             ("boiler_timing", self.boiler_timing),
             (f"learned_opv ({self.learned_opv})", self.learned_opv != "off"),
             ("calibration", self.calibration),
+            (f"pid_gain_factor ({self.pid_gain_factor})", self.pid_gain_factor != 1.0),
+            (f"maximum_setpoint_rise ({self.maximum_setpoint_rise})", self.maximum_setpoint_rise > 0),
         )
 
         return [name for name, enabled in switches if enabled]

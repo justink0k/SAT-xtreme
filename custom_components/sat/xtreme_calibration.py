@@ -435,7 +435,7 @@ class XtremeCalibration:
         persistent_notification.async_create(
             self._hass,
             self._notification_text(),
-            title=f"SAT calibration {phase.value}",
+            title=f"SAT (Xtreme fork) calibration {phase.value}",
             notification_id="sat_xtreme_calibration",
         )
 

@@ -30,6 +30,7 @@ class PID:
             integral_time_limit: float = 300,
             sample_time_limit: Optional[float] = 10,
             version: int = 3,
+            gain_factor: float = 1.0,
     ) -> None:
         """
         Initialize the PID controller.
@@ -45,10 +46,12 @@ class PID:
         :param integral_time_limit: Minimum time between integral updates in seconds.
         :param sample_time_limit: Minimum time between PID updates, in seconds.
         :param version: The version of the automatic gain calculation.
+        :param gain_factor: Xtreme fork: factor on the automatically calculated gains (1.0 = unchanged).
         """
         self._kp: float = kp
         self._ki: float = ki
         self._kd: float = kd
+        self._gain_factor: float = gain_factor
         self._version: int = version
         self._deadband: float = deadband
         self._heating_system: str = heating_system
@@ -251,15 +254,25 @@ class PID:
         return self._last_updated
 
     @property
+    def automatic_gains(self) -> bool:
+        """Return whether the gains are calculated automatically."""
+        return self._automatic_gains
+
+    @property
+    def gain_factor(self) -> float:
+        """Xtreme fork: return the factor on the automatically calculated gains."""
+        return self._gain_factor
+
+    @property
     def kp(self) -> float | None:
         """Return the value of kp based on the current configuration."""
         if self._automatic_gains:
             if self._version == 3:
                 automatic_gain_value = 4 if self._heating_system == HEATING_SYSTEM_UNDERFLOOR else 3
-                return round((self._heating_curve_coefficient * self._last_heating_curve_value) / automatic_gain_value, 6)
+                return round(self._gain_factor * (self._heating_curve_coefficient * self._last_heating_curve_value) / automatic_gain_value, 6)
 
             automatic_gain_value = 0.243 if self._heating_system == HEATING_SYSTEM_UNDERFLOOR else 0.33
-            return round(self._automatic_gains_value * automatic_gain_value * self._last_heating_curve_value, 6)
+            return round(self._gain_factor * self._automatic_gains_value * automatic_gain_value * self._last_heating_curve_value, 6)
 
         return float(self._kp)
 
@@ -271,11 +284,12 @@ class PID:
                 return 0.0
 
             if self._version == 1:
-                return round(self._last_heating_curve_value / 73900, 6)
+                return round(self._gain_factor * self._last_heating_curve_value / 73900, 6)
 
             if self._version == 2:
-                return round(self._automatic_gains_value * (self._last_heating_curve_value / 7200), 6)
+                return round(self._gain_factor * self._automatic_gains_value * (self._last_heating_curve_value / 7200), 6)
 
+            # Derived from kp, which already includes the gain factor
             if self._version == 3:
                 return round(self.kp / self._get_aggression_value(), 6)
 
@@ -290,10 +304,11 @@ class PID:
             if self._last_heating_curve_value is None:
                 return 0.0
 
+            # Derived from kp, which already includes the gain factor
             if self._version == 3:
                 return round(0.07 * self._get_aggression_value() * self.kp, 6)
 
-            return round(self._automatic_gains_value * self._get_aggression_value() * self._derivative_time_weight * self._last_heating_curve_value, 6)
+            return round(self._gain_factor * self._automatic_gains_value * self._get_aggression_value() * self._derivative_time_weight * self._last_heating_curve_value, 6)
 
         return float(self._kd)
 

@@ -13,11 +13,13 @@ from homeassistant.helpers.event import async_track_state_change_event
 from .const import CONF_NAME
 from .entity import SatClimateEntity
 
+FORK_LABEL = "Xtreme fork:"
+
 
 def async_setup_xtreme_sensors(coordinator, config_entry: ConfigEntry, climate, async_add_entities: AddEntitiesCallback) -> None:
     """Add the sensors of the active Xtreme profile switches."""
     profile = coordinator.xtreme_profile
-    entities = []
+    entities = [SatPidOutputSensor(coordinator, config_entry, climate)]
 
     if profile.boiler_timing:
         entities += [
@@ -55,7 +57,8 @@ class SatXtremeSensor(SatClimateEntity, SensorEntity):
 
     @property
     def name(self) -> str:
-        return f"{self._label} {self._config_entry.data.get(CONF_NAME)}"
+        # Make clear in the user interface that the entity belongs to the fork
+        return f"{FORK_LABEL} {self._label} {self._config_entry.data.get(CONF_NAME)}"
 
     @property
     def unique_id(self) -> str:
@@ -133,3 +136,35 @@ class SatCalibrationSensor(SatXtremeSensor):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return self._climate.xtreme_calibration.attributes
+
+
+class SatPidOutputSensor(SatXtremeSensor):
+    """The correction of the PID controller on top of the heating curve, with its parts and gains."""
+
+    _key = "pid-output"
+    _label = "PID Output"
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    @property
+    def native_value(self) -> float:
+        return round(self._climate.pid.output, 2)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        pid = self._climate.pid
+
+        return {
+            "heating_curve": self._climate.heating_curve.value,
+            "requested_setpoint": self._climate.requested_setpoint,
+            "proportional": pid.proportional,
+            "integral": pid.integral,
+            "derivative": pid.derivative,
+            "kp": pid.kp,
+            "ki": pid.ki,
+            "kd": pid.kd,
+            "automatic_gains": pid.automatic_gains,
+            "gain_factor": pid.gain_factor,
+            "maximum_setpoint_rise": self._coordinator.xtreme_profile.maximum_setpoint_rise,
+        }

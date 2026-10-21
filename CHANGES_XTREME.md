@@ -278,3 +278,49 @@ and Calibration need the matching Xtreme profile switches.
 
 **Files.** `dashboards/sat_xtreme.yaml` (new), `README.md`, `.gitignore` (ignores `local/` for
 personal versions), `custom_components/sat/manifest.json`, `tests/test_xtreme_dashboard.py` (new).
+
+## Step 8: PID settings and clear fork labels (`4.2.1+xtreme.8`, 2026-10-21)
+
+New options page: **PID settings (fork)** (*Configure → PID settings (fork)*).
+
+**Why.** SAT adds a PID correction to the heating curve. With automatic gains (PID version 3),
+kP = heating curve coefficient × heating curve value ÷ 3, so the only way to make the correction
+calmer was to lower the whole heating curve. Automatic gains could only be changed in the setup
+wizard, and that choice was not even used (see the fix below).
+
+**What changes.**
+
+- **Automatic gains** can be switched on the new page. Switching it off opens a second page,
+  **Manual gains (fork)**, with kP, kI and kD prefilled with the gains SAT uses at that moment, so
+  saving them unchanged does not change the control.
+- **Gain factor** (`xtreme_pid_gain_factor`, 0.3–1.5, default 1.0) multiplies the automatically
+  calculated gains. It applies to kP, kI and kD alike: in PID version 3 kI and kD are derived from kP,
+  so their ratios (how fast the integral acts, how early the derivative brakes) stay the same and
+  only the strength changes. It has no effect on manual gains.
+- **Maximum rise above the heating curve** (`xtreme_maximum_setpoint_rise`, 0–40 °C, default 0 = no
+  limit): the requested setpoint never rises more than this above the heating curve. This also
+  limits the morning warm-up. The maximum setpoint still applies on top of it.
+- **Fix of an upstream bug:** the setup wizard stored *Automatic gains* and the manual kP, kI and kD in
+  the configuration data, but SAT only reads them from the options (where automatic gains defaults to
+  on). Turning automatic gains off in the wizard therefore had no effect. The wizard now also writes
+  these choices to the options. Existing installations do not change until the wizard is run again
+  or the new page is used.
+- **Visibility:** new sensor **Xtreme fork: PID Output** (the correction in °C, with the heating curve,
+  the requested setpoint, the P, I and D parts and the gains in use as attributes), and the climate
+  entity has the attributes `automatic_gains`, `xtreme_pid_gain_factor`,
+  `xtreme_maximum_setpoint_rise` and `pid_output` next to the existing `current_kp`, `current_ki` and
+  `current_kd`.
+- **Fork labels:** the options pages of the fork end in "(fork)" and start with a sentence that they
+  belong to the unofficial fork. The entities of the fork have names starting with "Xtreme fork:".
+  Entity IDs that already exist do not change; new entities get IDs with `xtreme_fork_` in them. The
+  calibration actions and notification also mention the fork.
+- The dashboard template has a new **PID (fork)** card and uses the new entity IDs. The README has an
+  overview of everything the fork adds and where to find it.
+
+**Files.** `custom_components/sat/pid.py`, `custom_components/sat/util.py`,
+`custom_components/sat/climate.py`, `custom_components/sat/config_flow.py`,
+`custom_components/sat/const.py`, `custom_components/sat/xtreme_profile.py`,
+`custom_components/sat/xtreme_sensor.py`, `custom_components/sat/button.py`,
+`custom_components/sat/xtreme_calibration.py`, `custom_components/sat/translations/en.json`,
+`custom_components/sat/manifest.json`, `dashboards/sat_xtreme.yaml`, `README.md`,
+`tests/test_xtreme_pid.py` (new), `tests/test_xtreme_dashboard.py`.

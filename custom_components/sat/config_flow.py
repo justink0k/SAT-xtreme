@@ -505,9 +505,13 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_finish(self, _user_input: dict[str, Any] | None = None):
+        # Xtreme fork: SAT reads the PID choices from the options, so copy the choices of the wizard there
+        pid_options = {key: self.data[key] for key in (CONF_AUTOMATIC_GAINS, CONF_PROPORTIONAL, CONF_INTEGRAL, CONF_DERIVATIVE) if key in self.data}
+
         if self.config_entry is not None:
             return self.async_update_reload_and_abort(
                 data=self.data,
+                options={**self.config_entry.options, **pid_options},
                 entry=self.config_entry,
                 title=self.data[CONF_NAME],
                 reason="reconfigure_successful",
@@ -515,7 +519,8 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_create_entry(
             title=self.data[CONF_NAME],
-            data=self.data
+            data=self.data,
+            options=pid_options,
         )
 
     async def async_create_coordinator(self) -> SatDataUpdateCoordinator:
@@ -564,6 +569,7 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
             menu_options.append("advanced")
 
         menu_options.append("xtreme_profile")
+        menu_options.append("pid_settings")
 
         return self.async_show_menu(
             step_id="init",
@@ -794,6 +800,60 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
                 vol.Required(CONF_XTREME_CALIBRATION, default=options[CONF_XTREME_CALIBRATION]): bool,
             })
         )
+
+    async def async_step_pid_settings(self, _user_input: dict[str, Any] | None = None):
+        """Xtreme fork: automatic gains, gain factor and maximum rise above the heating curve."""
+        if _user_input is not None:
+            self._options.update(_user_input)
+
+            if not _user_input[CONF_AUTOMATIC_GAINS]:
+                return await self.async_step_manual_gains()
+
+            return await self.update_options({})
+
+        options = await self.get_options()
+
+        return self.async_show_form(
+            step_id="pid_settings",
+            data_schema=vol.Schema({
+                vol.Required(CONF_AUTOMATIC_GAINS, default=bool(options[CONF_AUTOMATIC_GAINS])): bool,
+                vol.Required(CONF_XTREME_PID_GAIN_FACTOR, default=options[CONF_XTREME_PID_GAIN_FACTOR]): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=0.3, max=1.5, step=0.05, mode=selector.NumberSelectorMode.SLIDER)
+                ),
+                vol.Required(CONF_XTREME_MAXIMUM_SETPOINT_RISE, default=options[CONF_XTREME_MAXIMUM_SETPOINT_RISE]): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=0, max=40, step=0.5, unit_of_measurement="°C")
+                ),
+            })
+        )
+
+    async def async_step_manual_gains(self, _user_input: dict[str, Any] | None = None):
+        """Xtreme fork: manual gains, prefilled with the gains SAT uses right now."""
+        if _user_input is not None:
+            return await self.update_options(_user_input)
+
+        options = await self.get_options()
+        current = self._current_gains()
+
+        return self.async_show_form(
+            step_id="manual_gains",
+            data_schema=vol.Schema({
+                vol.Required(CONF_PROPORTIONAL, default=current.get(CONF_PROPORTIONAL, options[CONF_PROPORTIONAL])): str,
+                vol.Required(CONF_INTEGRAL, default=current.get(CONF_INTEGRAL, options[CONF_INTEGRAL])): str,
+                vol.Required(CONF_DERIVATIVE, default=current.get(CONF_DERIVATIVE, options[CONF_DERIVATIVE])): str,
+            })
+        )
+
+    def _current_gains(self) -> dict[str, str]:
+        """Return the gains the running climate uses, so switching to manual gains does not change the control."""
+        climate = self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id, {}).get(CLIMATE)
+        if climate is None or climate.pid.kp is None:
+            return {}
+
+        return {
+            CONF_PROPORTIONAL: f"{climate.pid.kp:g}",
+            CONF_INTEGRAL: f"{climate.pid.ki:g}",
+            CONF_DERIVATIVE: f"{climate.pid.kd:g}",
+        }
 
     async def update_options(self, _user_input):
         self._options.update(_user_input)

@@ -8,6 +8,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_NAME, DOMAIN, COORDINATOR, CLIMATE
 from .entity import SatClimateEntity
+from .xtreme_sensor import FORK_LABEL
 
 
 async def async_setup_entry(_hass: HomeAssistant, _config_entry: ConfigEntry, _async_add_entities: AddEntitiesCallback):
@@ -32,7 +33,7 @@ class SatStartCalibrationButton(SatClimateEntity, ButtonEntity):
 
     @property
     def name(self) -> str:
-        return f"Start Xtreme Calibration {self._config_entry.data.get(CONF_NAME)}"
+        return f"{FORK_LABEL} Start Calibration {self._config_entry.data.get(CONF_NAME)}"
 
     @property
     def unique_id(self) -> str:
@@ -47,7 +48,7 @@ class SatStopCalibrationButton(SatClimateEntity, ButtonEntity):
 
     @property
     def name(self) -> str:
-        return f"Stop Xtreme Calibration {self._config_entry.data.get(CONF_NAME)}"
+        return f"{FORK_LABEL} Stop Calibration {self._config_entry.data.get(CONF_NAME)}"
 
     @property
     def unique_id(self) -> str:

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from .climate import SatClimate
 
 
-def create_pid_controller(config_options) -> PID:
+def create_pid_controller(config_options, xtreme_profile: XtremeProfile | None = None) -> PID:
     """Create and return a PID controller instance with the given configuration options."""
     # Extract the configuration options
     kp = float(config_options.get(CONF_PROPORTIONAL))
@@ -44,7 +44,8 @@ def create_pid_controller(config_options) -> PID:
 
         kp=kp, ki=ki, kd=kd,
         automatic_gains=automatic_gains,
-        sample_time_limit=sample_time_limit
+        sample_time_limit=sample_time_limit,
+        gain_factor=xtreme_profile.pid_gain_factor if xtreme_profile is not None else 1.0,
     )
 
 

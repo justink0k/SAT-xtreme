@@ -8,8 +8,16 @@ DASHBOARD = Path(__file__).parent.parent / "dashboards" / "sat_xtreme.yaml"
 
 # Names of the entities of the fork for a SAT named "SAT" (see xtreme_sensor.py, button.py, sensor.py)
 EXPECTED = {
-    "sensor": ["PWM Burn Time SAT", "Anti-cycling Remaining SAT", "Learned OPV SAT", "Calibration SAT", "Current Power SAT (Boiler)"],
-    "button": ["Start Xtreme Calibration SAT", "Stop Xtreme Calibration SAT"],
+    "sensor": [
+        "Xtreme fork: PWM Burn Time SAT",
+        "Xtreme fork: Anti-cycling Remaining SAT",
+        "Xtreme fork: Learned OPV SAT",
+        "Xtreme fork: Calibration SAT",
+        "Xtreme fork: PID Output SAT",
+        "Current Power SAT (Boiler)",
+        "Heating Curve SAT",
+    ],
+    "button": ["Xtreme fork: Start Calibration SAT", "Xtreme fork: Stop Calibration SAT"],
 }
 
 

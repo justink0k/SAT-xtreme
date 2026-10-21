@@ -215,7 +215,8 @@
           "general": "General",
           "presets": "Presets",
           "system_configuration": "System Configuration",
-          "xtreme_profile": "Xtreme profile (fork)"
+          "xtreme_profile": "Xtreme profile (fork)",
+          "pid_settings": "PID settings (fork)"
         }
       },
       "presets": {
@@ -251,8 +252,8 @@
         "title": "System Configuration"
       },
       "xtreme_profile": {
-        "title": "Xtreme profile",
-        "description": "Opt-in adjustments of this fork for an Intergas Xtreme boiler behind an OpenTherm Gateway. Every switch is off by default; with all switches off SAT behaves like upstream. See CHANGES_XTREME.md.",
+        "title": "Xtreme profile (fork)",
+        "description": "This page belongs to the unofficial Intergas Xtreme fork of SAT, not to the official SAT. Opt-in adjustments for an Intergas Xtreme boiler behind an OpenTherm Gateway. Every switch is off by default; with all switches off SAT behaves like upstream. See CHANGES_XTREME.md.",
         "data": {
           "xtreme_prime_setpoint": "Prime the setpoint during the PWM off phase",
           "xtreme_ignore_modulation_limit": "Do not manage the modulation limit",
@@ -279,6 +280,29 @@
           "xtreme_learned_opv": "Learn the OPV during normal operation. 'Learn only' shows the learned value in a sensor while SAT keeps using the configured OPV; 'Learn and apply' uses the learned value.",
           "xtreme_calibration": "Adds start and stop buttons and a status sensor for a slow calibration of the OPV (up to 10 hours) that does not rely on the maximum modulation. The result becomes the starting value of the self-learning OPV."
         }
+      },
+      "pid_settings": {
+        "title": "PID settings (fork)",
+        "description": "This page belongs to the unofficial Intergas Xtreme fork of SAT, not to the official SAT. SAT adds a correction (PID) to the heating curve: setpoint = heating curve + correction. Here you choose how strong that correction is.",
+        "data": {
+          "automatic_gains": "Automatic gains",
+          "xtreme_pid_gain_factor": "Gain factor",
+          "xtreme_maximum_setpoint_rise": "Maximum rise above the heating curve"
+        },
+        "data_description": {
+          "automatic_gains": "SAT calculates the gains from the heating curve. Turn off to enter kP, kI and kD yourself on the next page (prefilled with the gains in use now).",
+          "xtreme_pid_gain_factor": "Multiplies the automatically calculated gains (kP, kI and kD alike). Below 1.0 the correction is calmer, above 1.0 stronger. 1.0 = unchanged. Not used with manual gains.",
+          "xtreme_maximum_setpoint_rise": "The setpoint never rises more than this above the heating curve. 0 = no limit. Also limits the morning warm-up."
+        }
+      },
+      "manual_gains": {
+        "title": "Manual gains (fork)",
+        "description": "This page belongs to the unofficial Intergas Xtreme fork of SAT, not to the official SAT. The fields are prefilled with the gains SAT uses right now, so saving them unchanged does not change the control.",
+        "data": {
+          "proportional": "Proportional (kP)",
+          "integral": "Integral (kI)",
+          "derivative": "Derivative (kD)"
+        }
       }
     }
   },
@@ -298,12 +322,12 @@
       }
     },
     "start_xtreme_calibration": {
-      "name": "Start Xtreme calibration",
-      "description": "Start the slow calibration of the overshoot protection value (Xtreme profile)."
+      "name": "Start Xtreme calibration (fork)",
+      "description": "Xtreme fork: start the slow calibration of the overshoot protection value."
     },
     "stop_xtreme_calibration": {
-      "name": "Stop Xtreme calibration",
-      "description": "Stop the calibration and return to normal operation."
+      "name": "Stop Xtreme calibration (fork)",
+      "description": "Xtreme fork: stop the calibration and return to normal operation."
     }
   },
   "selector": {

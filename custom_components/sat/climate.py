@@ -170,7 +170,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         self._window_minimum_open_time = convert_time_str_to_seconds(config_options.get(CONF_WINDOW_MINIMUM_OPEN_TIME))
 
         # Create a PID controller with given configuration options
-        self.pid = create_pid_controller(config_options)
+        self.pid = create_pid_controller(config_options, coordinator.xtreme_profile)
 
         # Create Area controllers
         self.areas = Areas(config_entry.data, config_options)
@@ -414,6 +414,12 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             "current_ki": self.pid.ki,
             "current_kd": self.pid.kd,
 
+            # Xtreme fork: the PID settings in use
+            "automatic_gains": self.pid.automatic_gains,
+            "xtreme_pid_gain_factor": self.pid.gain_factor,
+            "xtreme_maximum_setpoint_rise": self._coordinator.xtreme_profile.maximum_setpoint_rise,
+            "pid_output": round(self.pid.output, 2),
+
             "rooms": self._rooms,
             "setpoint": self._setpoint,
             "current_humidity": self.current_humidity,
@@ -533,7 +539,15 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         if self.heating_curve.value is None:
             return MINIMUM_SETPOINT
 
-        return round(max(self.heating_curve.value + self.pid.output, MINIMUM_SETPOINT), 1)
+        pid_output = self.pid.output
+
+        # Xtreme fork: limit how far the setpoint may rise above the heating curve
+        maximum_rise = self._coordinator.xtreme_profile.maximum_setpoint_rise
+        if maximum_rise > 0 and pid_output > maximum_rise:
+            _LOGGER.debug("Xtreme fork: PID output %.1f°C limited to %.1f°C above the heating curve.", pid_output, maximum_rise)
+            pid_output = maximum_rise
+
+        return round(max(self.heating_curve.value + pid_output, MINIMUM_SETPOINT), 1)
 
     @property
     def valves_open(self) -> bool:

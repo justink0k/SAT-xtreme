@@ -1,12 +1,16 @@
-# SAT Xtreme dashboard (template)
+# SAT Xtreme dashboard (template) - part of the unofficial Intergas Xtreme fork of SAT
 #
 # Paste this into a new dashboard: Settings > Dashboards > Add dashboard > open it >
 # three dots > Edit dashboard > three dots > Raw configuration editor.
 #
-# Replace the entity IDs below with yours (search for them under Settings > Entities):
+# Replace the entity IDs below with yours. Search for them under Settings > Entities; the entities
+# of the fork have names starting with "Xtreme fork:". Depending on your setup, Home Assistant may
+# put the device name in front of the entity ID (for example sensor.home_smart_autotune_thermostat_...).
 #   climate.sat                                  your SAT thermostat
-#   ..._sat                                      the sensors and buttons of SAT; the suffix is your SAT
-#                                                name (for a SAT named "Home": _home)
+#   sensor.xtreme_fork_..._sat                   the sensors and buttons of the fork
+#   sensor.heating_curve_sat                     SAT heating curve ("Heating Curve")
+#   sensor.current_power_sat_boiler              SAT boiler power ("Current Power")
+#   sensor.flame_status                          SAT flame status ("Flame Status")
 #   sensor.otgw_control_setpoint                 OTGW control setpoint (TSet)
 #   sensor.otgw_boiler_flow_water_temperature    OTGW flow temperature (Tboiler)
 #   sensor.otgw_relative_modulation_level        OTGW relative modulation level
@@ -14,7 +18,6 @@
 #   binary_sensor.otgw_central_heating_enable    OTGW central heating enable (master status)
 #   binary_sensor.otgw_domestic_hot_water        OTGW domestic hot water active (slave status)
 #   sensor.otgw_burner_starts                    OTGW burner starts
-#   sensor.flame_status                          SAT flame status ("Flame Status")
 #
 # The PWM, Learned OPV and Calibration cards need the matching Xtreme profile switches; without
 # them those entities do not exist and the cards show "entity not available".
@@ -48,7 +51,7 @@ views:
                 suffix: °C
               - entity: sensor.flame_status
                 name: Flame status
-              - entity: sensor.anti_cycling_remaining_sat
+              - entity: sensor.xtreme_fork_anti_cycling_remaining_sat
                 name: Anti-cycling remaining
               - entity: sensor.otgw_relative_modulation_level
                 name: Modulation
@@ -85,15 +88,15 @@ views:
           - type: entities
             title: PWM blocks
             entities:
-              - entity: sensor.pwm_burn_time_sat
+              - entity: sensor.xtreme_fork_pwm_burn_time_sat
                 name: Burn time of the last block
               - type: attribute
-                entity: sensor.pwm_burn_time_sat
+                entity: sensor.xtreme_fork_pwm_burn_time_sat
                 attribute: target_seconds
                 name: Planned on time of the last block
                 suffix: s
               - type: attribute
-                entity: sensor.pwm_burn_time_sat
+                entity: sensor.xtreme_fork_pwm_burn_time_sat
                 attribute: current_burn_seconds
                 name: Burn time of the current block
                 suffix: s
@@ -101,9 +104,9 @@ views:
             title: Burn time per block (24 hours)
             hours_to_show: 24
             entities:
-              - entity: sensor.pwm_burn_time_sat
+              - entity: sensor.xtreme_fork_pwm_burn_time_sat
                 name: Burn time
-              - entity: sensor.anti_cycling_remaining_sat
+              - entity: sensor.xtreme_fork_anti_cycling_remaining_sat
                 name: Anti-cycling remaining
           - type: statistics-graph
             title: Burner starts per day
@@ -119,31 +122,88 @@ views:
       - type: vertical-stack
         cards:
           - type: entities
+            title: PID (fork)
+            entities:
+              - entity: sensor.heating_curve_sat
+                name: Heating curve
+              - entity: sensor.xtreme_fork_pid_output_sat
+                name: PID correction
+              - type: attribute
+                entity: sensor.xtreme_fork_pid_output_sat
+                attribute: requested_setpoint
+                name: Requested setpoint (curve + correction)
+                suffix: °C
+              - type: attribute
+                entity: sensor.xtreme_fork_pid_output_sat
+                attribute: proportional
+                name: P part
+                suffix: °C
+              - type: attribute
+                entity: sensor.xtreme_fork_pid_output_sat
+                attribute: integral
+                name: I part
+                suffix: °C
+              - type: attribute
+                entity: sensor.xtreme_fork_pid_output_sat
+                attribute: derivative
+                name: D part
+                suffix: °C
+              - type: attribute
+                entity: sensor.xtreme_fork_pid_output_sat
+                attribute: kp
+                name: kP in use
+              - type: attribute
+                entity: sensor.xtreme_fork_pid_output_sat
+                attribute: automatic_gains
+                name: Automatic gains
+              - type: attribute
+                entity: sensor.xtreme_fork_pid_output_sat
+                attribute: gain_factor
+                name: Gain factor
+              - type: attribute
+                entity: sensor.xtreme_fork_pid_output_sat
+                attribute: maximum_setpoint_rise
+                name: Maximum rise (0 = off)
+                suffix: °C
+          - type: history-graph
+            title: Heating curve and PID correction (24 hours)
+            hours_to_show: 24
+            entities:
+              - entity: sensor.heating_curve_sat
+                name: Heating curve
+              - entity: sensor.xtreme_fork_pid_output_sat
+                name: PID correction
+              - entity: sensor.otgw_control_setpoint
+                name: Control setpoint
+
+      - type: vertical-stack
+        cards:
+          - type: entities
             title: Learned OPV
             entities:
-              - entity: sensor.learned_opv_sat
+              - entity: sensor.xtreme_fork_learned_opv_sat
                 name: Learned OPV
               - type: attribute
-                entity: sensor.learned_opv_sat
+                entity: sensor.xtreme_fork_learned_opv_sat
                 attribute: mode
                 name: Mode
               - type: attribute
-                entity: sensor.learned_opv_sat
+                entity: sensor.xtreme_fork_learned_opv_sat
                 attribute: sample_count
                 name: Samples
               - type: attribute
-                entity: sensor.learned_opv_sat
+                entity: sensor.xtreme_fork_learned_opv_sat
                 attribute: last_update
                 name: Last update
               - type: attribute
-                entity: sensor.learned_opv_sat
+                entity: sensor.xtreme_fork_learned_opv_sat
                 attribute: source
                 name: Started from
           - type: history-graph
             title: Learned OPV (7 days)
             hours_to_show: 168
             entities:
-              - entity: sensor.learned_opv_sat
+              - entity: sensor.xtreme_fork_learned_opv_sat
                 name: Learned OPV
 
       - type: vertical-stack
@@ -153,56 +213,56 @@ views:
               - type: button
                 name: Start calibration
                 icon: mdi:play
-                entity: button.start_xtreme_calibration_sat
+                entity: button.xtreme_fork_start_calibration_sat
                 tap_action:
                   action: perform-action
                   perform_action: button.press
                   target:
-                    entity_id: button.start_xtreme_calibration_sat
+                    entity_id: button.xtreme_fork_start_calibration_sat
                   confirmation:
                     text: Start the calibration? It can take up to 10 hours. SAT pauses its normal control in the meantime.
               - type: button
                 name: Stop calibration
                 icon: mdi:stop
-                entity: button.stop_xtreme_calibration_sat
+                entity: button.xtreme_fork_stop_calibration_sat
                 tap_action:
                   action: perform-action
                   perform_action: button.press
                   target:
-                    entity_id: button.stop_xtreme_calibration_sat
+                    entity_id: button.xtreme_fork_stop_calibration_sat
                   confirmation:
                     text: Stop the calibration and return to normal operation?
           - type: entities
             title: Calibration
             entities:
-              - entity: sensor.calibration_sat
+              - entity: sensor.xtreme_fork_calibration_sat
                 name: Phase
               - type: attribute
-                entity: sensor.calibration_sat
+                entity: sensor.xtreme_fork_calibration_sat
                 attribute: message
                 name: Status
               - type: attribute
-                entity: sensor.calibration_sat
+                entity: sensor.xtreme_fork_calibration_sat
                 attribute: round
                 name: Round
               - type: attribute
-                entity: sensor.calibration_sat
+                entity: sensor.xtreme_fork_calibration_sat
                 attribute: valid_rounds
                 name: Valid rounds
               - type: attribute
-                entity: sensor.calibration_sat
+                entity: sensor.xtreme_fork_calibration_sat
                 attribute: setpoint
                 name: Current setpoint
                 suffix: °C
               - type: attribute
-                entity: sensor.calibration_sat
+                entity: sensor.xtreme_fork_calibration_sat
                 attribute: elapsed_minutes
                 name: Running for
                 suffix: min
           - type: markdown
             title: Last calibration report
             content: >-
-              {% set r = state_attr('sensor.calibration_sat', 'report') %}
+              {% set r = state_attr('sensor.xtreme_fork_calibration_sat', 'report') %}
               {% if r %}
               **{{ r.message }}**
 

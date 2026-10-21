@@ -33,10 +33,35 @@ What belongs to which device:
 
 ### What is changed
 
-Every change has its own switch under *Settings → Devices & services → SAT → Configure →
-Xtreme profile*. All switches are off by default, so the fork behaves like upstream SAT until you
-enable them. See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the full list of changes, the files that
-were modified, and how to go back to the official version.
+Everything the fork adds is marked as such in Home Assistant: the options pages end in **(fork)**
+and the entities of the fork have names starting with **"Xtreme fork:"**. With all switches off and
+the PID settings at their defaults, the fork behaves like upstream SAT. See
+[CHANGES_XTREME.md](CHANGES_XTREME.md) for the details of every change, the files that were
+modified, and how to go back to the official version.
+
+| What | Where | Default |
+|---|---|---|
+| Step 1: prime the setpoint during the PWM off phase | *Configure → Xtreme profile (fork)* | off |
+| Step 2: do not manage the modulation limit, rated power fallback | *Configure → Xtreme profile (fork)* | off |
+| Step 3: align PWM with the boiler timing (burn time, anti-cycling, minimum burn) | *Configure → Xtreme profile (fork)* | off |
+| Step 4: self-learning overshoot protection value (OPV) | *Configure → Xtreme profile (fork)* | off |
+| Step 5: slow calibration of the OPV, with start/stop buttons | *Configure → Xtreme profile (fork)* | off |
+| Step 6: ready for Home Assistant 2026.12 | built in | always |
+| PID settings: automatic gains, gain factor, maximum rise above the heating curve, manual gains | *Configure → PID settings (fork)* | unchanged |
+| Dashboard | [`dashboards/sat_xtreme.yaml`](dashboards/sat_xtreme.yaml) | – |
+
+Entities of the fork (they only exist when the matching switch is on):
+
+| Entity | Shows |
+|---|---|
+| *Xtreme fork: PID Output* | the PID correction on top of the heating curve, with the P, I and D parts and the gains in use |
+| *Xtreme fork: PWM Burn Time* | burn time of the last PWM block, with the planned on time (step 3) |
+| *Xtreme fork: Anti-cycling Remaining* | seconds until the boiler may start again (step 3) |
+| *Xtreme fork: Learned OPV* | the learned OPV, with its samples (step 4) |
+| *Xtreme fork: Calibration* | phase, progress and the last report of the calibration (step 5) |
+| *Xtreme fork: Start Calibration*, *Xtreme fork: Stop Calibration* | buttons for the calibration (step 5) |
+
+Actions: `sat.start_xtreme_calibration` and `sat.stop_xtreme_calibration` (step 5).
 
 ### Installation (HACS)
 

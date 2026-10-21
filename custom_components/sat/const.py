@@ -103,6 +103,8 @@ CONF_XTREME_MINIMUM_BURN_TIME = "xtreme_minimum_burn_time"
 CONF_XTREME_MINIMUM_DUTY_CYCLE = "xtreme_minimum_duty_cycle"
 CONF_XTREME_LEARNED_OPV = "xtreme_learned_opv"
 CONF_XTREME_CALIBRATION = "xtreme_calibration"
+CONF_XTREME_PID_GAIN_FACTOR = "xtreme_pid_gain_factor"
+CONF_XTREME_MAXIMUM_SETPOINT_RISE = "xtreme_maximum_setpoint_rise"
 
 SERVICE_START_XTREME_CALIBRATION = "start_xtreme_calibration"
 SERVICE_STOP_XTREME_CALIBRATION = "stop_xtreme_calibration"
@@ -183,6 +185,8 @@ OPTIONS_DEFAULTS = {
     CONF_XTREME_MINIMUM_DUTY_CYCLE: 7.5,
     CONF_XTREME_LEARNED_OPV: "off",
     CONF_XTREME_CALIBRATION: False,
+    CONF_XTREME_PID_GAIN_FACTOR: 1.0,
+    CONF_XTREME_MAXIMUM_SETPOINT_RISE: 0,
 }
 
 # Overshoot protection
