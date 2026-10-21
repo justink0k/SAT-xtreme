@@ -764,6 +764,13 @@ class SatOptionsFlowHandler(config_entries.OptionsFlow):
             step_id="xtreme_profile",
             data_schema=vol.Schema({
                 vol.Required(CONF_XTREME_PRIME_SETPOINT, default=options[CONF_XTREME_PRIME_SETPOINT]): bool,
+                vol.Required(CONF_XTREME_IGNORE_MODULATION_LIMIT, default=options[CONF_XTREME_IGNORE_MODULATION_LIMIT]): bool,
+                vol.Required(CONF_XTREME_BOILER_MAXIMUM_POWER, default=options[CONF_XTREME_BOILER_MAXIMUM_POWER]): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=1, max=100, step=0.1, unit_of_measurement="kW")
+                ),
+                vol.Required(CONF_XTREME_BOILER_MINIMUM_POWER, default=options[CONF_XTREME_BOILER_MINIMUM_POWER]): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=0.5, max=50, step=0.1, unit_of_measurement="kW")
+                ),
             })
         )
 

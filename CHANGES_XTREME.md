@@ -91,3 +91,36 @@ on phase, so the boiler gets the heating demand right away but the setpoint 0 to
 `custom_components/sat/climate.py`, `custom_components/sat/coordinator.py`,
 `custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
 `custom_components/sat/manifest.json`, `tests/test_xtreme_prime_setpoint.py` (new).
+
+## Step 2: do not manage the modulation limit (`4.2.1+xtreme.2`, 2026-10-21)
+
+Switches: **Do not manage the modulation limit** (`xtreme_ignore_modulation_limit`), with the
+settings **Rated maximum heating power** (`xtreme_boiler_maximum_power`, default 19.5 kW) and
+**Rated minimum heating power** (`xtreme_boiler_minimum_power`, default 3.9 kW).
+
+**Why.** The Intergas Xtreme ignores the maximum relative modulation (MsgID 14 is answered with
+Data-Invalid, and with `MM=0` it still modulates up to 100 %), but it does report its relative
+modulation level (MsgID 17) correctly. Upstream already reads the reported modulation for the OTGW
+over MQTT; the flag `supports_relative_modulation` that is `False` for Intergas is not used anywhere.
+What does not work is managing the limit: SAT keeps sending `MM=0` / `MM=100`.
+
+**What changes when the switch is on.**
+
+- `supports_relative_modulation_management` is `False`: SAT no longer sends the modulation limit in
+  the control loop. Once after startup it sends the neutral value `MM=100`, so no old limit stays
+  active on the gateway.
+- `supports_relative_modulation` is `True`, also for Intergas, Ideal, Geminox and Nefit.
+- The power sensor (and the consumption sensor, when configured) are still created. Upstream only
+  creates them when the modulation limit is managed.
+- When the boiler does not report its capacity (MsgID 15), the power sensor uses the rated heating
+  power from the options. A capacity reported by the boiler always wins.
+- The binary sensor that compares the requested and the reported modulation limit is no longer
+  created; it has no meaning without a managed limit. Its entity remains in the entity registry as
+  unavailable and can be removed there.
+
+**Files.** `custom_components/sat/xtreme_profile.py`, `custom_components/sat/const.py`,
+`custom_components/sat/coordinator.py`, `custom_components/sat/climate.py`,
+`custom_components/sat/sensor.py`, `custom_components/sat/config_flow.py`,
+`custom_components/sat/fake/__init__.py`, `custom_components/sat/translations/en.json`,
+`custom_components/sat/manifest.json`, `tests/xtreme_helpers.py` (new),
+`tests/test_xtreme_modulation.py` (new).

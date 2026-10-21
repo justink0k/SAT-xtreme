@@ -139,6 +139,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self._attr_supported_features |= ClimateEntityFeature.TURN_OFF
 
         self._control_heating_loop_unsub: Optional[Callable[[], None]] = None
+        self._xtreme_modulation_limit_reset: bool = False
 
         # System Configuration
         self._attr_name = str(config_entry.data.get(CONF_NAME))
@@ -842,6 +843,12 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
     async def _async_control_relative_modulation(self) -> None:
         """Control the relative modulation value based on the conditions."""
         if not self._coordinator.supports_relative_modulation_management:
+            # Xtreme profile: set a neutral limit once, so no old limit stays active on the gateway
+            if self._coordinator.xtreme_profile.ignore_modulation_limit and not self._xtreme_modulation_limit_reset:
+                _LOGGER.debug("Xtreme profile: modulation limit is not managed, setting it once to %d%%.", MAXIMUM_RELATIVE_MODULATION)
+                await self._coordinator.async_set_control_max_relative_modulation(MAXIMUM_RELATIVE_MODULATION)
+                self._xtreme_modulation_limit_reset = True
+
             _LOGGER.debug("Relative modulation management is not supported. Skipping control.")
             return
 

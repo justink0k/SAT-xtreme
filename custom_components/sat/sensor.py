@@ -49,7 +49,8 @@ async def async_setup_entry(_hass: HomeAssistant, _config_entry: ConfigEntry, _a
         SatHeatingCurveSensor(coordinator, _config_entry, climate),
     ])
 
-    if coordinator.supports_relative_modulation_management:
+    # Xtreme profile: keep the power and consumption sensors when only the modulation limit is not managed
+    if coordinator.supports_relative_modulation_management or (coordinator.xtreme_profile.ignore_modulation_limit and coordinator.supports_relative_modulation):
         _async_add_entities([SatCurrentPowerSensor(coordinator, _config_entry)])
 
         if float(_config_entry.options.get(CONF_MINIMUM_CONSUMPTION) or 0) > 0 and float(_config_entry.options.get(CONF_MAXIMUM_CONSUMPTION) or 0) > 0:

@@ -354,11 +354,34 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         return None
 
     @property
+    def effective_boiler_capacity(self) -> Optional[float]:
+        """Return the boiler capacity, falling back to the rated power of the Xtreme profile when the boiler does not report it."""
+        boiler_capacity = self.boiler_capacity
+
+        if not boiler_capacity and self._xtreme_profile.ignore_modulation_limit:
+            return self._xtreme_profile.boiler_maximum_power
+
+        return boiler_capacity
+
+    @property
+    def effective_minimum_relative_modulation_value(self) -> Optional[float]:
+        """Return the minimum relative modulation, falling back to the rated power of the Xtreme profile when the boiler does not report it."""
+        minimum_relative_modulation_value = self.minimum_relative_modulation_value
+
+        if minimum_relative_modulation_value is None and self._xtreme_profile.ignore_modulation_limit:
+            if not (boiler_capacity := self.effective_boiler_capacity):
+                return None
+
+            return min(100.0, self._xtreme_profile.boiler_minimum_power / boiler_capacity * 100)
+
+        return minimum_relative_modulation_value
+
+    @property
     def minimum_boiler_capacity(self) -> Optional[float]:
-        if (minimum_relative_modulation_value := self.minimum_relative_modulation_value) is None:
+        if (minimum_relative_modulation_value := self.effective_minimum_relative_modulation_value) is None:
             return None
 
-        if (boiler_capacity := self.boiler_capacity) is None:
+        if (boiler_capacity := self.effective_boiler_capacity) is None:
             return None
 
         if boiler_capacity == 0:
@@ -368,7 +391,7 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
 
     @property
     def boiler_power(self) -> Optional[float]:
-        if (boiler_capacity := self.boiler_capacity) is None:
+        if (boiler_capacity := self.effective_boiler_capacity) is None:
             return None
 
         if (minimum_boiler_capacity := self.minimum_boiler_capacity) is None:
@@ -426,6 +449,10 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         This property is used to determine whether the coordinator can retrieve the relative modulation value from the device.
         If a device doesn't support the relative modulation value, the coordinator won't be able to retrieve the value.
         """
+        # Xtreme profile: the boiler ignores the modulation limit, but does report its modulation
+        if self._xtreme_profile.ignore_modulation_limit:
+            return True
+
         if isinstance(self.manufacturer, (Ideal, Intergas, Geminox, Nefit)):
             return False
 
@@ -438,6 +465,10 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         This property is used to determine whether the coordinator can send a relative modulation value to the device.
         If a device doesn't support relative modulation management, the coordinator won't be able to control the value.
         """
+        # Xtreme profile: the boiler ignores the modulation limit (MsgID 14 is answered with Data-Invalid)
+        if self._xtreme_profile.ignore_modulation_limit:
+            return False
+
         return True
 
     @property

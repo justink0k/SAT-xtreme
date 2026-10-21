@@ -93,6 +93,9 @@ CONF_ACTIVITY_TEMPERATURE = "activity_temperature"
 
 # Xtreme profile (fork), see xtreme_profile.py
 CONF_XTREME_PRIME_SETPOINT = "xtreme_prime_setpoint"
+CONF_XTREME_IGNORE_MODULATION_LIMIT = "xtreme_ignore_modulation_limit"
+CONF_XTREME_BOILER_MAXIMUM_POWER = "xtreme_boiler_maximum_power"
+CONF_XTREME_BOILER_MINIMUM_POWER = "xtreme_boiler_minimum_power"
 
 HEATING_SYSTEM_UNKNOWN = "unknown"
 HEATING_SYSTEM_HEAT_PUMP = "heat_pump"
@@ -160,6 +163,9 @@ OPTIONS_DEFAULTS = {
     CONF_DYNAMIC_MINIMUM_SETPOINT_VERSION: 1,
 
     CONF_XTREME_PRIME_SETPOINT: False,
+    CONF_XTREME_IGNORE_MODULATION_LIMIT: False,
+    CONF_XTREME_BOILER_MAXIMUM_POWER: 19.5,
+    CONF_XTREME_BOILER_MINIMUM_POWER: 3.9,
 }
 
 # Overshoot protection

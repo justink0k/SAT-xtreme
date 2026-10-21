@@ -84,6 +84,9 @@ class SatFakeCoordinator(SatDataUpdateCoordinator):
 
     @property
     def supports_relative_modulation_management(self):
+        if self.xtreme_profile.ignore_modulation_limit:
+            return False
+
         if self.config is None:
             return super().supports_relative_modulation_management
 
@@ -91,7 +94,7 @@ class SatFakeCoordinator(SatDataUpdateCoordinator):
 
     @property
     def supports_relative_modulation(self):
-        return self.supports_relative_modulation_management
+        return self.supports_relative_modulation_management or self.xtreme_profile.ignore_modulation_limit
 
     async def async_set_boiler_temperature(self, value: float) -> None:
         self._boiler_temperature = value
