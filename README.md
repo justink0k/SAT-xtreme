@@ -24,6 +24,39 @@ Other boilers and gateways that SAT supports should work too, but they have not 
 use SAT-xtreme with another setup, please report how it works (good or bad) on the issue tracker, and
 consider [adding a boiler preset](docs/boiler_presets.md#adding-a-preset-for-your-boiler) for your boiler.
 
+### SAT-xtreme compared to SAT
+
+| | SAT 4.2.1 | SAT-xtreme | Switch |
+|---|---|---|---|
+| Setpoint in the PWM off phase | Drops to 10 °C. With a thermostat on the bus, the next setpoint reaches the boiler only with the next MsgID 1 of the thermostat (up to 150 s with a Nest). | Stays at the minimum setpoint with the heating demand off, so the boiler starts within seconds. | step 1 |
+| Heating demand commands | Decided on the status bit of the boiler, which lags and may stay off while the boiler is anti-cycling, so `CH=0` can be skipped. | Decided on the last command, not repeated within 30 s, and resent when the boiler does not confirm it. | step 1 |
+| Boilers that ignore the modulation limit | Keeps sending `MM=0` / `MM=100`. | Stops managing the limit (one neutral `MM=100`), keeps using the reported modulation. | step 2 |
+| Power sensor | Only when the modulation limit is managed, and only when the boiler reports its capacity. | Also without a managed limit, with the rated power as fallback. | step 2 |
+| PWM timing | The on time is wall-clock time from the heating demand; minimum on time 3 min; off phases can be shorter than the anti-cycling time of the boiler. | The on time counts burn time; a new block waits for the anti-cycling time after any flame, also short hot water flames; minimum burn and anti-cycling time are configurable. | step 3 |
+| Overshoot protection value (OPV) | A fixed value. | Learned during normal operation, shown in a sensor, used only when you choose so. | step 4 |
+| Calibration | Relies on `MM=0`, runs about 20 minutes in the setup wizard, can report a meaningless value (for example 32 °C) as successful, and could send a setpoint above the configured maximum. | Lowers the setpoint step by step, median of 5 rounds, rejects unrealistic results, pauses for hot water and a too warm room, start/stop buttons and a report; never above the maximum setpoint. | step 5 (maximum: always) |
+| PID strength | Only adjustable through the heating curve coefficient, which also moves the whole heating curve. The *Automatic gains* choice of the setup wizard was ignored. | Gain factor, maximum rise above the heating curve, and manual gains on their own page; the wizard choice is used. | PID page (wizard: always) |
+| Insight | – | Sensors for the PID correction, PWM burn time, remaining anti-cycling time, learned OPV and calibration status, and a ready-made dashboard. | with the matching switches |
+| Turning SAT off | The thermostat on the bus takes over after the gateway heartbeat expires (about a minute). | Optionally right away (`CS=0`). | handover |
+| Boiler presets | – | A preset list and a template to add your boiler. | preset |
+| Home Assistant 2026.12 | Uses an update listener that stops working. | Uses `OptionsFlowWithReload`. | always |
+| Start-up | Sensors, binary sensors and buttons could be skipped (or fail with `KeyError: 'climate'`) when the climate was not ready yet. | The climate is set up first. | always |
+| Recognisable in Home Assistant | – | Options pages end in "(fork)", entities start with "Xtreme fork:". | always |
+| Automated tests | 7 | 93 | – |
+
+### Results on the tested setup
+
+Measured on the tested setup (Intergas Xtreme 30, OpenTherm Gateway over MQTT, Nest on the bus) on the
+first day with step 1 on, comparing PWM blocks of the same day:
+
+| | Without step 1 (5 blocks) | With step 1 (5 blocks) |
+|---|---|---|
+| Time from heating demand to flame | 64 – 150 s | 3 – 5 s (one block 83 s: the boiler was anti-cycling after a hot water tap, which step 3 handles) |
+| Burn time compared to the PWM block | 1 – 2.5 minutes shorter than the block | about equal to the block |
+
+This is a first measurement of a few hours, in the evening (with longer blocks than on a mild
+afternoon). Results for step 3 (burn time per block, starts per day) will be added once measured.
+
 ### What it improves
 
 - **Slow setpoint with a thermostat on the bus.** In gateway mode the OpenTherm Gateway only replaces
