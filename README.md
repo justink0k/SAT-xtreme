@@ -194,7 +194,7 @@ See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fi
    not installed). The fork and the official SAT use the same domain (`sat`) and **cannot be installed
    at the same time**; an update of the official version would overwrite the fork.
 2. In HACS, open *Custom repositories*, add `https://github.com/justink0k/SAT-xtreme` with type
-   *Integration*, and install *SAT (Intergas Xtreme fork)*.
+   *Integration*, and install *SAT-xtreme*.
 3. Restart Home Assistant. Your existing SAT configuration (including the overshoot protection value
    and presets) is kept, because the domain and configuration format are unchanged.
 4. Enable the switches you want under *Xtreme profile* in the SAT options.

@@ -1,4 +1,4 @@
-# Changes in the Intergas Xtreme fork
+# Changes in SAT-xtreme
 
 This file lists every change of this fork compared to upstream
 [Smart Autotune Thermostat (SAT)](https://github.com/Alexwijn/SAT), as required by the GPL-3.0
@@ -378,3 +378,8 @@ No switch: these are fixes.
 
 **Files.** As listed above, plus `custom_components/sat/manifest.json`, `README.md` and
 `tests/test_xtreme_bugfixes.py` (new).
+
+**Display name** (same date): the integration is now shown as *SAT-xtreme* in HACS and Home Assistant
+(was *SAT (Intergas Xtreme fork)*), to match the broader goal of the fork. The domain stays `sat`, so
+existing configurations are kept (`custom_components/sat/manifest.json`, `hacs.json`, `README.md`,
+`custom_components/sat/translations/en.json`, `dashboards/sat_xtreme.yaml`).

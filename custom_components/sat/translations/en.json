@@ -253,7 +253,7 @@
       },
       "xtreme_profile": {
         "title": "Xtreme profile (fork)",
-        "description": "This page belongs to the unofficial Intergas Xtreme fork of SAT, not to the official SAT. Opt-in adjustments for an Intergas Xtreme boiler behind an OpenTherm Gateway. Every switch is off by default; with all switches off SAT behaves like upstream. See CHANGES_XTREME.md.",
+        "description": "This page belongs to SAT-xtreme, an unofficial fork of SAT, not to the official SAT. Opt-in adjustments for an Intergas Xtreme boiler behind an OpenTherm Gateway. Every switch is off by default; with all switches off SAT behaves like upstream. See CHANGES_XTREME.md.",
         "data": {
           "xtreme_prime_setpoint": "Prime the setpoint during the PWM off phase",
           "xtreme_ignore_modulation_limit": "Do not manage the modulation limit",
@@ -287,7 +287,7 @@
       },
       "pid_settings": {
         "title": "PID settings (fork)",
-        "description": "This page belongs to the unofficial Intergas Xtreme fork of SAT, not to the official SAT. SAT adds a correction (PID) to the heating curve: setpoint = heating curve + correction. Here you choose how strong that correction is.",
+        "description": "This page belongs to SAT-xtreme, an unofficial fork of SAT, not to the official SAT. SAT adds a correction (PID) to the heating curve: setpoint = heating curve + correction. Here you choose how strong that correction is.",
         "data": {
           "automatic_gains": "Automatic gains",
           "xtreme_pid_gain_factor": "Gain factor",
@@ -301,7 +301,7 @@
       },
       "manual_gains": {
         "title": "Manual gains (fork)",
-        "description": "This page belongs to the unofficial Intergas Xtreme fork of SAT, not to the official SAT. The fields are prefilled with the gains SAT uses right now, so saving them unchanged does not change the control.",
+        "description": "This page belongs to SAT-xtreme, an unofficial fork of SAT, not to the official SAT. The fields are prefilled with the gains SAT uses right now, so saving them unchanged does not change the control.",
         "data": {
           "proportional": "Proportional (kP)",
           "integral": "Integral (kI)",
