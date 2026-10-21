@@ -19,9 +19,10 @@ OPTIONS = {CONF_XTREME_CALIBRATION: True, CONF_XTREME_LEARNED_OPV: "learn"}
 class _Boiler:
     """A simple boiler model: modulates down to its minimum power and plateaus at its OPV."""
 
-    def __init__(self, coordinator: SatFakeCoordinator, opv: float):
+    def __init__(self, coordinator: SatFakeCoordinator, opv: float, follows_modulation_limit: bool = False):
         self.coordinator = coordinator
         self.opv = opv
+        self.follows_modulation_limit = follows_modulation_limit
         self.modulation = 0.0
         self.hot_water = False
         self.shut_off = False
@@ -33,6 +34,17 @@ class _Boiler:
 
         if not demand:
             self.shut_off = False
+
+        # A boiler that follows MM=0 burns at minimum power whatever the setpoint, until it reaches it
+        limited = self.follows_modulation_limit and coordinator._relative_modulation_value == 0
+
+        if demand and not self.shut_off and limited:
+            coordinator._device_state = DeviceState.ON if setpoint > self.opv + 0.5 else DeviceState.OFF
+            self.shut_off = setpoint <= self.opv + 0.5
+            self.modulation = 0.0
+            await coordinator.async_set_boiler_temperature(min(self.opv, setpoint))
+            coordinator._flame.update(boiler_state=coordinator.boiler)
+            return
 
         if not demand or self.shut_off:
             coordinator._device_state = DeviceState.OFF
@@ -170,7 +182,7 @@ async def test_comfort_limit_pauses_the_calibration(hass: HomeAssistant, entry: 
 
     climate._target_temperature = 20.0
     await _run(calibration, boiler, clock, 30)
-    assert calibration.phase in (CalibrationPhase.WAITING, CalibrationPhase.HEATING)
+    assert calibration.phase in (CalibrationPhase.WAITING, CalibrationPhase.TESTING_MODULATION, CalibrationPhase.HEATING)
 
 
 @pytest.mark.parametrize(*parameters(**OPTIONS))
@@ -243,3 +255,79 @@ async def test_service_requires_the_switch(hass: HomeAssistant, entry: MockConfi
 
 def _steps(calibration: XtremeCalibration) -> list[dict]:
     return [step.__dict__ if hasattr(step, "__dict__") else {"outcome": step.outcome} for calibration_round in calibration._rounds for step in calibration_round.steps]
+
+
+@pytest.mark.parametrize(*parameters(**OPTIONS))
+async def test_boiler_that_follows_the_modulation_limit_is_measured_at_minimum_power(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator, clock: Clock) -> None:
+    boiler = _Boiler(coordinator, opv=45.3, follows_modulation_limit=True)
+    calibration = await _start(climate)
+
+    await _run(calibration, boiler, clock, 10 * 3600)
+
+    report = calibration.attributes["report"]
+    assert calibration.phase == CalibrationPhase.SUCCEEDED
+    assert report["result"] == 45.3
+    assert report["modulation_test"]["result"] == "follows"
+
+    # No stepping down: every round ends on its first stable step
+    assert all(len(calibration_round["steps"]) == 1 for calibration_round in report["rounds"])
+    assert report["duration_minutes"] < 4 * 60
+
+    # The normal limit is restored afterwards
+    assert coordinator._relative_modulation_value == MAXIMUM_RELATIVE_MODULATION
+
+
+@pytest.mark.parametrize(*parameters(**OPTIONS))
+async def test_boiler_that_ignores_the_modulation_limit_gets_a_repair(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator, clock: Clock) -> None:
+    from homeassistant.helpers import issue_registry
+
+    boiler = _Boiler(coordinator, opv=45.3)
+    calibration = await _start(climate)
+    await _run(calibration, boiler, clock, 3600)
+
+    assert calibration.attributes["modulation_test"]["result"] == "ignores"
+    assert coordinator._relative_modulation_value == MAXIMUM_RELATIVE_MODULATION
+
+    issue = issue_registry.async_get(hass).async_get_issue(DOMAIN, f"ignores_modulation_limit_{entry.entry_id}")
+    assert issue is not None and issue.is_fixable
+
+    await calibration.async_stop()
+
+
+@pytest.mark.parametrize(*parameters(**{**OPTIONS, CONF_XTREME_IGNORE_MODULATION_LIMIT: True}))
+async def test_no_repair_when_the_option_is_already_on(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator, clock: Clock) -> None:
+    from homeassistant.helpers import issue_registry
+
+    boiler = _Boiler(coordinator, opv=45.3)
+    calibration = await _start(climate)
+    await _run(calibration, boiler, clock, 3600)
+
+    assert issue_registry.async_get(hass).async_get_issue(DOMAIN, f"ignores_modulation_limit_{entry.entry_id}") is None
+    await calibration.async_stop()
+
+
+@pytest.mark.parametrize(*parameters(**OPTIONS))
+async def test_repair_turns_the_option_on(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
+    from custom_components.sat.repairs import async_create_fix_flow
+
+    flow = await async_create_fix_flow(hass, "ignores_modulation_limit", {"entry_id": entry.entry_id})
+    flow.hass = hass
+    flow.handler = DOMAIN
+    flow.issue_id = "ignores_modulation_limit"
+
+    result = await flow.async_step_confirm({})
+    await hass.async_block_till_done()
+
+    assert result["type"] == "create_entry"
+    assert entry.options[CONF_XTREME_IGNORE_MODULATION_LIMIT] is True
+
+
+@pytest.mark.parametrize(*parameters(**OPTIONS))
+async def test_boiler_without_modulation_skips_the_test(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator, clock: Clock) -> None:
+    calibration = await _start(climate)
+
+    with patch.object(SatFakeCoordinator, "relative_modulation_value", new_callable=PropertyMock, return_value=None):
+        await calibration.async_step()
+
+    assert calibration.attributes["modulation_test"]["result"] == "not_reported"
+    await calibration.async_stop()

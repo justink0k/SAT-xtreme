@@ -456,3 +456,29 @@ user turns the option on and the switch off.
 `custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
 `custom_components/sat/manifest.json`, `dashboards/sat_xtreme.yaml`, `README.md`,
 `tests/test_xtreme_hot_water_switch.py` (new), `tests/test_xtreme_dashboard.py`.
+
+## Version 14: modulation limit test in the calibration (`4.2.1-xtreme.14`, 2026-10-21)
+
+Part of the **Xtreme calibration** option (step 5); no new option.
+
+- **Test first.** Before the first round, the calibration sets the maximum modulation to 0 % (`MM=0`)
+  and burns for a few minutes. It ignores the first minute of each burn (many boilers start at high
+  power) and any time with hot water, and then looks at the reported modulation: at most 5 % means the
+  boiler follows the limit, at least 20 % means it ignores it, anything else (or too few samples within
+  15 minutes) is inconclusive. A boiler that does not report its modulation skips the test.
+- **Faster rounds when the boiler follows the limit.** `MM=0` stays on, so every round burns at minimum
+  power and the stable flow temperature is the measurement right away: one step per round instead of
+  lowering the setpoint step by step. Still 5 rounds and the median, so the result stays as reliable;
+  the calibration takes about 2 hours instead of 5 to 6. Other boilers use the step-down method as
+  before. The normal limit (`MM=100`) is always restored after the test and at the end.
+- **Repair instead of an automatic change.** When the boiler ignores the limit and the option *The
+  boiler ignores the modulation limit* is off, SAT-xtreme creates a repair under *Settings → System →
+  Repairs* with a fix button that turns the option on (and reloads SAT). Nothing changes without that
+  click.
+- The report and the notification show the result of the test; the option description gives an honest
+  duration.
+
+**Files.** `custom_components/sat/xtreme_calibration.py`, `custom_components/sat/repairs.py` (new),
+`custom_components/sat/climate.py`, `custom_components/sat/xtreme_sensor.py`,
+`custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
+`custom_components/sat/manifest.json`, `tests/test_xtreme_calibration.py`.

@@ -24,9 +24,11 @@ from typing import Any, Deque, Optional, Tuple, TYPE_CHECKING
 from homeassistant.components import persistent_notification
 from homeassistant.components.climate import HVACMode
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import issue_registry
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
+from .const import DOMAIN, MAXIMUM_RELATIVE_MODULATION, MINIMUM_RELATIVE_MODULATION
 from .coordinator import DeviceState, SatDataUpdateCoordinator
 from .xtreme_opv import LearnedOpv
 
@@ -53,6 +55,18 @@ FLAME_TIMEOUT_SECONDS = 15 * 60
 COOLDOWN_SECONDS = 20 * 60
 COMFORT_MARGIN = 1.0
 
+# Test at the start whether the boiler follows the maximum modulation (MM=0)
+MODULATION_TEST_MINIMUM_FLAME_SECONDS = 60
+MODULATION_TEST_SAMPLES = 12
+MODULATION_TEST_MAXIMUM_SECONDS = 15 * 60
+MODULATION_FOLLOWS_BELOW = 5.0
+MODULATION_IGNORES_ABOVE = 20.0
+
+MODULATION_TEST_FOLLOWS = "follows"
+MODULATION_TEST_IGNORES = "ignores"
+MODULATION_TEST_INCONCLUSIVE = "inconclusive"
+MODULATION_TEST_NOT_REPORTED = "not_reported"
+
 ROUNDS_TARGET = 5
 ROUNDS_MAXIMUM = 8
 ROUNDS_MINIMUM_VALID = 3
@@ -64,6 +78,7 @@ MAXIMUM_DURATION_SECONDS = 10 * 3600
 class CalibrationPhase(str, Enum):
     IDLE = "idle"
     WAITING = "waiting"
+    TESTING_MODULATION = "testing_modulation"
     HEATING = "heating"
     PAUSED_HOT_WATER = "paused_hot_water"
     PAUSED_COMFORT = "paused_comfort"
@@ -75,6 +90,7 @@ class CalibrationPhase(str, Enum):
 
 ACTIVE_PHASES = (
     CalibrationPhase.WAITING,
+    CalibrationPhase.TESTING_MODULATION,
     CalibrationPhase.HEATING,
     CalibrationPhase.PAUSED_HOT_WATER,
     CalibrationPhase.PAUSED_COMFORT,
@@ -106,10 +122,11 @@ class XtremeCalibration:
 
     _STORAGE_VERSION = 1
 
-    def __init__(self, climate: SatClimate, coordinator: SatDataUpdateCoordinator, learned_opv: LearnedOpv, storage_key: str):
+    def __init__(self, climate: SatClimate, coordinator: SatDataUpdateCoordinator, learned_opv: LearnedOpv, storage_key: str, entry_id: str = ""):
         self._hass: Optional[HomeAssistant] = None
         self._store: Optional[Store] = None
         self._storage_key = storage_key
+        self._entry_id = entry_id
         self._climate = climate
         self._coordinator = coordinator
         self._learned_opv = learned_opv
@@ -132,6 +149,12 @@ class XtremeCalibration:
         self._last_modulation: Optional[float] = None
         self._window: Deque[Tuple[float, float]] = deque()
 
+        # Result of the modulation limit test (None = not done yet)
+        self._modulation_test: Optional[str] = None
+        self._modulation_samples: list[float] = []
+        self._modulation_test_started: Optional[float] = None
+        self._modulation_limit_sent: bool = False
+
     @property
     def active(self) -> bool:
         return self._phase in ACTIVE_PHASES
@@ -151,6 +174,7 @@ class XtremeCalibration:
             "valid_rounds": len(valid),
             "setpoint": self._setpoint if self.active else None,
             "measurements": valid,
+            "modulation_test": self._modulation_test_report(),
             "started": self._started,
             "elapsed_minutes": round((monotonic() - self._started_at) / 60, 1) if self._started_at is not None and self.active else None,
             "report": self._report,
@@ -271,9 +295,17 @@ class XtremeCalibration:
         if self._phase == CalibrationPhase.PAUSED_HOT_WATER:
             self._set_phase(CalibrationPhase.WAITING, "Waiting until the boiler may start after hot water")
 
+        if self._phase == CalibrationPhase.TESTING_MODULATION:
+            await self._async_step_modulation_test(now, flame, modulation)
+            return
+
         if self._phase == CalibrationPhase.WAITING:
             await self._async_command(DeviceState.OFF)
             if self._anti_cycling_remaining() > 0:
+                return
+
+            if self._modulation_test is None:
+                await self._async_start_modulation_test(now, modulation)
                 return
 
             self._flame_seen = False
@@ -333,6 +365,98 @@ class XtremeCalibration:
         if now - self._step_started_at > STEP_TIMEOUT_SECONDS:
             self._record_step(flow, modulation, "not stable within 30 minutes")
             await self._async_lower_setpoint(modulation)
+
+    async def _async_start_modulation_test(self, now: float, modulation: Optional[float]) -> None:
+        """Test whether the boiler follows the maximum modulation: burn with MM=0 and look at the reported modulation."""
+        if modulation is None:
+            self._modulation_test = MODULATION_TEST_NOT_REPORTED
+            _LOGGER.info("Xtreme calibration: the boiler does not report its modulation, using the step-down method.")
+            return
+
+        self._modulation_samples = []
+        self._modulation_test_started = now
+        self._modulation_limit_sent = True
+        await self._coordinator.async_set_control_max_relative_modulation(MINIMUM_RELATIVE_MODULATION)
+
+        self._set_phase(CalibrationPhase.TESTING_MODULATION, "Testing whether the boiler follows the modulation limit")
+        await self._async_command(DeviceState.ON)
+
+    async def _async_step_modulation_test(self, now: float, flame: bool, modulation: Optional[float]) -> None:
+        await self._async_command(DeviceState.ON)
+
+        if now - self._modulation_test_started > MODULATION_TEST_MAXIMUM_SECONDS:
+            await self._async_conclude_modulation_test()
+            return
+
+        # Skip the start of a burn: many boilers start at high power for a few seconds
+        if not flame or modulation is None or (self._coordinator.flame.latest_on_time_seconds or 0) < MODULATION_TEST_MINIMUM_FLAME_SECONDS:
+            return
+
+        self._modulation_samples.append(modulation)
+
+        if len(self._modulation_samples) >= MODULATION_TEST_SAMPLES:
+            await self._async_conclude_modulation_test()
+
+    async def _async_conclude_modulation_test(self) -> None:
+        samples = self._modulation_samples
+        typical = median(samples) if len(samples) >= MODULATION_TEST_SAMPLES else None
+
+        if typical is not None and typical <= MODULATION_FOLLOWS_BELOW:
+            self._modulation_test = MODULATION_TEST_FOLLOWS
+        elif typical is not None and typical >= MODULATION_IGNORES_ABOVE:
+            self._modulation_test = MODULATION_TEST_IGNORES
+        else:
+            self._modulation_test = MODULATION_TEST_INCONCLUSIVE
+
+        _LOGGER.info("Xtreme calibration: modulation limit test %s (median modulation %s%% with MM=0, %d samples).", self._modulation_test, typical, len(samples))
+
+        if self._modulation_test == MODULATION_TEST_FOLLOWS:
+            # Keep MM=0: every round burns at minimum power, so the stable flow is the OPV right away
+            self._message = "The boiler follows the modulation limit: measuring at minimum power"
+        else:
+            await self._async_restore_modulation_limit()
+            self._message = "Lowering the setpoint step by step"
+
+        if self._modulation_test == MODULATION_TEST_IGNORES:
+            self._report_ignored_modulation_limit(typical)
+
+        # Continue the first round from here
+        self._flame_seen = False
+        self._window.clear()
+        self._step_started_at = monotonic()
+        self._phase = CalibrationPhase.HEATING
+        self._phase_since = monotonic()
+
+    async def _async_restore_modulation_limit(self) -> None:
+        if self._modulation_limit_sent:
+            await self._coordinator.async_set_control_max_relative_modulation(MAXIMUM_RELATIVE_MODULATION)
+            self._modulation_limit_sent = False
+
+    def _report_ignored_modulation_limit(self, typical: Optional[float]) -> None:
+        """Offer to turn on 'the boiler ignores the modulation limit' as a repair, with a fix button."""
+        if self._coordinator.xtreme_profile.ignore_modulation_limit or self._hass is None or not self._entry_id:
+            return
+
+        issue_registry.async_create_issue(
+            self._hass,
+            DOMAIN,
+            f"ignores_modulation_limit_{self._entry_id}",
+            is_fixable=True,
+            severity=issue_registry.IssueSeverity.WARNING,
+            translation_key="ignores_modulation_limit",
+            translation_placeholders={"modulation": f"{typical:.0f}" if typical is not None else "?"},
+            data={"entry_id": self._entry_id},
+        )
+
+    def _modulation_test_report(self) -> Optional[dict[str, Any]]:
+        if self._modulation_test is None:
+            return None
+
+        return {
+            "result": self._modulation_test,
+            "median_modulation": round(median(self._modulation_samples), 1) if self._modulation_samples else None,
+            "samples": len(self._modulation_samples),
+        }
 
     async def _async_lower_setpoint(self, modulation: Optional[float]) -> None:
         step = LARGE_STEP if modulation is not None and modulation > LARGE_STEP_MODULATION else SMALL_STEP
@@ -404,9 +528,15 @@ class XtremeCalibration:
     async def _async_finish(self, phase: CalibrationPhase, message: str, result: Optional[float] = None, spread: Optional[float] = None) -> None:
         self._set_phase(phase, message)
 
+        try:
+            await self._async_restore_modulation_limit()
+        except Exception:
+            _LOGGER.exception("Xtreme calibration: could not restore the modulation limit.")
+
         values = self._valid_values()
         self._report = {
             "outcome": phase.value,
+            "modulation_test": self._modulation_test_report(),
             "message": message,
             "result": result,
             "spread": spread,
@@ -505,6 +635,9 @@ class XtremeCalibration:
             lines.append(f"Result: {report['result']} °C, spread {report['spread']} °C (minimum {report['minimum']} °C, maximum {report['maximum']} °C).")
 
         lines.append(f"Duration: {report.get('duration_minutes')} minutes.")
+
+        if (modulation_test := report.get("modulation_test")) is not None:
+            lines.append(f"Boiler follows the modulation limit: {modulation_test['result']} (median modulation with MM=0: {modulation_test['median_modulation']} %).")
         lines.append("")
 
         for calibration_round in report.get("rounds", []):

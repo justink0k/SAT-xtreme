@@ -127,7 +127,7 @@ class SatCalibrationSensor(SatXtremeSensor):
     _key = "calibration"
     _label = "Calibration"
     _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = ["idle", "waiting", "heating", "paused_hot_water", "paused_comfort", "cooldown", "succeeded", "failed", "cancelled"]
+    _attr_options = ["idle", "waiting", "testing_modulation", "heating", "paused_hot_water", "paused_comfort", "cooldown", "succeeded", "failed", "cancelled"]
 
     @property
     def native_value(self) -> str:

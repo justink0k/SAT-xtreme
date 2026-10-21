@@ -202,6 +202,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             coordinator=coordinator,
             learned_opv=self.learned_opv,
             storage_key=f"sat_xtreme_calibration_{config_entry.entry_id}",
+            entry_id=config_entry.entry_id,
         )
 
         if self._simulation:
