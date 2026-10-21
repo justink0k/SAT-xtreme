@@ -356,3 +356,25 @@ ignore the switch.
 `custom_components/sat/manifest.json`, `docs/boiler_presets.md` (new),
 `.github/ISSUE_TEMPLATE/boiler_preset.yml` (new), `README.md`,
 `tests/test_xtreme_presets_and_handover.py` (new).
+
+## Version 10: bug fixes (`4.2.1+xtreme.10`, 2026-10-21)
+
+No switch: these are fixes.
+
+- **Actions with a single entity** (upstream). `sat.reset_integral` and `sat.pulse_width_modulation`
+  validated `entity_id` with `list[str]`, which turns a single entity ID given as text into a list of
+  characters, so the action silently did nothing. They now use `cv.entity_ids`
+  (`custom_components/sat/services.py`).
+- **Setup calibration could hang Home Assistant** (upstream). While waiting for the boiler temperature,
+  the calibration looped without a pause and blocked the event loop. It now sleeps 15 seconds between
+  checks, so the time-out of the calibration can end it (`custom_components/sat/overshoot_protection.py`).
+- **Anti-cycling wait after a restart** (fork, step 3 and the calibration). At start-up the flame
+  statistics record the first "flame off" observation as a flame-off, so after every restart or options
+  change the first PWM block waited the full anti-cycling time. Only a real flame-off now counts
+  (`custom_components/sat/flame.py`, `custom_components/sat/coordinator.py`).
+- **Maximum cycles per hour** (upstream). The count was reset every fixed hour instead of covering the
+  last 60 minutes, so more starts than configured could follow each other around the turn of the hour
+  (`custom_components/sat/pwm.py`).
+
+**Files.** As listed above, plus `custom_components/sat/manifest.json`, `README.md` and
+`tests/test_xtreme_bugfixes.py` (new).

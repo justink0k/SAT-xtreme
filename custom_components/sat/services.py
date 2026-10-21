@@ -25,7 +25,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
         DOMAIN,
         service=SERVICE_RESET_INTEGRAL,
         service_func=reset_integral,
-        schema=vol.Schema({vol.Required("entity_id"): list[str]})
+        schema=vol.Schema({vol.Required("entity_id"): cv.entity_ids})
     )
 
     async def pulse_width_modulation(call: ServiceCall):
@@ -45,7 +45,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
         DOMAIN,
         service=SERVICE_PULSE_WIDTH_MODULATION,
         service_func=pulse_width_modulation,
-        schema=vol.Schema({vol.Required("entity_id"): list[str], vol.Required("enabled"): cv.boolean})
+        schema=vol.Schema({vol.Required("entity_id"): cv.entity_ids, vol.Required("enabled"): cv.boolean})
     )
 
     async def start_xtreme_calibration(call: ServiceCall):

@@ -68,6 +68,7 @@ class OvershootProtection:
         """Wait until the boiler temperature stabilizes, influenced by relative modulation."""
         while not self._coordinator.boiler_temperature:
             _LOGGER.warning("Waiting for boiler temperature")
+            await asyncio.sleep(SLEEP_INTERVAL)
 
         starting_temperature = self._coordinator.boiler_temperature
         previous_average_temperature = self._coordinator.boiler_temperature

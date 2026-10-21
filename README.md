@@ -175,6 +175,13 @@ These fixes apply to everyone, without a switch:
 - **Sensors or buttons missing after a restart.** All platforms were set up at the same time, while the
   sensors, binary sensors and buttons need the climate entity; when it was not ready yet, their entities
   were silently skipped (or failed with `KeyError: 'climate'`). The climate is now set up first.
+- **Actions ignored a single entity.** `sat.reset_integral` and `sat.pulse_width_modulation` turned an
+  entity ID given as text (as in most automations) into a list of letters, so they silently did nothing.
+- **Home Assistant could hang during the setup calibration.** The calibration of upstream waited for the
+  boiler temperature in a loop without a pause, which blocks Home Assistant when the temperature is
+  missing. It now waits 15 seconds between checks.
+- **Maximum cycles per hour counted per fixed hour.** The count started again every hour, so more starts
+  than configured could follow each other around the turn of the hour. It now counts the last 60 minutes.
 - **Stored dynamic minimum setpoint never loaded.** The base return temperature of the dynamic minimum
   setpoint was saved but never loaded after a restart. It is now loaded. This only matters when the
   dynamic minimum setpoint is on.

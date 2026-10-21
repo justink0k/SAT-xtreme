@@ -1,5 +1,6 @@
 import logging
 import math
+from collections import deque
 from dataclasses import dataclass
 from time import monotonic
 from typing import Optional, Tuple, TYPE_CHECKING
@@ -97,8 +98,10 @@ class PWM:
         self._last_update: float = monotonic()
         self._duty_cycle: Tuple[int, int] | None = None
 
-        self._first_duty_cycle_start: float | None = None
         self._last_duty_cycle_percentage: float | None = None
+
+        # Start times of the duty cycles of the last hour (rolling window)
+        self._cycle_starts: deque[float] = deque()
 
         # Xtreme profile: burn time bookkeeping of the current on phase
         self._on_started_at: float | None = None
@@ -137,10 +140,11 @@ class PWM:
             self._last_boiler_temperature = boiler.flow_temperature
             _LOGGER.debug("Initialized last boiler temperature to %.1f°C", boiler.flow_temperature)
 
-        if self._first_duty_cycle_start is None or (monotonic() - self._first_duty_cycle_start) > 3600:
-            self._current_cycle = 0
-            self._first_duty_cycle_start = monotonic()
-            _LOGGER.info("CYCLES count reset for the rolling hour.")
+        # Count the duty cycles that started in the last 60 minutes (a rolling hour, not a fixed one)
+        while self._cycle_starts and monotonic() - self._cycle_starts[0] > 3600:
+            self._cycle_starts.popleft()
+
+        self._current_cycle = len(self._cycle_starts)
 
         elapsed = monotonic() - self._last_update
         self._duty_cycle = self._calculate_duty_cycle(requested_setpoint, boiler)
@@ -189,7 +193,8 @@ class PWM:
             if self._xtreme_profile.boiler_timing and not self._boiler_may_start(boiler, flame):
                 return
 
-            self._current_cycle += 1
+            self._cycle_starts.append(monotonic())
+            self._current_cycle = len(self._cycle_starts)
             self._status = PWMStatus.ON
             self._last_update = monotonic()
             self._last_boiler_temperature = boiler.flow_temperature

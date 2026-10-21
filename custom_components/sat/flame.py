@@ -31,7 +31,8 @@ class FlameState:
     duty_ratio_last_15m: float
     median_on_duration_seconds_4h: Optional[float]
 
-    # Monotonic time of the last flame off (heating or hot water), while the flame is off
+    # Monotonic time of the last real flame off (heating or hot water), while the flame is off.
+    # None when no flame was seen since start-up, so a restart does not start an anti-cycling wait.
     off_since: Optional[float] = None
 
 
@@ -86,6 +87,9 @@ class Flame:
         self._flame_on_monotonic: Optional[float] = None
         self._flame_off_monotonic: Optional[float] = None
 
+        # Xtreme fork: time of the last real ON->OFF transition (not set at start-up)
+        self._flame_went_off_monotonic: Optional[float] = None
+
         # Stored states
         self._last_boiler_state: Optional[BoilerState] = None
         self._last_pulse_width_modulation_state: Optional[PWMState] = None
@@ -122,6 +126,14 @@ class Flame:
     def off_since(self) -> Optional[float]:
         if not self._is_flame_active_internal() and self._flame_off_monotonic is not None:
             return self._flame_off_monotonic
+
+        return None
+
+    @property
+    def went_off_since(self) -> Optional[float]:
+        """Xtreme fork: time of the last real flame-off while the flame is off; None if no flame was seen since start-up."""
+        if not self._is_flame_active_internal():
+            return self._flame_went_off_monotonic
 
         return None
 
@@ -212,6 +224,7 @@ class Flame:
 
             self._flame_on_monotonic = None
             self._flame_off_monotonic = now
+            self._flame_went_off_monotonic = now
             self._last_cycle_duration_seconds = duration
 
             self._prune_cycles_window(now)

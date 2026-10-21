@@ -227,7 +227,7 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
             duty_ratio_last_15m=self._flame.duty_ratio_last_15m,
             median_on_duration_seconds_4h=self._flame.median_on_duration_seconds_4h,
 
-            off_since=self._flame.off_since,
+            off_since=self._flame.went_off_since,
         )
 
     @property
