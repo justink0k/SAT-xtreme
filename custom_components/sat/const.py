@@ -107,6 +107,7 @@ CONF_XTREME_PID_GAIN_FACTOR = "xtreme_pid_gain_factor"
 CONF_XTREME_MAXIMUM_SETPOINT_RISE = "xtreme_maximum_setpoint_rise"
 CONF_XTREME_BOILER_PRESET = "xtreme_boiler_preset"
 CONF_XTREME_HANDOVER_ON_OFF = "xtreme_handover_on_off"
+CONF_XTREME_HOT_WATER_SWITCH = "xtreme_hot_water_switch"
 
 BOILER_PRESET_CUSTOM = "custom"
 
@@ -193,6 +194,7 @@ OPTIONS_DEFAULTS = {
     CONF_XTREME_MAXIMUM_SETPOINT_RISE: 0,
     CONF_XTREME_BOILER_PRESET: "custom",
     CONF_XTREME_HANDOVER_ON_OFF: False,
+    CONF_XTREME_HOT_WATER_SWITCH: False,
 }
 
 # Overshoot protection

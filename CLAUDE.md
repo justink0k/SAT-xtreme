@@ -15,7 +15,8 @@ controls a central heating boiler. Changes are made carefully, one step at a tim
   English. Translations live in `custom_components/sat/translations/`.
 - Never put personal data (entity IDs, addresses, logs of a specific home) in the repository; the
   `local/` folder is ignored by git for that.
-- Hard limits: never exceed the configured maximum setpoint, never touch hot water, and keep the
+- Hard limits: never exceed the configured maximum setpoint, never touch hot water (the only exception is the
+  opt-in keep-warm switch, which only changes the keep-warm function when the user turns it off), and keep the
   failover to the thermostat on the bus working.
 
 ## Releases

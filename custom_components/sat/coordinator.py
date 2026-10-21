@@ -495,6 +495,15 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.info("Released the control setpoint to the thermostat")
 
     @property
+    def supports_hot_water_keep_warm_control(self) -> bool:
+        """Xtreme fork: whether the device can turn the hot water enable (keep-warm) bit off and back to automatic."""
+        return False
+
+    async def async_set_hot_water_keep_warm(self, enabled: bool) -> None:
+        """Xtreme fork: let the boiler keep hot water warm (its own setting) or not."""
+        _LOGGER.info("Set hot water keep-warm to %s", "automatic" if enabled else "off")
+
+    @property
     def supports_maximum_setpoint_management(self):
         """Returns whether the device supports setting a maximum setpoint.
 

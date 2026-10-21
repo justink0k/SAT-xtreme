@@ -26,7 +26,7 @@ from .services import async_register_services
 from .util import get_climate_entities
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
-PLATFORMS = [climate.DOMAIN, sensor.DOMAIN, number.DOMAIN, binary_sensor.DOMAIN, button.DOMAIN]
+PLATFORMS = [climate.DOMAIN, sensor.DOMAIN, number.DOMAIN, binary_sensor.DOMAIN, button.DOMAIN, "switch"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):

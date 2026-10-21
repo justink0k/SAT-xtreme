@@ -198,6 +198,17 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
 
         await super().async_release_control_setpoint()
 
+    @property
+    def supports_hot_water_keep_warm_control(self) -> bool:
+        return True
+
+    async def async_set_hot_water_keep_warm(self, enabled: bool) -> None:
+        # HW=A leaves the DHW enable bit to the thermostat on the bus (normal operation), HW=0 clears it.
+        # The gateway keeps this setting until it is changed again; it has no heartbeat.
+        await self._publish_command("HW=A" if enabled else "HW=0")
+
+        await super().async_set_hot_water_keep_warm(enabled)
+
     async def async_set_control_hot_water_setpoint(self, value: float) -> None:
         await self._publish_command(f"SW={value}")
 

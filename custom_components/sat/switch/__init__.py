@@ -11,6 +11,9 @@ from homeassistant.helpers.entity_registry import RegistryEntry
 
 from ..coordinator import DeviceState, SatDataUpdateCoordinator
 
+# This package is also the switch platform of the integration; the fork's switch lives in xtreme_switch.py
+from ..xtreme_switch import async_setup_entry  # noqa: F401
+
 DOMAIN_SERVICE = {
     SWITCH_DOMAIN: SWITCH_DOMAIN,
     INPUT_BOOLEAN_DOMAIN: INPUT_BOOLEAN_DOMAIN

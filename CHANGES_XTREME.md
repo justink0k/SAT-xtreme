@@ -420,3 +420,39 @@ No change to how SAT controls the boiler.
 
 **Files.** `custom_components/sat/manifest.json`, `CHANGES_XTREME.md`, `README.md`, `RELEASING.md` (new),
 `CLAUDE.md` (new), `tests/test_version.py` (new).
+
+## Version 13: hot water keep-warm switch (`4.2.1-xtreme.13`, 2026-10-21)
+
+Option: **Hot water keep-warm switch** (`xtreme_hot_water_switch`, *Xtreme profile → Boiler*, default
+off). OpenTherm Gateway over MQTT only.
+
+**Why.** The keep-warm (comfort) function of a combi boiler fires the burner for a few seconds now and
+then to keep the hot water ready. On the tested boiler that happened about three times per hour, and
+every such burn starts the anti-cycling time, which also delays the next heating block. Some users want
+keep-warm only during the day, or never.
+
+**What it does.** With the option on, SAT adds the switch *Xtreme fork: Hot Water Keep Warm*:
+
+- **On:** `HW=A`. The DHW enable bit is left to the thermostat on the bus, so the boiler keeps hot water
+  warm as set on the boiler (comfort or eco). This is normal operation.
+- **Off:** `HW=0`. The gateway clears the DHW enable bit. On the tested Intergas Xtreme 30 this stops
+  keep-warm (no short hot water burns for three hours), while hot water still comes out of the tap
+  (a tap of more than a minute worked normally); it only takes longer. Some boilers may block hot water
+  completely when this bit is off, so this must be tested per boiler.
+- The switch can be used by hand or in automations (an example is in the README). After a restart it
+  restores its last state and sends it again.
+- The gateway keeps `HW=` until it is changed (no heartbeat, also when Home Assistant is down). When the
+  option is turned off while keep-warm was off, SAT sends `HW=A` once, so keep-warm is given back to
+  the boiler. Removing SAT-xtreme while the switch is off leaves `HW=0` on the gateway; turn the switch
+  on first.
+
+This is an exception to "hot water stays with the boiler": it only changes keep-warm, only when the
+user turns the option on and the switch off.
+
+**Files.** `custom_components/sat/xtreme_switch.py` (new), `custom_components/sat/switch/__init__.py`
+(platform entry), `custom_components/sat/__init__.py`, `custom_components/sat/const.py`,
+`custom_components/sat/xtreme_profile.py`, `custom_components/sat/coordinator.py`,
+`custom_components/sat/mqtt/opentherm.py`, `custom_components/sat/config_flow.py`,
+`custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
+`custom_components/sat/manifest.json`, `dashboards/sat_xtreme.yaml`, `README.md`,
+`tests/test_xtreme_hot_water_switch.py` (new), `tests/test_xtreme_dashboard.py`.

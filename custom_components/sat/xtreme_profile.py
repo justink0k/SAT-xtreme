@@ -26,6 +26,7 @@ from .const import (
     CONF_XTREME_MAXIMUM_SETPOINT_RISE,
     CONF_XTREME_BOILER_PRESET,
     CONF_XTREME_HANDOVER_ON_OFF,
+    CONF_XTREME_HOT_WATER_SWITCH,
     BOILER_PRESET_CUSTOM,
 )
 
@@ -140,6 +141,11 @@ class XtremeProfile:
     # instead of waiting for the heartbeat of the gateway to expire
     handover_on_off: bool = False
 
+    # A switch to turn the keep-warm (comfort) function of the hot water off (HW=0) and back to the
+    # boiler's own setting (HW=A), for example with an automation at night. Hot water itself is not
+    # blocked on boilers that treat the DHW enable bit as "keep warm" (tested: Intergas Xtreme 30).
+    hot_water_switch: bool = False
+
     @property
     def anti_cycling_wait(self) -> int:
         """Seconds to wait after the last flame before a new on phase may start."""
@@ -171,6 +177,7 @@ class XtremeProfile:
             maximum_setpoint_rise=float(values.get(CONF_XTREME_MAXIMUM_SETPOINT_RISE)),
             boiler_preset=str(values.get(CONF_XTREME_BOILER_PRESET)),
             handover_on_off=bool(values.get(CONF_XTREME_HANDOVER_ON_OFF)),
+            hot_water_switch=bool(values.get(CONF_XTREME_HOT_WATER_SWITCH)),
         )
 
         if profile.enabled:
@@ -190,6 +197,7 @@ class XtremeProfile:
             (f"maximum_setpoint_rise ({self.maximum_setpoint_rise})", self.maximum_setpoint_rise > 0),
             (f"boiler_preset ({self.boiler_preset})", self.boiler_preset != BOILER_PRESET_CUSTOM),
             ("handover_on_off", self.handover_on_off),
+            ("hot_water_switch", self.hot_water_switch),
         )
 
         return [name for name, enabled in switches if enabled]

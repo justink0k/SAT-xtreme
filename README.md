@@ -42,7 +42,8 @@ the anti-cycling time of the boiler.
   - Your thermostat stays the fallback: when Home Assistant stops, the gateway drops the override and
     the thermostat on the bus takes over; when you turn SAT off, it can take over right away.
   - Hard limits: the maximum setpoint is never exceeded, also not during the calibration (upstream
-    could), and hot water stays entirely with the boiler.
+    could), and hot water stays with the boiler (only the optional keep-warm switch, when you turn it
+    off, stops the keep-warm function; hot water at the tap is not blocked on the tested boiler).
   - Commands arrive: SAT checks whether the boiler confirms the heating demand and sends it again when
     it does not (upstream could skip turning the demand off).
   - Safe to stop: the calibration stops cleanly on the stop button, when SAT is turned off and on a
@@ -139,6 +140,7 @@ modified, and how to go back to the official version.
 | Step 6: prepared for Home Assistant 2026.12 | built in | always |
 | Boiler preset: fills in the rated power and anti-cycling time of a known boiler ([how to add yours](docs/boiler_presets.md#adding-a-preset-for-your-boiler)) | *Configure → Xtreme profile (fork)* | Custom |
 | Hand over to the thermostat right away when SAT is turned off (CS=0, OpenTherm Gateway via MQTT) | *Configure → Xtreme profile (fork)* | off |
+| Hot water keep-warm switch: turn the boiler's keep-warm (comfort) function off, by hand or with an automation (HW=0 / HW=A, OpenTherm Gateway via MQTT) | *Configure → Xtreme profile (fork)* | off |
 | PID settings: automatic gains, gain factor, maximum rise above the heating curve, manual gains | *Configure → PID settings (fork)* | unchanged |
 | Dashboard | [`dashboards/sat_xtreme.yaml`](dashboards/sat_xtreme.yaml) | – |
 
@@ -152,8 +154,40 @@ Entities of the fork (except PID Output, they only exist when the matching switc
 | *Xtreme fork: Learned OPV* | the learned OPV, with its samples (step 4) |
 | *Xtreme fork: Calibration* | phase, progress and the last report of the calibration (step 5) |
 | *Xtreme fork: Start Calibration*, *Xtreme fork: Stop Calibration* | buttons for the calibration (step 5) |
+| *Xtreme fork: Hot Water Keep Warm* | switch: on = the boiler keeps hot water warm as set on the boiler, off = no keep-warm |
 
 Actions: `sat.start_xtreme_calibration` and `sat.stop_xtreme_calibration` (step 5).
+
+#### Hot water keep-warm at night
+
+The keep-warm (comfort) function of many combi boilers fires the burner for a few seconds now and then
+to keep the hot water ready. Each of those short burns starts the anti-cycling time of the boiler, so it
+also delays the next heating block. With the keep-warm switch you decide when that is worth it, for
+example only during the day:
+
+```yaml
+- alias: "Hot water keep-warm off at night"
+  triggers:
+    - trigger: time
+      at: "23:00:00"
+  actions:
+    - action: switch.turn_off
+      target:
+        entity_id: switch.xtreme_fork_hot_water_keep_warm_sat
+
+- alias: "Hot water keep-warm on in the morning"
+  triggers:
+    - trigger: time
+      at: "06:30:00"
+  actions:
+    - action: switch.turn_on
+      target:
+        entity_id: switch.xtreme_fork_hot_water_keep_warm_sat
+```
+
+With the switch off, hot water still comes out of the tap on the tested Intergas Xtreme 30, it only takes
+longer. Some boilers may block hot water completely when the DHW enable bit is off: test this first. The
+gateway keeps the last setting when Home Assistant is down.
 
 ### Bug fixes
 

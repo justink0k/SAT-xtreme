@@ -279,7 +279,8 @@
               "xtreme_anti_cycling_time": "Anti-cycling time of the boiler",
               "xtreme_anti_cycling_margin": "Extra margin on the anti-cycling time",
               "xtreme_minimum_burn_time": "Minimum burn time per PWM block",
-              "xtreme_minimum_duty_cycle": "Do not heat below this duty cycle"
+              "xtreme_minimum_duty_cycle": "Do not heat below this duty cycle",
+              "xtreme_hot_water_switch": "Hot water keep-warm switch"
             },
             "data_description": {
               "xtreme_boiler_preset": "Fills in the heating output and anti-cycling time of a known boiler. It never turns an option on or off. When you change one of these values yourself, the preset goes back to Custom.",
@@ -290,7 +291,8 @@
               "xtreme_anti_cycling_time": "How long your boiler waits before it starts again after switching off. See the installation manual (for example parameter P036 on Intergas, HG09 on Wolf). Only used with 'Align PWM with the boiler'.",
               "xtreme_anti_cycling_margin": "Seconds added to the anti-cycling time, so SAT never asks for heat just before the boiler may start.",
               "xtreme_minimum_burn_time": "The shortest burn of a PWM block. Longer burns mean fewer starts and longer pauses. Default 6 minutes.",
-              "xtreme_minimum_duty_cycle": "When the house needs less heat than this share of the time, SAT does not heat at all until the demand rises. Default 7.5 %."
+              "xtreme_minimum_duty_cycle": "When the house needs less heat than this share of the time, SAT does not heat at all until the demand rises. Default 7.5 %.",
+              "xtreme_hot_water_switch": "Adds the switch 'Xtreme fork: Hot Water Keep Warm'. On: the boiler keeps hot water warm as set on the boiler (comfort or eco). Off: no keep-warm, fewer short burner starts, but hot water takes longer to arrive at the tap. Use it by hand or in an automation, for example off at night. The gateway keeps the last setting, also when Home Assistant is down. Test first that hot water still works at the tap with the switch off: some boilers block hot water completely (only tested with an Intergas Xtreme 30). Turning this option off gives keep-warm back to the boiler. OpenTherm Gateway over MQTT only."
             }
           },
           "learning": {

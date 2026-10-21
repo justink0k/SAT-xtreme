@@ -812,6 +812,7 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
             vol.Required(CONF_XTREME_MINIMUM_DUTY_CYCLE, default=options[CONF_XTREME_MINIMUM_DUTY_CYCLE]): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=2.5, max=30, step=0.5, unit_of_measurement="%")
             ),
+            vol.Required(CONF_XTREME_HOT_WATER_SWITCH, default=options[CONF_XTREME_HOT_WATER_SWITCH]): bool,
         })
 
         learning = vol.Schema({

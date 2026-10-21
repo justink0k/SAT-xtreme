@@ -57,6 +57,8 @@ views:
                 name: Modulation
               - entity: sensor.current_power_sat_boiler
                 name: Power now
+              - entity: switch.xtreme_fork_hot_water_keep_warm_sat
+                name: Hot water keep warm
 
       - type: vertical-stack
         cards:

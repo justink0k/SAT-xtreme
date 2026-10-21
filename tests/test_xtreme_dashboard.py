@@ -18,6 +18,7 @@ EXPECTED = {
         "Heating Curve SAT",
     ],
     "button": ["Xtreme fork: Start Calibration SAT", "Xtreme fork: Stop Calibration SAT"],
+    "switch": ["Xtreme fork: Hot Water Keep Warm SAT"],
 }
 
 

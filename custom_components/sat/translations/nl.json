@@ -268,7 +268,8 @@
               "xtreme_anti_cycling_time": "Anti-pendeltijd van de ketel",
               "xtreme_anti_cycling_margin": "Extra marge op de anti-pendeltijd",
               "xtreme_minimum_burn_time": "Minimale brandtijd per PWM-blok",
-              "xtreme_minimum_duty_cycle": "Niet stoken onder deze duty cycle"
+              "xtreme_minimum_duty_cycle": "Niet stoken onder deze duty cycle",
+              "xtreme_hot_water_switch": "Schakelaar voor warm water warmhouden"
             },
             "data_description": {
               "xtreme_boiler_preset": "Vult het vermogen en de anti-pendeltijd in van een bekende ketel. Zet nooit een optie aan of uit. Wijzig je zelf een van deze waarden, dan gaat de preset terug naar Aangepast.",
@@ -279,7 +280,8 @@
               "xtreme_anti_cycling_time": "Hoe lang je ketel wacht voordat hij na het afslaan weer start. Zie de installatiehandleiding (bijvoorbeeld parameter P036 bij Intergas, HG09 bij Wolf). Alleen gebruikt bij 'PWM afstemmen op de ketel'.",
               "xtreme_anti_cycling_margin": "Seconden bovenop de anti-pendeltijd, zodat SAT nooit warmte vraagt net voordat de ketel weer mag starten.",
               "xtreme_minimum_burn_time": "De kortste brand van een PWM-blok. Langer branden betekent minder starts en langere pauzes. Standaard 6 minuten.",
-              "xtreme_minimum_duty_cycle": "Heeft het huis minder warmte nodig dan dit deel van de tijd, dan stookt SAT helemaal niet tot de vraag stijgt. Standaard 7,5 %."
+              "xtreme_minimum_duty_cycle": "Heeft het huis minder warmte nodig dan dit deel van de tijd, dan stookt SAT helemaal niet tot de vraag stijgt. Standaard 7,5 %.",
+              "xtreme_hot_water_switch": "Voegt de schakelaar 'Xtreme fork: Hot Water Keep Warm' toe. Aan: de ketel houdt warm water warm zoals ingesteld op de ketel (comfort of eco). Uit: niet warmhouden, minder korte branderstarts, maar warm water komt later uit de kraan. Gebruik hem met de hand of in een automatisering, bijvoorbeeld 's nachts uit. De gateway onthoudt de laatste stand, ook als Home Assistant uitvalt. Test eerst of er met de schakelaar uit nog warm water uit de kraan komt: sommige ketels blokkeren warm water dan helemaal (alleen getest met een Intergas Xtreme 30). Zet je deze optie uit, dan krijgt de ketel het warmhouden terug. Alleen voor de OpenTherm Gateway via MQTT."
             }
           },
           "learning": {
