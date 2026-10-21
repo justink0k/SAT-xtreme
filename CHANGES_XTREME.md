@@ -243,7 +243,7 @@ suit a measurement that takes hours.
 `custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
 `custom_components/sat/manifest.json`, `tests/test_xtreme_calibration.py` (new).
 
-## Step 6: ready for Home Assistant 2026.12 (`4.2.1+xtreme.6`, 2026-10-21)
+## Step 6: prepared for Home Assistant 2026.12 (`4.2.1+xtreme.6`, 2026-10-21)
 
 No switch: this change applies to everyone.
 

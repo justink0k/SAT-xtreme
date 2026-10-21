@@ -47,10 +47,10 @@ the anti-cycling time of the boiler.
     it does not (upstream could skip turning the demand off).
   - Safe to stop: the calibration stops cleanly on the stop button, when SAT is turned off and on a
     restart, and returns to normal operation right away.
-  - Stable start-up: sensors and buttons no longer go missing at start-up, and SAT-xtreme keeps working
-    with Home Assistant 2026.12.
-  - Tested and reversible: 93 automated tests (upstream: 7), and every feature can be turned on and off
-    on its own.
+  - Stable start-up: sensors and buttons no longer go missing at start-up, and SAT-xtreme is prepared
+    for Home Assistant 2026.12.
+  - Tested and reversible: every feature and fix has automated tests (upstream SAT 4.2.1: 7 tests), and
+    every feature can be turned on and off on its own.
 
 The features were developed for, and so far only tested on, one setup:
 
@@ -79,10 +79,10 @@ consider [adding a boiler preset](docs/boiler_presets.md#adding-a-preset-for-you
 | Insight | – | Sensors for the PID correction, PWM burn time, remaining anti-cycling time, learned OPV and calibration status, and a ready-made dashboard. | with the matching switches |
 | Turning SAT off | The thermostat on the bus takes over after the gateway heartbeat expires (about a minute). | Optionally right away (`CS=0`). | handover |
 | Boiler presets | – | A preset list and a template to add your boiler. | preset |
-| Home Assistant 2026.12 | Uses an update listener that stops working. | Uses `OptionsFlowWithReload`. | always |
+| Home Assistant 2026.12 | Uses an update listener that will stop working. | Prepared: uses `OptionsFlowWithReload`. | always |
 | Start-up | Sensors, binary sensors and buttons could be skipped (or fail with `KeyError: 'climate'`) when the climate was not ready yet. | The climate is set up first. | always |
 | Recognisable in Home Assistant | – | Options pages end in "(fork)", entities start with "Xtreme fork:". | always |
-| Automated tests | 7 | 93 | – |
+| Automated tests | 7 | Every feature and fix has tests | – |
 
 ### Results on the tested setup
 
@@ -136,7 +136,7 @@ modified, and how to go back to the official version.
 | Step 3: align PWM with the boiler timing (burn time, anti-cycling, minimum burn) | *Configure → Xtreme profile (fork)* | off |
 | Step 4: self-learning overshoot protection value (OPV) | *Configure → Xtreme profile (fork)* | off |
 | Step 5: slow calibration of the OPV, with start/stop buttons | *Configure → Xtreme profile (fork)* | off |
-| Step 6: ready for Home Assistant 2026.12 | built in | always |
+| Step 6: prepared for Home Assistant 2026.12 | built in | always |
 | Boiler preset: fills in the rated power and anti-cycling time of a known boiler ([how to add yours](docs/boiler_presets.md#adding-a-preset-for-your-boiler)) | *Configure → Xtreme profile (fork)* | Custom |
 | Hand over to the thermostat right away when SAT is turned off (CS=0, OpenTherm Gateway via MQTT) | *Configure → Xtreme profile (fork)* | off |
 | PID settings: automatic gains, gain factor, maximum rise above the heating curve, manual gains | *Configure → PID settings (fork)* | unchanged |
@@ -166,7 +166,7 @@ These fixes apply to everyone, without a switch:
   kI and kD) in the configuration data, while SAT reads it from the options, where automatic gains is
   on by default. The wizard now also writes these choices to the options, and they can be changed on
   the new *PID settings (fork)* page.
-- **Ready for Home Assistant 2026.12.** The update listener that Home Assistant 2026.12 no longer
+- **Prepared for Home Assistant 2026.12.** The update listener that Home Assistant 2026.12 no longer
   supports for reloading is replaced by `OptionsFlowWithReload`.
 - **Fixes from upstream `develop` that are not in a release yet:** the coordinator is fully set up
   before the calibration in the wizard starts (`7d43560`), the heater state command of EMS-ESP
@@ -197,6 +197,9 @@ See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fi
    *Integration*, and install *SAT-xtreme*.
 3. Restart Home Assistant. Your existing SAT configuration (including the overshoot protection value
    and presets) is kept, because the domain and configuration format are unchanged.
+   After every update, also refresh the cache of your browser (Ctrl+Shift+R, or Cmd+Shift+R on a Mac)
+   or reset the frontend cache in the companion app; otherwise the options pages may still show old
+   texts.
 4. Enable the switches you want under *Xtreme profile* in the SAT options.
 
 ### Dashboard
