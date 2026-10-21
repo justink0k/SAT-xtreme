@@ -1,3 +1,61 @@
+> [!WARNING]
+> **This is an unofficial fork of [Smart Autotune Thermostat (SAT)](https://github.com/Alexwijn/SAT).**
+> All credit for SAT goes to its authors and contributors. Thank you!
+>
+> Please do **not** report problems with this fork to the official SAT project.
+> Use [the issue tracker of this fork](https://github.com/justink0k/SAT-xtreme/issues) instead.
+
+## About this fork
+
+This fork is tuned for an **Intergas Xtreme 30** boiler, connected through an **OpenTherm Gateway**
+(PIC firmware in gateway mode, controlled by SAT over MQTT). It was tested with a **Nest thermostat with
+Heat Link** that stays on the OpenTherm bus as a fallback when Home Assistant is down.
+
+### The problem it solves
+
+In PWM mode, SAT drops the control setpoint to 10 °C during every off phase and raises it again at
+the start of every on phase. In gateway mode the OTGW does not send the control setpoint (MsgID 1) by
+itself: it only replaces the value inside the MsgID 1 messages that the thermostat sends. A Nest sends
+MsgID 1 only about once every 150 seconds. The central heating enable bit (sent every few seconds in
+MsgID 0) reaches the boiler right away, but the new setpoint arrives 0 to 150 seconds later. Each PWM
+burn loses that time, and short PWM blocks lose most of their burn time.
+
+What belongs to which device:
+
+- **Boiler:** the changes for modulation, anti-cycling time, the hot water comfort function,
+  calibration and the self-learning overshoot protection value (OPV) are tuned for the Intergas Xtreme 30.
+  They may also be useful for other boilers that ignore the maximum modulation setting (according to
+  the OTGW documentation this includes other Intergas boilers, Ideal, Geminox and Nefit), but they have
+  only been tested with the Xtreme 30.
+- **Thermostat:** the setpoint fix mostly helps when a thermostat on the bus rarely sends the control
+  setpoint (MsgID 1), like the Nest (about once every 150 seconds). With thermostats that send it
+  often, or without a thermostat on the bus, the delay is small, but the fix does no harm.
+
+### What is changed
+
+Every change has its own switch under *Settings → Devices & services → SAT → Configure →
+Xtreme profile*. All switches are off by default, so the fork behaves like upstream SAT until you
+enable them. See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the full list of changes, the files that
+were modified, and how to go back to the official version.
+
+### Installation (HACS)
+
+1. In HACS, remove the official *Smart Autotune Thermostat* repository (or at least make sure it is
+   not installed). The fork and the official SAT use the same domain (`sat`) and **cannot be installed
+   at the same time**; an update of the official version would overwrite the fork.
+2. In HACS, open *Custom repositories*, add `https://github.com/justink0k/SAT-xtreme` with type
+   *Integration*, and install *SAT (Intergas Xtreme fork)*.
+3. Restart Home Assistant. Your existing SAT configuration (including the overshoot protection value
+   and presets) is kept, because the domain and configuration format are unchanged.
+4. Enable the switches you want under *Xtreme profile* in the SAT options.
+
+### Disclaimer
+
+Use at your own risk, without any warranty. This fork controls a central heating boiler. It has not
+been tested with other boilers. The license (GPL-3.0) is unchanged; see [LICENSE](LICENSE).
+
+---
+
 # Smart Autotune Thermostat
 
 [![hacs][hacs-badge]][hacs-url]

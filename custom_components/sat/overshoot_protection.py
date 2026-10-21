@@ -20,7 +20,8 @@ class OvershootProtection:
         self._alpha: float = 0.5
         self._stable_temperature: float | None = None
         self._coordinator: SatDataUpdateCoordinator = coordinator
-        self._setpoint: int = min(OVERSHOOT_PROTECTION_SETPOINT.get(heating_system), coordinator.maximum_setpoint_value)
+        # Never exceed the configured maximum setpoint, even if the boiler reports a higher MaxTSet
+        self._setpoint: int = min(OVERSHOOT_PROTECTION_SETPOINT.get(heating_system), coordinator.maximum_setpoint_value, coordinator.maximum_setpoint)
 
         if self._setpoint is None:
             raise ValueError(f"Invalid heating system: {heating_system}")
@@ -102,7 +103,7 @@ class OvershootProtection:
     async def _trigger_heating_cycle(self, is_ready: bool) -> None:
         """Trigger a heating cycle with the coordinator."""
         await self._coordinator.async_set_heater_state(DeviceState.ON)
-        await self._coordinator.async_set_control_setpoint(await self._get_setpoint(is_ready))
+        await self._coordinator.async_set_control_setpoint(min(await self._get_setpoint(is_ready), self._coordinator.maximum_setpoint))
         await self._coordinator.async_set_control_max_relative_modulation(MAXIMUM_RELATIVE_MODULATION)
 
         await asyncio.sleep(SLEEP_INTERVAL)

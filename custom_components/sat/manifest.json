@@ -1,8 +1,8 @@
 {
   "domain": "sat",
-  "name": "Smart Autotune Thermostat",
+  "name": "SAT (Intergas Xtreme fork)",
   "codeowners": [
-    "@Alexwijn"
+    "@justink0k"
   ],
   "config_flow": true,
   "dependencies": [
@@ -14,9 +14,9 @@
       "hostname": "otgw"
     }
   ],
-  "documentation": "https://github.com/Alexwijn/SAT",
+  "documentation": "https://github.com/justink0k/SAT-xtreme",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/Alexwijn/SAT/issues",
+  "issue_tracker": "https://github.com/justink0k/SAT-xtreme/issues",
   "mqtt": [
     "ems-esp/#",
     "OTGW/value/+"
@@ -25,5 +25,5 @@
     "pyotgw==2.2.2",
     "sentry-sdk==2.19.2"
   ],
-  "version": "4.2.0"
+  "version": "4.2.1+xtreme.0"
 }
