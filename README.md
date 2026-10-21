@@ -1,35 +1,52 @@
 > [!WARNING]
-> **This is an unofficial fork of [Smart Autotune Thermostat (SAT)](https://github.com/Alexwijn/SAT).**
+> **SAT-xtreme is an unofficial fork of [Smart Autotune Thermostat (SAT)](https://github.com/Alexwijn/SAT).**
 > All credit for SAT goes to its authors and contributors. Thank you!
 >
 > Please do **not** report problems with this fork to the official SAT project.
 > Use [the issue tracker of this fork](https://github.com/justink0k/SAT-xtreme/issues) instead.
 
-## About this fork
+## About SAT-xtreme
 
-This fork is tuned for an **Intergas Xtreme 30** boiler, connected through an **OpenTherm Gateway**
-(PIC firmware in gateway mode, controlled by SAT over MQTT). It was tested with a **Nest thermostat with
-Heat Link** that stays on the OpenTherm bus as a fallback when Home Assistant is down.
+SAT-xtreme is SAT with fixes and extra, **opt-in** features. Every feature has its own switch and is
+off by default: with all switches off, it behaves like upstream SAT 4.2.1 plus the bug fixes listed
+below. The goal is a better SAT in general, while the official project has had no new commits since
+March 2026.
 
-### The problem it solves
+The features were developed for, and so far only tested on, one setup:
 
-In PWM mode, SAT drops the control setpoint to 10 °C during every off phase and raises it again at
-the start of every on phase. In gateway mode the OTGW does not send the control setpoint (MsgID 1) by
-itself: it only replaces the value inside the MsgID 1 messages that the thermostat sends. A Nest sends
-MsgID 1 only about once every 150 seconds. The central heating enable bit (sent every few seconds in
-MsgID 0) reaches the boiler right away, but the new setpoint arrives 0 to 150 seconds later. Each PWM
-burn loses that time, and short PWM blocks lose most of their burn time.
+| | Tested setup |
+|---|---|
+| Boiler | Intergas Xtreme 30 (2024) |
+| Gateway | OpenTherm Gateway, PIC firmware in gateway mode, controlled by SAT over MQTT |
+| Thermostat on the bus | Nest with Heat Link, kept as a fallback when Home Assistant is down |
 
-What belongs to which device:
+Other boilers and gateways that SAT supports should work too, but they have not been tested. If you
+use SAT-xtreme with another setup, please report how it works (good or bad) on the issue tracker, and
+consider [adding a boiler preset](docs/boiler_presets.md#adding-a-preset-for-your-boiler) for your boiler.
 
-- **Boiler:** the changes for modulation, anti-cycling time, the hot water comfort function,
-  calibration and the self-learning overshoot protection value (OPV) are tuned for the Intergas Xtreme 30.
-  They may also be useful for other boilers that ignore the maximum modulation setting (according to
-  the OTGW documentation this includes other Intergas boilers, Ideal, Geminox and Nefit), but they have
-  only been tested with the Xtreme 30.
-- **Thermostat:** the setpoint fix mostly helps when a thermostat on the bus rarely sends the control
-  setpoint (MsgID 1), like the Nest (about once every 150 seconds). With thermostats that send it
-  often, or without a thermostat on the bus, the delay is small, but the fix does no harm.
+### What it improves
+
+- **Slow setpoint with a thermostat on the bus.** In gateway mode the OpenTherm Gateway only replaces
+  the control setpoint inside the MsgID 1 messages of the thermostat on the bus; it does not send
+  MsgID 1 by itself. A thermostat that sends MsgID 1 rarely (a Nest: about once every 150 seconds)
+  delays every new setpoint by up to 150 seconds, while the heating demand arrives within seconds. In
+  PWM mode, where upstream SAT lowers the setpoint to 10 °C in every off phase, each burn loses that
+  time. SAT-xtreme keeps the setpoint ready during the off phase (step 1). With a thermostat that sends
+  the setpoint often, or without a thermostat on the bus, the delay is small, but the fix does no harm.
+- **Boilers that ignore the modulation limit.** Some boilers ignore `MM=` (the maximum relative
+  modulation) but do report their modulation. SAT-xtreme can stop managing the limit and still use the
+  reported modulation (step 2), and calibrate the overshoot protection value without relying on `MM=`
+  (step 5).
+- **Short PWM burns.** PWM can count real burn time, wait for the anti-cycling time of the boiler
+  (also after short hot water flames) and use a longer minimum burn (step 3).
+- **A fixed overshoot protection value.** SAT-xtreme can learn the OPV during normal operation (step 4).
+- **A PID correction that is too strong or too weak.** Gain factor, a maximum rise above the heating
+  curve and manual gains on their own options page.
+- **Bug fixes** that apply to everyone (see below).
+
+The boiler settings that come with the fork (19.5 / 3.9 kW rated power, 300 s anti-cycling time) are
+the values of the tested Intergas Xtreme 30. Before you turn on steps 2 or 3, enter the values from your
+own rating plate and manual, or choose a matching boiler preset.
 
 ### What is changed
 
@@ -52,7 +69,7 @@ modified, and how to go back to the official version.
 | PID settings: automatic gains, gain factor, maximum rise above the heating curve, manual gains | *Configure → PID settings (fork)* | unchanged |
 | Dashboard | [`dashboards/sat_xtreme.yaml`](dashboards/sat_xtreme.yaml) | – |
 
-Entities of the fork (they only exist when the matching switch is on):
+Entities of the fork (except PID Output, they only exist when the matching switch is on):
 
 | Entity | Shows |
 |---|---|
