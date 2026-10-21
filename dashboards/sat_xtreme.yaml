@@ -6,7 +6,7 @@
 # Replace the entity IDs below with yours (search for them under Settings > Entities):
 #   climate.sat                                  your SAT thermostat
 #   ..._sat                                      the sensors and buttons of SAT; the suffix is your SAT
-#                                                name (for a SAT named "Living Room": _living_room)
+#                                                name (for a SAT named "Home": _home)
 #   sensor.otgw_control_setpoint                 OTGW control setpoint (TSet)
 #   sensor.otgw_boiler_flow_water_temperature    OTGW flow temperature (Tboiler)
 #   sensor.otgw_relative_modulation_level        OTGW relative modulation level
