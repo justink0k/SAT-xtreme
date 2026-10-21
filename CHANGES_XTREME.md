@@ -256,3 +256,25 @@ in `hacs.json` is raised to 2025.8.0, the first version with `OptionsFlowWithRel
 
 **Files.** `custom_components/sat/__init__.py`, `custom_components/sat/config_flow.py`, `hacs.json`,
 `custom_components/sat/manifest.json`, `tests/test_xtreme_reload.py` (new).
+
+## Step 7: dashboard (`4.2.1+xtreme.7`, 2026-10-21)
+
+No switch: a dashboard template, no change to how SAT controls the boiler.
+
+**What it adds.** `dashboards/sat_xtreme.yaml`, a dashboard made of standard Home Assistant cards
+only:
+
+- Now: the SAT thermostat, PWM phase and on/off time, the OPV in use, flame status, remaining
+  anti-cycling time, modulation and power.
+- Last 6 hours: control setpoint, flow, modulation, flame, heating demand and hot water. With step 1
+  on, the setpoint is already up before the heating demand goes on.
+- PWM blocks: burn time of the last block versus the planned on time, a 24-hour graph and burner
+  starts per day.
+- Learned OPV: value, mode, samples, last update and a 7-day graph.
+- Calibration: start and stop buttons (with a confirmation), progress, and the last report.
+
+The entity IDs at the top of the file must be replaced with your own. The cards for PWM, Learned OPV
+and Calibration need the matching Xtreme profile switches.
+
+**Files.** `dashboards/sat_xtreme.yaml` (new), `README.md`, `.gitignore` (ignores `local/` for
+personal versions), `custom_components/sat/manifest.json`, `tests/test_xtreme_dashboard.py` (new).

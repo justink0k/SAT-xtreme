@@ -49,6 +49,15 @@ were modified, and how to go back to the official version.
    and presets) is kept, because the domain and configuration format are unchanged.
 4. Enable the switches you want under *Xtreme profile* in the SAT options.
 
+### Dashboard
+
+[`dashboards/sat_xtreme.yaml`](dashboards/sat_xtreme.yaml) is a dashboard made of standard Home
+Assistant cards: the current state, a 6-hour graph of setpoint, flow, modulation, flame, heating
+demand and hot water, the PWM blocks (planned on time versus real burn time), burner starts per day,
+the learned OPV, and the calibration with start/stop buttons and the last report. Replace the entity
+IDs listed at the top of the file with yours and paste it into the raw configuration editor of a new
+dashboard.
+
 ### Disclaimer
 
 Use at your own risk, without any warranty. This fork controls a central heating boiler. It has not
