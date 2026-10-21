@@ -400,7 +400,18 @@
         "step": {
           "confirm": {
             "title": "Create the SAT Xtreme dashboard?",
-            "description": "SAT-xtreme can create a dashboard 'SAT Xtreme' in the sidebar with the state of the boiler, graphs of the last hours, the PID correction, the PWM blocks, the learned OPV and the calibration. It uses the entities of this SAT, whatever they are called, and only shows cards for the features you use. Submit to create it. Later you can rebuild it with the button 'Xtreme fork: Create Dashboard' (for example after turning on a feature); that only changes the SAT Xtreme dashboard."
+            "description": "SAT-xtreme can create a dashboard 'SAT Xtreme' in the sidebar with the state of the boiler, graphs of the last hours, the PID correction, the PWM blocks, the learned OPV and the calibration. It uses the entities of this SAT (and of your OpenTherm Gateway, when you have one), whatever they are called, and only shows cards for the features you use. Submit to create it. Afterwards it follows the features you turn on or off by itself, unless you change the dashboard by hand. The button 'Xtreme fork: Create Dashboard' rebuilds it at any time; that only changes the SAT Xtreme dashboard."
+          }
+        }
+      }
+    },
+    "update_dashboard": {
+      "title": "The SAT Xtreme dashboard can be updated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Rebuild the SAT Xtreme dashboard?",
+            "description": "Features of SAT-xtreme were turned on or off, so the SAT Xtreme dashboard is out of date. SAT-xtreme did not update it automatically, because the dashboard was changed by hand. Submit to rebuild it with the cards of the features that are on now; your own changes to this dashboard are lost. Ignore this repair to keep your version."
           }
         }
       }

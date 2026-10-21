@@ -375,7 +375,18 @@
         "step": {
           "confirm": {
             "title": "Het dashboard SAT Xtreme aanmaken?",
-            "description": "SAT-xtreme kan in de zijbalk een dashboard 'SAT Xtreme' aanmaken met de toestand van de ketel, grafieken van de afgelopen uren, de PID-bijsturing, de PWM-blokken, de geleerde OPV en de kalibratie. Het gebruikt de entiteiten van deze SAT, hoe ze ook heten, en toont alleen kaarten voor de functies die je gebruikt. Klik op Verzenden om het aan te maken. Later kun je het opnieuw opbouwen met de knop 'Xtreme fork: Create Dashboard' (bijvoorbeeld na het aanzetten van een functie); dat verandert alleen het dashboard SAT Xtreme."
+            "description": "SAT-xtreme kan in de zijbalk een dashboard 'SAT Xtreme' aanmaken met de toestand van de ketel, grafieken van de afgelopen uren, de PID-bijsturing, de PWM-blokken, de geleerde OPV en de kalibratie. Het gebruikt de entiteiten van deze SAT (en van je OpenTherm Gateway, als je die hebt), hoe ze ook heten, en toont alleen kaarten voor de functies die je gebruikt. Klik op Verzenden om het aan te maken. Daarna loopt het vanzelf mee met de functies die je aan- of uitzet, tenzij je het dashboard met de hand aanpast. De knop 'Xtreme fork: Create Dashboard' bouwt het altijd opnieuw op; dat verandert alleen het dashboard SAT Xtreme."
+          }
+        }
+      }
+    },
+    "update_dashboard": {
+      "title": "Het dashboard SAT Xtreme kan worden bijgewerkt",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Het dashboard SAT Xtreme opnieuw opbouwen?",
+            "description": "Er zijn functies van SAT-xtreme aan- of uitgezet, dus het dashboard SAT Xtreme is niet meer actueel. SAT-xtreme heeft het niet automatisch bijgewerkt, omdat het dashboard met de hand is aangepast. Klik op Verzenden om het opnieuw op te bouwen met de kaarten van de functies die nu aan staan; je eigen aanpassingen aan dit dashboard gaan dan verloren. Negeer deze melding om je eigen versie te houden."
           }
         }
       }

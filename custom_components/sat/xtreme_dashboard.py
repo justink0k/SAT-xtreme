@@ -6,7 +6,9 @@ official Home Assistant API; when it fails, the configuration is shown in a noti
 """
 from __future__ import annotations
 
+import hashlib
 import inspect
+import json
 import logging
 from typing import Any, Optional
 
@@ -15,8 +17,9 @@ from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry, issue_registry
+from homeassistant.helpers.storage import Store
 
-from .const import CONF_NAME, DOMAIN
+from .const import CONF_DEVICE, CONF_MODE, CONF_NAME, DOMAIN, MODE_MQTT_OPENTHERM
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,8 +51,39 @@ ENTITIES: dict[str, tuple[str, Optional[str]]] = {
 }
 
 
+# Sensors of the OpenTherm Gateway itself (MQTT discovery of the OTGW firmware). They usually have a long
+# history and the real burner start counter of the boiler, so they are preferred over SAT's own sensors.
+# key -> (domain, label); the unique ID is "<device>-pic_<label>" (firmware 2.x) or "<device>-<label>" (older).
+GATEWAY_ENTITIES: dict[str, tuple[str, str]] = {
+    "setpoint": ("sensor", "TSet"),
+    "flow": ("sensor", "Tboiler"),
+    "modulation": ("sensor", "RelModLevel"),
+    "burner_starts": ("sensor", "BurnerStarts"),
+    "flame": ("binary_sensor", "flame"),
+    "heating_demand": ("binary_sensor", "ch_enable"),
+    "hot_water": ("binary_sensor", "domestichotwater"),
+}
+
+
+def _gateway_entities(hass: HomeAssistant, config_entry: ConfigEntry) -> dict[str, str]:
+    """Return the entity IDs of the OpenTherm Gateway's own sensors that exist, by key."""
+    if config_entry.data.get(CONF_MODE) != MODE_MQTT_OPENTHERM or not (device := config_entry.data.get(CONF_DEVICE)):
+        return {}
+
+    registry = entity_registry.async_get(hass)
+    found = {}
+
+    for key, (domain, label) in GATEWAY_ENTITIES.items():
+        for unique_id in (f"{device}-pic_{label}", f"{device}-{label}", f"{device}_{label}"):
+            if (entity_id := registry.async_get_entity_id(domain, "mqtt", unique_id)) is not None:
+                found[key] = entity_id
+                break
+
+    return found
+
+
 def resolve_entities(hass: HomeAssistant, config_entry: ConfigEntry) -> dict[str, str]:
-    """Return the entity IDs of this SAT entry that exist, by key."""
+    """Return the entity IDs to use, by key: the gateway's own sensors where they exist, otherwise SAT's."""
     registry = entity_registry.async_get(hass)
     name = str(config_entry.data.get(CONF_NAME)).lower()
     found = {}
@@ -59,6 +93,7 @@ def resolve_entities(hass: HomeAssistant, config_entry: ConfigEntry) -> dict[str
         if (entity_id := registry.async_get_entity_id(domain, DOMAIN, unique_id)) is not None:
             found[key] = entity_id
 
+    found.update(_gateway_entities(hass, config_entry))
     return found
 
 
@@ -204,6 +239,15 @@ def _dashboards_collection(hass: HomeAssistant):
     return inspect.unwrap(handler).__self__.storage_collection
 
 
+def _fingerprint(config: dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
+
+
+def _store(hass: HomeAssistant, config_entry: ConfigEntry) -> Store:
+    # Remembers the fingerprint of the dashboard SAT-xtreme built, to tell whether the user changed it
+    return Store(hass, 1, f"sat_xtreme_dashboard_{config_entry.entry_id}")
+
+
 async def async_create_dashboard(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Create the SAT-xtreme dashboard, or rebuild it when it exists. Returns False when it had to fall back."""
     config = build_dashboard(resolve_entities(hass, config_entry))
@@ -230,25 +274,49 @@ async def async_create_dashboard(hass: HomeAssistant, config_entry: ConfigEntry)
         )
         return False
 
+    await _store(hass, config_entry).async_save({"fingerprint": _fingerprint(config)})
     issue_registry.async_delete_issue(hass, DOMAIN, f"create_dashboard_{config_entry.entry_id}")
+    issue_registry.async_delete_issue(hass, DOMAIN, f"update_dashboard_{config_entry.entry_id}")
     _LOGGER.info("SAT-xtreme: dashboard '%s' created or updated with %d cards.", TITLE, len(config["views"][0]["cards"]))
     return True
 
 
-def async_offer_dashboard(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
-    """Offer to create the dashboard as a repair, unless it already exists."""
-    issue_id = f"create_dashboard_{config_entry.entry_id}"
+async def async_maintain_dashboard(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    """Offer the dashboard when it does not exist, and keep it up to date when it does.
 
-    if dashboard_exists(hass):
-        issue_registry.async_delete_issue(hass, DOMAIN, issue_id)
-        return
+    The dashboard is rebuilt automatically only when it is still exactly as SAT-xtreme built it; when the
+    user changed it, a repair offers the rebuild instead, so their changes are never lost silently.
+    """
+    entry_id = config_entry.entry_id
 
-    issue_registry.async_create_issue(
-        hass,
-        DOMAIN,
-        issue_id,
-        is_fixable=True,
-        severity=issue_registry.IssueSeverity.WARNING,
-        translation_key="create_dashboard",
-        data={"entry_id": config_entry.entry_id},
-    )
+    try:
+        if not dashboard_exists(hass):
+            issue_registry.async_create_issue(
+                hass, DOMAIN, f"create_dashboard_{entry_id}", is_fixable=True, severity=issue_registry.IssueSeverity.WARNING,
+                translation_key="create_dashboard", data={"entry_id": entry_id},
+            )
+            return
+
+        issue_registry.async_delete_issue(hass, DOMAIN, f"create_dashboard_{entry_id}")
+
+        from homeassistant.components.lovelace.const import LOVELACE_DATA
+
+        current = await hass.data[LOVELACE_DATA].dashboards[URL_PATH].async_load(False)
+        wanted = build_dashboard(resolve_entities(hass, config_entry))
+
+        if _fingerprint(current) == _fingerprint(wanted):
+            issue_registry.async_delete_issue(hass, DOMAIN, f"update_dashboard_{entry_id}")
+            return
+
+        stored = await _store(hass, config_entry).async_load() or {}
+        if stored.get("fingerprint") == _fingerprint(current):
+            _LOGGER.info("SAT-xtreme: the dashboard is unchanged since it was built, updating it to the current features.")
+            await async_create_dashboard(hass, config_entry)
+            return
+
+        issue_registry.async_create_issue(
+            hass, DOMAIN, f"update_dashboard_{entry_id}", is_fixable=True, severity=issue_registry.IssueSeverity.WARNING,
+            translation_key="update_dashboard", data={"entry_id": entry_id},
+        )
+    except Exception as exception:
+        _LOGGER.debug("SAT-xtreme: could not check the dashboard (%s).", exception)

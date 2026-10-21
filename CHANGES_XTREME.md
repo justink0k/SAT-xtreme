@@ -509,3 +509,26 @@ No change to how SAT controls the boiler.
 `custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
 `custom_components/sat/manifest.json`, `README.md`, `tests/test_xtreme_dashboard_builder.py` (new),
 `tests/test_xtreme_pid.py`.
+
+## Version 16: dashboard uses the gateway's sensors and follows the features (`4.2.1-xtreme.16`, 2026-10-21)
+
+No change to how SAT controls the boiler.
+
+- **Gateway sensors first.** With an OpenTherm Gateway over MQTT, the dashboard uses the gateway's own
+  sensors for the control setpoint, flow, modulation, burner starts, flame, heating demand and hot water
+  (unique IDs `<device>-pic_<label>` of the OTGW firmware 2.x, or `<device>-<label>` of older firmware).
+  They have their full history and the real burner start counter of the boiler. Other gateways, or
+  missing sensors, fall back to SAT-xtreme's own sensors.
+- **The dashboard follows the features.** SAT-xtreme remembers a fingerprint of the dashboard it built.
+  After every reload (for example after saving the options) it compares the dashboard with that
+  fingerprint: when it is unchanged, it is rebuilt automatically with the cards of the features that are
+  on now; when it was changed by hand, a repair *The SAT Xtreme dashboard can be updated* offers the
+  rebuild with a fix button, and nothing is overwritten without that click.
+- `lovelace` is an after-dependency, so dashboards are loaded before SAT checks them.
+- The description of the hot water keep-warm option explains `HW=A` precisely: the DHW enable bit
+  follows the thermostat on the bus.
+
+**Files.** `custom_components/sat/xtreme_dashboard.py`, `custom_components/sat/repairs.py`,
+`custom_components/sat/__init__.py`, `custom_components/sat/manifest.json`,
+`custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`, `README.md`,
+`tests/test_xtreme_dashboard_builder.py`.

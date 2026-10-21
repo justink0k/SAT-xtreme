@@ -120,3 +120,90 @@ async def test_burner_starts_are_counted(hass: HomeAssistant, entry: MockConfigE
         coordinator._flame.update(boiler_state=coordinator.boiler)
 
     assert coordinator.flame_start_count == before + 3
+
+
+async def test_gateway_sensors_are_preferred(hass: HomeAssistant) -> None:
+    from homeassistant.helpers import entity_registry
+
+    gateway_entry = MockConfigEntry(domain=DOMAIN, data={CONF_MODE: MODE_MQTT_OPENTHERM, CONF_DEVICE: "otgw-ABC123", CONF_NAME: "Home"})
+    registry = entity_registry.async_get(hass)
+    registry.async_get_or_create("sensor", "mqtt", "otgw-ABC123-pic_TSet", suggested_object_id="gateway_tset")
+    registry.async_get_or_create("sensor", "mqtt", "otgw-ABC123-BurnerStarts", suggested_object_id="gateway_starts")
+    registry.async_get_or_create("binary_sensor", "mqtt", "otgw-ABC123-pic_flame", suggested_object_id="gateway_flame")
+    registry.async_get_or_create("sensor", DOMAIN, "home-xtreme-boiler-flow", suggested_object_id="sat_flow")
+    registry.async_get_or_create("sensor", DOMAIN, "home-xtreme-control-setpoint", suggested_object_id="sat_setpoint")
+
+    entities = dashboard.resolve_entities(hass, gateway_entry)
+
+    assert entities["setpoint"] == "sensor.gateway_tset"
+    assert entities["burner_starts"] == "sensor.gateway_starts"
+    assert entities["flame"] == "binary_sensor.gateway_flame"
+    # No gateway sensor for the flow: SAT's own sensor is used
+    assert entities["flow"] == "sensor.sat_flow"
+
+
+@pytest.mark.parametrize(*parameters())
+async def test_no_gateway_sensors_for_other_gateways(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
+    assert dashboard._gateway_entities(hass, entry) == {}
+
+
+async def _setup_dashboard(hass, entry):
+    assert await async_setup_component(hass, "lovelace", {})
+    await hass.async_block_till_done()
+    assert await dashboard.async_create_dashboard(hass, entry)
+    return hass.data[LOVELACE_DATA].dashboards[dashboard.URL_PATH]
+
+
+@pytest.mark.parametrize(*parameters())
+async def test_unchanged_dashboard_follows_the_features(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
+    store = await _setup_dashboard(hass, entry)
+
+    # A feature was turned on: a new entity exists
+    extra = {**dashboard.resolve_entities(hass, entry), "learned_opv": "sensor.new_learned_opv"}
+    with patch.object(dashboard, "resolve_entities", return_value=extra):
+        await dashboard.async_maintain_dashboard(hass, entry)
+
+    assert "sensor.new_learned_opv" in _entity_ids(await store.async_load(False))
+    assert issue_registry.async_get(hass).async_get_issue(DOMAIN, f"update_dashboard_{entry.entry_id}") is None
+
+
+@pytest.mark.parametrize(*parameters())
+async def test_edited_dashboard_is_not_overwritten(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
+    store = await _setup_dashboard(hass, entry)
+
+    # The user changed the dashboard
+    edited = await store.async_load(False)
+    edited = {**edited, "title": "My heating"}
+    await store.async_save(edited)
+
+    extra = {**dashboard.resolve_entities(hass, entry), "learned_opv": "sensor.new_learned_opv"}
+    with patch.object(dashboard, "resolve_entities", return_value=extra):
+        await dashboard.async_maintain_dashboard(hass, entry)
+
+        assert (await store.async_load(False))["title"] == "My heating"
+        issue = issue_registry.async_get(hass).async_get_issue(DOMAIN, f"update_dashboard_{entry.entry_id}")
+        assert issue is not None and issue.is_fixable
+
+        # The repair rebuilds it after a click
+        from custom_components.sat.repairs import async_create_fix_flow
+
+        flow = await async_create_fix_flow(hass, issue.issue_id, issue.data)
+        flow.hass = hass
+        flow.handler = DOMAIN
+        flow.issue_id = issue.issue_id
+        await flow.async_step_confirm({})
+
+    assert (await store.async_load(False))["title"] == "SAT Xtreme"
+    assert issue_registry.async_get(hass).async_get_issue(DOMAIN, f"update_dashboard_{entry.entry_id}") is None
+
+
+@pytest.mark.parametrize(*parameters())
+async def test_up_to_date_dashboard_is_left_alone(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
+    store = await _setup_dashboard(hass, entry)
+    before = await store.async_load(False)
+
+    with patch.object(dashboard, "async_create_dashboard") as rebuild:
+        await dashboard.async_maintain_dashboard(hass, entry)
+
+    rebuild.assert_not_called()
+    assert await store.async_load(False) == before

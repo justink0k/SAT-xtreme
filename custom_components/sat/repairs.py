@@ -49,7 +49,7 @@ async def async_create_fix_flow(hass: HomeAssistant, issue_id: str, data: dict[s
     """Create the fix flow for an issue of this integration."""
     entry_id = (data or {}).get("entry_id", "")
 
-    if issue_id.startswith("create_dashboard"):
+    if issue_id.startswith(("create_dashboard", "update_dashboard")):
         return CreateDashboardRepairFlow(entry_id)
 
     return IgnoreModulationLimitRepairFlow(entry_id)
