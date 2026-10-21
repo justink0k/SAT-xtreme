@@ -242,3 +242,17 @@ suit a measurement that takes hours.
 `custom_components/sat/services.py`, `custom_components/sat/services.yaml`,
 `custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
 `custom_components/sat/manifest.json`, `tests/test_xtreme_calibration.py` (new).
+
+## Step 6: ready for Home Assistant 2026.12 (`4.2.1+xtreme.6`, 2026-10-21)
+
+No switch: this change applies to everyone.
+
+**Why.** Home Assistant logs *"Detected that custom integration 'sat' has an update listener and
+should use it for scheduling a reload. This will stop working in Home Assistant 2026.12.0."*
+
+**What changes.** The options flow is now an `OptionsFlowWithReload`, so Home Assistant reloads SAT
+after the options are saved, and the update listener is removed. The minimum Home Assistant version
+in `hacs.json` is raised to 2025.8.0, the first version with `OptionsFlowWithReload`.
+
+**Files.** `custom_components/sat/__init__.py`, `custom_components/sat/config_flow.py`, `hacs.json`,
+`custom_components/sat/manifest.json`, `tests/test_xtreme_reload.py` (new).

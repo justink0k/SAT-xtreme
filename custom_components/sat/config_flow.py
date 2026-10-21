@@ -546,8 +546,12 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self.data[CONF_MINIMUM_SETPOINT] = overshoot_protection_value
 
 
-class SatOptionsFlowHandler(config_entries.OptionsFlow):
-    """Config flow options handler."""
+class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
+    """Config flow options handler.
+
+    Home Assistant reloads the entry after the options are saved (replaces the update listener,
+    which stops working in Home Assistant 2026.12).
+    """
 
     def __init__(self, config_entry: ConfigEntry):
         self._config_entry = config_entry

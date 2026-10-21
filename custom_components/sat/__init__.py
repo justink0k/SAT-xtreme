@@ -62,9 +62,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     # Register the services
     await async_register_services(hass)
 
-    # Add an update listener for this entry
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
     return True
 
 
