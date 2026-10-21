@@ -124,3 +124,42 @@ What does not work is managing the limit: SAT keeps sending `MM=0` / `MM=100`.
 `custom_components/sat/fake/__init__.py`, `custom_components/sat/translations/en.json`,
 `custom_components/sat/manifest.json`, `tests/xtreme_helpers.py` (new),
 `tests/test_xtreme_modulation.py` (new).
+
+## Step 3: align PWM with the boiler timing (`4.2.1+xtreme.3`, 2026-10-21)
+
+Switch: **Align PWM with the boiler timing** (`xtreme_boiler_timing`), with the settings
+**Anti-cycling time of the boiler** (`xtreme_anti_cycling_time`, default 300 s, Intergas parameter
+P036), **Anti-cycling margin** (`xtreme_anti_cycling_margin`, default 15 s), **Minimum burn time**
+(`xtreme_minimum_burn_time`, default 360 s) and **Minimum duty cycle** (`xtreme_minimum_duty_cycle`,
+default 7.5 %).
+
+**Why.** Upstream counts the on time of a PWM block from the moment the heating demand goes on. When
+the boiler is still anti-cycling (after its own previous burn, or after a short hot water flame of
+the comfort function), or waits for the setpoint, that waiting time is lost and the real burn is much
+shorter than planned. Upstream can also plan off phases of 180 seconds, shorter than the anti-cycling
+time of the boiler, and burns of 3 minutes, which barely pay off the start.
+
+**What changes when the switch is on.**
+
+- The on time counts burn time: seconds with the flame on for heating. Seconds with hot water do not
+  count. If no flame appears within the anti-cycling wait plus 15 seconds (330 s by default), the
+  on time counts anyway (a warning is logged). An on phase never lasts longer than twice the planned
+  on time plus that timeout.
+- A new on phase starts only when the anti-cycling time plus margin (315 s by default) has passed
+  since the last flame, for heating or for hot water, and no hot water is active. The setpoint is
+  already primed in the meantime when step 1 is on.
+- The minimum burn time replaces the upstream minimum on time of 180 seconds. All duty cycle ranges
+  of upstream scale with it; with 3 cycles per hour, a duty cycle of 20 % now gives 6 minutes on and
+  24 minutes off (upstream: 4 minutes on and 16 minutes off).
+- Below the minimum duty cycle SAT does not burn at all, as upstream. Upstream derives this threshold
+  from the minimum on time (half of its share); the profile keeps it at a fixed value (7.5 %) so a
+  longer minimum burn time results in longer off phases instead of no heating.
+- New sensors: **PWM Burn Time** (burn time of the last completed on phase, with the planned on time
+  and the current burn time as attributes) and **Anti-cycling Remaining**.
+
+**Files.** `custom_components/sat/xtreme_profile.py`, `custom_components/sat/xtreme_sensor.py` (new),
+`custom_components/sat/const.py`, `custom_components/sat/pwm.py`, `custom_components/sat/flame.py`,
+`custom_components/sat/coordinator.py`, `custom_components/sat/climate.py`,
+`custom_components/sat/util.py`, `custom_components/sat/sensor.py`,
+`custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
+`custom_components/sat/manifest.json`, `tests/test_xtreme_boiler_timing.py` (new).

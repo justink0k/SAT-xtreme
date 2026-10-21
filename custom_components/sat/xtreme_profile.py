@@ -15,6 +15,11 @@ from .const import (
     CONF_XTREME_BOILER_MAXIMUM_POWER,
     CONF_XTREME_BOILER_MINIMUM_POWER,
     CONF_XTREME_IGNORE_MODULATION_LIMIT,
+    CONF_XTREME_BOILER_TIMING,
+    CONF_XTREME_ANTI_CYCLING_TIME,
+    CONF_XTREME_ANTI_CYCLING_MARGIN,
+    CONF_XTREME_MINIMUM_BURN_TIME,
+    CONF_XTREME_MINIMUM_DUTY_CYCLE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,6 +46,25 @@ class XtremeProfile:
     boiler_maximum_power: float = 19.5
     boiler_minimum_power: float = 3.9
 
+    # Step 3: align PWM with the boiler. The on time counts burn time (flame on, no hot water), a new
+    # on phase waits until the anti-cycling time after the last flame (heating or hot water) has passed,
+    # and every burn lasts at least the minimum burn time.
+    boiler_timing: bool = False
+    anti_cycling_time: int = 300
+    anti_cycling_margin: int = 15
+    minimum_burn_time: int = 360
+    minimum_duty_cycle: float = 7.5
+
+    @property
+    def anti_cycling_wait(self) -> int:
+        """Seconds to wait after the last flame before a new on phase may start."""
+        return self.anti_cycling_time + self.anti_cycling_margin
+
+    @property
+    def flame_wait_timeout(self) -> int:
+        """Seconds to wait for the flame in an on phase before the on time counts anyway."""
+        return self.anti_cycling_wait + 15
+
     @staticmethod
     def from_options(options: Mapping[str, Any] | None) -> XtremeProfile:
         values = OPTIONS_DEFAULTS.copy()
@@ -51,6 +75,11 @@ class XtremeProfile:
             ignore_modulation_limit=bool(values.get(CONF_XTREME_IGNORE_MODULATION_LIMIT)),
             boiler_maximum_power=float(values.get(CONF_XTREME_BOILER_MAXIMUM_POWER)),
             boiler_minimum_power=float(values.get(CONF_XTREME_BOILER_MINIMUM_POWER)),
+            boiler_timing=bool(values.get(CONF_XTREME_BOILER_TIMING)),
+            anti_cycling_time=int(values.get(CONF_XTREME_ANTI_CYCLING_TIME)),
+            anti_cycling_margin=int(values.get(CONF_XTREME_ANTI_CYCLING_MARGIN)),
+            minimum_burn_time=int(values.get(CONF_XTREME_MINIMUM_BURN_TIME)),
+            minimum_duty_cycle=float(values.get(CONF_XTREME_MINIMUM_DUTY_CYCLE)),
         )
 
         if profile.enabled:
@@ -63,6 +92,7 @@ class XtremeProfile:
         switches = (
             ("prime_setpoint", self.prime_setpoint),
             ("ignore_modulation_limit", self.ignore_modulation_limit),
+            ("boiler_timing", self.boiler_timing),
         )
 
         return [name for name, enabled in switches if enabled]

@@ -257,13 +257,23 @@
           "xtreme_prime_setpoint": "Prime the setpoint during the PWM off phase",
           "xtreme_ignore_modulation_limit": "Do not manage the modulation limit",
           "xtreme_boiler_maximum_power": "Rated maximum heating power",
-          "xtreme_boiler_minimum_power": "Rated minimum heating power"
+          "xtreme_boiler_minimum_power": "Rated minimum heating power",
+          "xtreme_boiler_timing": "Align PWM with the boiler timing",
+          "xtreme_anti_cycling_time": "Anti-cycling time of the boiler",
+          "xtreme_anti_cycling_margin": "Anti-cycling margin",
+          "xtreme_minimum_burn_time": "Minimum burn time",
+          "xtreme_minimum_duty_cycle": "Minimum duty cycle"
         },
         "data_description": {
           "xtreme_prime_setpoint": "Keep the minimum setpoint on the bus during the PWM off phase and turn the heating demand off explicitly, so the boiler starts right away when the next on phase begins. Helps when a thermostat on the bus rarely sends the control setpoint (MsgID 1).",
           "xtreme_ignore_modulation_limit": "For boilers that ignore the maximum relative modulation (MM=) but do report their modulation. SAT stops sending the modulation limit and keeps using the reported modulation.",
           "xtreme_boiler_maximum_power": "Used for the power sensor when the boiler does not report its capacity (MsgID 15). Take the heating output (Pn) from the rating plate.",
-          "xtreme_boiler_minimum_power": "Used for the power sensor when the boiler does not report its minimum modulation level. Take the minimum heating output (Pn) from the rating plate."
+          "xtreme_boiler_minimum_power": "Used for the power sensor when the boiler does not report its minimum modulation level. Take the minimum heating output (Pn) from the rating plate.",
+          "xtreme_boiler_timing": "The on time counts burn time (flame on for heating), a new on phase waits until the anti-cycling time after the last flame (heating or hot water) has passed, and every burn lasts at least the minimum burn time.",
+          "xtreme_anti_cycling_time": "The anti-cycling time set in the boiler (Intergas: parameter P036, 5 minutes by default).",
+          "xtreme_anti_cycling_margin": "Extra seconds on top of the anti-cycling time.",
+          "xtreme_minimum_burn_time": "The shortest burn of a PWM on phase. Longer burns mean fewer starts and longer off phases.",
+          "xtreme_minimum_duty_cycle": "Below this duty cycle SAT does not burn at all (upstream: half of the minimum burn time share)."
         }
       }
     }

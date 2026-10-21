@@ -9,6 +9,7 @@ from homeassistant.core import State
 from .const import HEATER_STARTUP_TIMEFRAME, MINIMUM_SETPOINT, BoilerStatus, PWMStatus
 from .heating_curve import HeatingCurve
 from .setpoint_adjuster import SetpointAdjuster
+from .xtreme_profile import XtremeProfile
 
 if TYPE_CHECKING:
     from .flame import FlameState
@@ -39,11 +40,12 @@ class PWMState:
 class PWM:
     """Implements Pulse Width Modulation (PWM) control for managing boiler operations."""
 
-    def __init__(self, cycles: CycleConfig, heating_curve: HeatingCurve, supports_relative_modulation_management: bool, automatic_duty_cycle: bool, force: bool = False):
+    def __init__(self, cycles: CycleConfig, heating_curve: HeatingCurve, supports_relative_modulation_management: bool, automatic_duty_cycle: bool, force: bool = False, xtreme_profile: XtremeProfile | None = None):
         """Initialize the PWM control."""
         self._alpha: float = 0.2
         self._force: bool = force
         self._last_boiler_temperature: float | None = None
+        self._xtreme_profile: XtremeProfile = xtreme_profile or XtremeProfile()
 
         self._cycles: CycleConfig = cycles
         self._heating_curve: HeatingCurve = heating_curve
@@ -51,6 +53,11 @@ class PWM:
 
         # Timing thresholds for duty cycle management
         self._on_time_lower_threshold: float = 180
+
+        # Xtreme profile: every burn lasts at least the minimum burn time
+        if self._xtreme_profile.boiler_timing:
+            self._on_time_lower_threshold = float(self._xtreme_profile.minimum_burn_time)
+
         self._on_time_upper_threshold: float = 3600 / max(1, self._cycles.maximum_count)
         self._on_time_max_threshold: float = self._on_time_upper_threshold * 2
 
@@ -58,12 +65,22 @@ class PWM:
         self._duty_cycle_lower_threshold: float = self._on_time_lower_threshold / self._on_time_upper_threshold
         self._duty_cycle_upper_threshold: float = 1 - self._duty_cycle_lower_threshold
         self._min_duty_cycle_percentage: float = self._duty_cycle_lower_threshold / 2
+
+        # Xtreme profile: keep the threshold below which SAT does not burn independent of the minimum burn time
+        if self._xtreme_profile.boiler_timing:
+            self._min_duty_cycle_percentage = min(self._xtreme_profile.minimum_duty_cycle / 100, self._duty_cycle_lower_threshold)
+
         self._max_duty_cycle_percentage: float = 1 - self._min_duty_cycle_percentage
 
         # Initialize some helpers
         self._setpoint: Optional[float] = None
         self._setpoint_adjuster = SetpointAdjuster()
         self._setpoint_offset: int = 0.5 if supports_relative_modulation_management else 1
+
+        # Xtreme profile: values that survive a reset, for the dashboard
+        self._anti_cycling_remaining: float = 0
+        self._last_block_burn_seconds: float | None = None
+        self._last_block_target_seconds: float | None = None
 
         _LOGGER.debug(
             "Initialized PWM control with duty cycle thresholds - Lower: %.2f%%, Upper: %.2f%%, Offset: %d°C",
@@ -82,6 +99,13 @@ class PWM:
 
         self._first_duty_cycle_start: float | None = None
         self._last_duty_cycle_percentage: float | None = None
+
+        # Xtreme profile: burn time bookkeeping of the current on phase
+        self._on_started_at: float | None = None
+        self._last_tick: float | None = None
+        self._burn_seconds: float = 0
+        self._flame_seen: bool = False
+        self._flame_wait_expired: bool = False
 
     def restore(self, state: State) -> None:
         """Restore the PWM controller from a saved state."""
@@ -153,26 +177,114 @@ class PWM:
             self.disable()
             return
 
+        if self._xtreme_profile.boiler_timing:
+            self._update_burn_time(boiler, flame)
+
         # State transitions for PWM
         if self._status != PWMStatus.ON and self._duty_cycle[0] >= HEATER_STARTUP_TIMEFRAME and (elapsed >= self._duty_cycle[1] or self._status == PWMStatus.IDLE):
             if self._current_cycle >= self._cycles.maximum_count:
                 _LOGGER.info("Reached max cycles per hour, preventing new duty cycle.")
                 return
 
+            if self._xtreme_profile.boiler_timing and not self._boiler_may_start(boiler, flame):
+                return
+
             self._current_cycle += 1
             self._status = PWMStatus.ON
             self._last_update = monotonic()
             self._last_boiler_temperature = boiler.flow_temperature
+            self._start_burn_time()
             _LOGGER.info("Starting new duty cycle (ON state). Current CYCLES count: %d", self._current_cycle)
             return
 
-        if self._status != PWMStatus.OFF and (self._duty_cycle[0] < HEATER_STARTUP_TIMEFRAME or elapsed >= self._duty_cycle[0] or self._status == PWMStatus.IDLE):
+        if self._status != PWMStatus.OFF and (self._duty_cycle[0] < HEATER_STARTUP_TIMEFRAME or self._on_phase_completed(elapsed) or self._status == PWMStatus.IDLE):
+            if self._status == PWMStatus.ON and self._xtreme_profile.boiler_timing:
+                self._last_block_burn_seconds = round(self._burn_seconds)
+                self._last_block_target_seconds = self._duty_cycle[0]
+                _LOGGER.info("Xtreme profile: on phase completed after %.0f seconds of burn time (target %d seconds, %.0f seconds wall time).", self._burn_seconds, self._duty_cycle[0], elapsed)
+
             self._status = PWMStatus.OFF
             self._last_update = monotonic()
             _LOGGER.info("Duty cycle completed. Switching to OFF state.")
             return
 
         _LOGGER.debug("Cycle time elapsed: %.0f seconds in state: %s", elapsed, self._status)
+
+    def _start_burn_time(self) -> None:
+        """Xtreme profile: start the burn time bookkeeping of a new on phase."""
+        now = monotonic()
+
+        self._burn_seconds = 0
+        self._last_tick = now
+        self._on_started_at = now
+        self._flame_seen = False
+        self._flame_wait_expired = False
+
+    def _update_burn_time(self, boiler: "BoilerState", flame: "FlameState") -> None:
+        """Xtreme profile: count the burn time of the on phase (flame on for heating) and the remaining anti-cycling time."""
+        now = monotonic()
+
+        # Remaining anti-cycling time after the last flame, for heating or hot water
+        if flame.is_inactive and flame.off_since is not None:
+            self._anti_cycling_remaining = max(0.0, self._xtreme_profile.anti_cycling_wait - (now - flame.off_since))
+        else:
+            self._anti_cycling_remaining = 0
+
+        if self._status != PWMStatus.ON or self._last_tick is None or self._on_started_at is None:
+            self._last_tick = now
+            return
+
+        delta = max(0.0, now - self._last_tick)
+        self._last_tick = now
+
+        if boiler.flame_active and not boiler.hot_water_active:
+            # Do not count the part of the interval before the flame ignited
+            if flame.latest_on_time_seconds is not None:
+                delta = min(delta, flame.latest_on_time_seconds)
+
+            self._flame_seen = True
+            self._burn_seconds += delta
+            _LOGGER.debug("Xtreme profile: burn time %.0f of %d seconds.", self._burn_seconds, self._duty_cycle[0])
+            return
+
+        if boiler.hot_water_active:
+            _LOGGER.debug("Xtreme profile: hot water active during the on phase, burn time paused at %.0f seconds.", self._burn_seconds)
+            return
+
+        if not self._flame_seen and not self._flame_wait_expired and (now - self._on_started_at) >= self._xtreme_profile.flame_wait_timeout:
+            self._flame_wait_expired = True
+            _LOGGER.warning("Xtreme profile: no flame within %d seconds of the on phase, counting the on time anyway.", self._xtreme_profile.flame_wait_timeout)
+
+        if self._flame_wait_expired:
+            self._burn_seconds += delta
+
+    def _boiler_may_start(self, boiler: "BoilerState", flame: "FlameState") -> bool:
+        """Xtreme profile: check whether the boiler may start a new on phase (no hot water, anti-cycling time passed)."""
+        if boiler.hot_water_active:
+            _LOGGER.debug("Xtreme profile: hot water active, postponing the on phase.")
+            return False
+
+        if self._anti_cycling_remaining > 0:
+            _LOGGER.debug("Xtreme profile: anti-cycling time after the last flame, postponing the on phase for %.0f seconds.", self._anti_cycling_remaining)
+            return False
+
+        return True
+
+    def _on_phase_completed(self, elapsed: float) -> bool:
+        """Check whether the on phase is completed."""
+        if not self._xtreme_profile.boiler_timing:
+            return elapsed >= self._duty_cycle[0]
+
+        if self._burn_seconds >= self._duty_cycle[0]:
+            return True
+
+        # Safety net: never stay in the on phase much longer than planned
+        maximum_seconds = 2 * self._duty_cycle[0] + self._xtreme_profile.flame_wait_timeout
+        if elapsed >= maximum_seconds:
+            _LOGGER.warning("Xtreme profile: on phase took %.0f seconds with only %.0f seconds of burn time, ending it.", elapsed, self._burn_seconds)
+            return True
+
+        return False
 
     def _calculate_duty_cycle(self, requested_setpoint: float, boiler: "BoilerState") -> Tuple[int, int]:
         """Calculate the duty cycle in seconds based on the output of a PID controller and a heating curve value."""
@@ -263,6 +375,26 @@ class PWM:
     @property
     def enabled(self) -> bool:
         return self._enabled
+
+    @property
+    def burn_seconds(self) -> Optional[float]:
+        """Xtreme profile: burn time of the current on phase."""
+        return round(self._burn_seconds) if self._status == PWMStatus.ON else None
+
+    @property
+    def anti_cycling_remaining(self) -> float:
+        """Xtreme profile: seconds until the boiler may start again after the last flame."""
+        return round(self._anti_cycling_remaining)
+
+    @property
+    def last_block_burn_seconds(self) -> Optional[float]:
+        """Xtreme profile: burn time of the last completed on phase."""
+        return self._last_block_burn_seconds
+
+    @property
+    def last_block_target_seconds(self) -> Optional[float]:
+        """Xtreme profile: planned on time of the last completed on phase."""
+        return self._last_block_target_seconds
 
     @property
     def status(self) -> PWMStatus:

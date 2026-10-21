@@ -14,6 +14,7 @@ from .const import CONF_MODE, MODE_SERIAL, CONF_NAME, DOMAIN, COORDINATOR, CLIMA
 from .coordinator import SatDataUpdateCoordinator
 from .entity import SatEntity, SatClimateEntity
 from .serial import sensor as serial_sensor
+from .xtreme_sensor import async_setup_xtreme_sensors
 from .simulator import sensor as simulator_sensor
 
 if typing.TYPE_CHECKING:
@@ -40,6 +41,9 @@ async def async_setup_entry(_hass: HomeAssistant, _config_entry: ConfigEntry, _a
     # Check if integration is set to use the simulator
     if _config_entry.data.get(CONF_MODE) == MODE_SIMULATOR:
         await simulator_sensor.async_setup_entry(_hass, _config_entry, _async_add_entities)
+
+    # Xtreme profile sensors, only for the active switches
+    async_setup_xtreme_sensors(coordinator, _config_entry, climate, _async_add_entities)
 
     _async_add_entities([
         SatFlameSensor(coordinator, _config_entry),

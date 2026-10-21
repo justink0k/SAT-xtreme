@@ -771,6 +771,19 @@ class SatOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required(CONF_XTREME_BOILER_MINIMUM_POWER, default=options[CONF_XTREME_BOILER_MINIMUM_POWER]): selector.NumberSelector(
                     selector.NumberSelectorConfig(min=0.5, max=50, step=0.1, unit_of_measurement="kW")
                 ),
+                vol.Required(CONF_XTREME_BOILER_TIMING, default=options[CONF_XTREME_BOILER_TIMING]): bool,
+                vol.Required(CONF_XTREME_ANTI_CYCLING_TIME, default=options[CONF_XTREME_ANTI_CYCLING_TIME]): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=0, max=1800, step=10, unit_of_measurement="s")
+                ),
+                vol.Required(CONF_XTREME_ANTI_CYCLING_MARGIN, default=options[CONF_XTREME_ANTI_CYCLING_MARGIN]): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=0, max=120, step=5, unit_of_measurement="s")
+                ),
+                vol.Required(CONF_XTREME_MINIMUM_BURN_TIME, default=options[CONF_XTREME_MINIMUM_BURN_TIME]): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=240, max=600, step=30, unit_of_measurement="s")
+                ),
+                vol.Required(CONF_XTREME_MINIMUM_DUTY_CYCLE, default=options[CONF_XTREME_MINIMUM_DUTY_CYCLE]): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=2.5, max=30, step=0.5, unit_of_measurement="%")
+                ),
             })
         )
 

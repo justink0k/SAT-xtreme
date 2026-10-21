@@ -13,6 +13,7 @@ from .helpers import convert_time_str_to_seconds
 from .minimum_setpoint import MinimumSetpoint
 from .pid import PID
 from .pwm import PWM, CycleConfig
+from .xtreme_profile import XtremeProfile
 
 if TYPE_CHECKING:
     from .climate import SatClimate
@@ -67,7 +68,7 @@ def create_heating_curve_controller(config_data, config_options) -> HeatingCurve
     return HeatingCurve(heating_system=heating_system, coefficient=coefficient)
 
 
-def create_pwm_controller(heating_curve: HeatingCurve, supports_relative_modulation_management: bool, config_data: MappingProxyType[str, Any], config_options: MappingProxyType[str, Any]) -> PWM | None:
+def create_pwm_controller(heating_curve: HeatingCurve, supports_relative_modulation_management: bool, config_data: MappingProxyType[str, Any], config_options: MappingProxyType[str, Any], xtreme_profile: XtremeProfile | None = None) -> PWM | None:
     """Create and return a PWM controller instance with the given configuration options."""
     # Extract the configuration options
     max_duty_cycles = int(config_options.get(CONF_CYCLES_PER_HOUR))
@@ -79,7 +80,7 @@ def create_pwm_controller(heating_curve: HeatingCurve, supports_relative_modulat
     cycles = CycleConfig(maximum_count=max_duty_cycles, maximum_time=max_cycle_time)
 
     # Return a new PWM controller instance with the given configuration options
-    return PWM(heating_curve=heating_curve, cycles=cycles, automatic_duty_cycle=automatic_duty_cycle, supports_relative_modulation_management=supports_relative_modulation_management, force=force)
+    return PWM(heating_curve=heating_curve, cycles=cycles, automatic_duty_cycle=automatic_duty_cycle, supports_relative_modulation_management=supports_relative_modulation_management, force=force, xtreme_profile=xtreme_profile)
 
 
 def get_climate_entities(hass: "HomeAssistant", entity_ids: list[str]) -> list["SatClimate"]:

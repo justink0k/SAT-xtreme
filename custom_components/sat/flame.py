@@ -31,6 +31,9 @@ class FlameState:
     duty_ratio_last_15m: float
     median_on_duration_seconds_4h: Optional[float]
 
+    # Monotonic time of the last flame off (heating or hot water), while the flame is off
+    off_since: Optional[float] = None
+
 
 class Flame:
     """Tracks boiler flame on/off, maintains rolling statistics, and classifies health."""
