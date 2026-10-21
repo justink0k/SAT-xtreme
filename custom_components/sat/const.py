@@ -91,6 +91,9 @@ CONF_SLEEP_TEMPERATURE = "sleep_temperature"
 CONF_COMFORT_TEMPERATURE = "comfort_temperature"
 CONF_ACTIVITY_TEMPERATURE = "activity_temperature"
 
+# Xtreme profile (fork), see xtreme_profile.py
+CONF_XTREME_PRIME_SETPOINT = "xtreme_prime_setpoint"
+
 HEATING_SYSTEM_UNKNOWN = "unknown"
 HEATING_SYSTEM_HEAT_PUMP = "heat_pump"
 HEATING_SYSTEM_RADIATORS = "radiators"
@@ -155,6 +158,8 @@ OPTIONS_DEFAULTS = {
 
     CONF_PID_CONTROLLER_VERSION: 3,
     CONF_DYNAMIC_MINIMUM_SETPOINT_VERSION: 1,
+
+    CONF_XTREME_PRIME_SETPOINT: False,
 }
 
 # Overshoot protection

@@ -559,6 +559,8 @@ class SatOptionsFlowHandler(config_entries.OptionsFlow):
         if self.show_advanced_options:
             menu_options.append("advanced")
 
+        menu_options.append("xtreme_profile")
+
         return self.async_show_menu(
             step_id="init",
             menu_options=menu_options
@@ -750,6 +752,19 @@ class SatOptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="advanced",
             data_schema=vol.Schema(schema)
+        )
+
+    async def async_step_xtreme_profile(self, _user_input: dict[str, Any] | None = None):
+        if _user_input is not None:
+            return await self.update_options(_user_input)
+
+        options = await self.get_options()
+
+        return self.async_show_form(
+            step_id="xtreme_profile",
+            data_schema=vol.Schema({
+                vol.Required(CONF_XTREME_PRIME_SETPOINT, default=options[CONF_XTREME_PRIME_SETPOINT]): bool,
+            })
         )
 
     async def update_options(self, _user_input):

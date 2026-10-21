@@ -45,6 +45,7 @@ from .manufacturers.geminox import Geminox
 from .pwm import PWMState
 from .relative_modulation import RelativeModulation, RelativeModulationState
 from .summer_simmer import SummerSimmer
+from .xtreme_profile import HEATER_COMMAND_REPEAT_SECONDS
 from .util import create_pid_controller, create_heating_curve_controller, create_pwm_controller, create_minimum_setpoint_controller
 
 ATTR_ROOMS = "rooms"
@@ -827,6 +828,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             if pwm_state.status == PWMStatus.ON:
                 self._setpoint = self.minimum_setpoint_value
                 _LOGGER.debug("Setting setpoint to minimum: %.1f°C", self._setpoint)
+            elif self._coordinator.xtreme_profile.prime_setpoint:
+                self._setpoint = self.minimum_setpoint_value
+                _LOGGER.debug("Xtreme profile: PWM off phase, keeping setpoint primed at %.1f°C with heating demand off.", self._setpoint)
             else:
                 self._setpoint = MINIMUM_SETPOINT
                 _LOGGER.debug("Setting setpoint to absolute minimum: %.1f°C", MINIMUM_SETPOINT)
@@ -978,9 +982,39 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self.minimum_setpoint.calculate(self._coordinator.boiler, self.pwm.status)
 
         # If the setpoint is high, turn on the heater
-        await self.async_set_heater_state(DeviceState.ON if self._setpoint is not None and self._setpoint > COLD_SETPOINT else DeviceState.OFF)
+        await self.async_set_heater_state(self._desired_heater_state())
 
         self.async_write_ha_state()
+
+    def _desired_heater_state(self) -> DeviceState:
+        """Determine the heater state for the current setpoint and PWM state."""
+        if self._setpoint is None or self._setpoint <= COLD_SETPOINT:
+            return DeviceState.OFF
+
+        # Xtreme profile: the setpoint stays primed during the PWM off phase, so the demand must follow the PWM state
+        if self._coordinator.xtreme_profile.prime_setpoint and self.pulse_width_modulation_enabled and self.pwm.status == PWMStatus.OFF:
+            _LOGGER.debug("Xtreme profile: PWM off phase, heating demand off (setpoint %.1f°C stays primed).", self._setpoint)
+            return DeviceState.OFF
+
+        return DeviceState.ON
+
+    def _is_heater_command_redundant(self, state: DeviceState) -> bool:
+        """Xtreme profile: check whether sending this heater state again would be redundant."""
+        if self._coordinator.heater_state_commanded != state:
+            _LOGGER.debug("Xtreme profile: heater state %s differs from the last command (%s), sending it.", state, self._coordinator.heater_state_commanded)
+            return False
+
+        seconds_ago = self._coordinator.heater_state_commanded_seconds_ago
+        if seconds_ago is not None and seconds_ago < HEATER_COMMAND_REPEAT_SECONDS:
+            _LOGGER.debug("Xtreme profile: heater state %s was sent %.0f seconds ago, not sending it again.", state, seconds_ago)
+            return True
+
+        if self._coordinator.device_active == (state == DeviceState.ON):
+            _LOGGER.debug("Xtreme profile: heater state %s is confirmed by the boiler, no action taken.", state)
+            return True
+
+        _LOGGER.debug("Xtreme profile: heater state %s is not confirmed by the boiler, sending it again.", state)
+        return False
 
     async def async_set_heater_state(self, state: DeviceState):
         """Set the heater state, ensuring proper conditions are met."""
@@ -988,13 +1022,24 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         if state == DeviceState.ON:
             if not self.valves_open:
-                if self._coordinator.device_active:
+                # Xtreme profile: the status bit may lag behind, so also turn off when the last command was not off
+                xtreme_demand_on = self._coordinator.xtreme_profile.prime_setpoint and self._coordinator.heater_state_commanded != DeviceState.OFF
+
+                if self._coordinator.device_active or xtreme_demand_on:
                     _LOGGER.info("Valves closed while heater active. Turning off.")
                     await self._coordinator.async_set_heater_state(DeviceState.OFF)
                 else:
                     _LOGGER.warning("Cannot turn on heater: no valves are open.")
                 return
 
+        if self._coordinator.xtreme_profile.prime_setpoint:
+            # The setpoint stays primed during the PWM off phase, so the heating demand must really be off.
+            # Decide on the last command instead of the status bit, which lags behind and may not follow
+            # the demand while the boiler is anti-cycling.
+            if self._is_heater_command_redundant(state):
+                return
+
+        elif state == DeviceState.ON:
             if self._coordinator.device_active:
                 _LOGGER.info("Heater is already active. No action taken.")
                 return

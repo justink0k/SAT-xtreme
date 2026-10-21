@@ -214,7 +214,8 @@
           "advanced": "Advanced Options",
           "general": "General",
           "presets": "Presets",
-          "system_configuration": "System Configuration"
+          "system_configuration": "System Configuration",
+          "xtreme_profile": "Xtreme profile (fork)"
         }
       },
       "presets": {
@@ -248,6 +249,16 @@
         },
         "description": "For fine-tuning and customization.",
         "title": "System Configuration"
+      },
+      "xtreme_profile": {
+        "title": "Xtreme profile",
+        "description": "Opt-in adjustments of this fork for an Intergas Xtreme boiler behind an OpenTherm Gateway. Every switch is off by default; with all switches off SAT behaves like upstream. See CHANGES_XTREME.md.",
+        "data": {
+          "xtreme_prime_setpoint": "Prime the setpoint during the PWM off phase"
+        },
+        "data_description": {
+          "xtreme_prime_setpoint": "Keep the minimum setpoint on the bus during the PWM off phase and turn the heating demand off explicitly, so the boiler starts right away when the next on phase begins. Helps when a thermostat on the bus rarely sends the control setpoint (MsgID 1)."
+        }
       }
     }
   },

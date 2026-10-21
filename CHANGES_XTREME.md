@@ -52,3 +52,42 @@ No switch: these are fixes that apply to everyone.
 - Fork metadata: display name *SAT (Intergas Xtreme fork)*, version, documentation and issue tracker
   links (`custom_components/sat/manifest.json`, `hacs.json`), fork notice on top of `README.md`, this
   file, `.gitignore`.
+
+## Step 1: prime the setpoint during the PWM off phase (`4.2.1+xtreme.1`, 2026-10-21)
+
+Switch: **Prime the setpoint during the PWM off phase** (`xtreme_prime_setpoint`).
+
+**Why.** In gateway mode the OTGW only replaces the control setpoint inside the MsgID 1 messages that
+the thermostat on the bus sends; it does not send MsgID 1 by itself. A Nest sends MsgID 1 only about
+once every 150 seconds, while the central heating enable bit (MsgID 0) goes out every few seconds.
+Upstream SAT lowers the setpoint to 10 °C in every PWM off phase and raises it at the start of every
+on phase, so the boiler gets the heating demand right away but the setpoint 0 to 150 seconds later.
+
+**What changes when the switch is on.**
+
+- PWM off phase: the control setpoint stays at the minimum setpoint (the overshoot protection value)
+  instead of 10 °C, and the heating demand is turned off explicitly (`CH=0`). The boiler then already
+  has the right setpoint when the next on phase turns the demand on.
+- PWM on phase, continuous operation, HVAC mode off, hot water, areas and calibration are unchanged.
+  The maximum setpoint is still applied to every setpoint that is sent.
+- The heating demand is no longer derived only from the height of the setpoint: during a PWM off
+  phase it is off, otherwise it follows the upstream rule (on above 28.2 °C).
+- Heater commands are decided on the last command sent instead of on the central heating status bit
+  reported by the boiler, which lags behind and does not follow the demand while the boiler is
+  anti-cycling. A command is not sent again within 30 seconds, and after that only when the boiler
+  does not confirm it. Without this, a PWM on phase that ends while the boiler is still anti-cycling
+  could leave the demand on together with the primed setpoint.
+- A primed setpoint without heating demand and without flame is reported as boiler status `idle`,
+  as with the 10 °C setpoint upstream. This prevents a false `stuck_off` flame status during the off
+  phase and keeps the boiler temperature tracker paused, as upstream.
+- Side effect: during the off phase the relative modulation state is `off` (upstream: `cold`), so the
+  maximum relative modulation command keeps the value of the on phase instead of switching back.
+  Boilers that ignore the modulation limit (such as the Intergas Xtreme) are not affected.
+- Failover: unchanged. SAT keeps refreshing `CS=` while heating; when SAT or Home Assistant stops,
+  the gateway drops the control setpoint override after about a minute and the thermostat on the bus
+  takes over both the setpoint and the heating demand.
+
+**Files.** `custom_components/sat/xtreme_profile.py` (new), `custom_components/sat/const.py`,
+`custom_components/sat/climate.py`, `custom_components/sat/coordinator.py`,
+`custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
+`custom_components/sat/manifest.json`, `tests/test_xtreme_prime_setpoint.py` (new).

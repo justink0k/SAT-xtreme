@@ -20,6 +20,7 @@ from .manufacturers.ideal import Ideal
 from .manufacturers.intergas import Intergas
 from .manufacturers.nefit import Nefit
 from .pwm import PWMState
+from .xtreme_profile import XtremeProfile
 
 if TYPE_CHECKING:
     from .climate import SatClimate
@@ -110,6 +111,10 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         self._options: Mapping[str, Any] = options or {}
         self._config_data: Mapping[str, Any] = config_data
 
+        self._xtreme_profile: XtremeProfile = XtremeProfile.from_options(self._options)
+        self._heater_state_commanded: Optional[DeviceState] = None
+        self._heater_state_commanded_at: Optional[float] = None
+
         self._manufacturer: Optional[Manufacturer] = None
         self._simulation: bool = bool(self._options.get(CONF_SIMULATION))
         self._heating_system: str = str(config_data.get(CONF_HEATING_SYSTEM, HEATING_SYSTEM_UNKNOWN))
@@ -139,6 +144,10 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
             return BoilerStatus.HOT_WATER
 
         if self.setpoint is None or self.setpoint <= MINIMUM_SETPOINT:
+            return BoilerStatus.IDLE
+
+        # Xtreme profile: a primed setpoint without heating demand is idle, not a boiler waiting for flame
+        if self.heater_primed_idle:
             return BoilerStatus.IDLE
 
         if self.device_active:
@@ -221,6 +230,33 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
     @property
     def manufacturer(self) -> Optional[Manufacturer]:
         return self._manufacturer
+
+    @property
+    def xtreme_profile(self) -> XtremeProfile:
+        return self._xtreme_profile
+
+    @property
+    def heater_state_commanded(self) -> Optional[DeviceState]:
+        """Return the last heater state that was sent to the device, if any."""
+        return self._heater_state_commanded
+
+    @property
+    def heater_state_commanded_seconds_ago(self) -> Optional[float]:
+        """Return the number of seconds since the last heater state was sent to the device."""
+        if self._heater_state_commanded_at is None:
+            return None
+
+        return monotonic() - self._heater_state_commanded_at
+
+    @property
+    def heater_primed_idle(self) -> bool:
+        """Xtreme profile: heating demand is off and the flame is off, while the setpoint may stay primed."""
+        return (
+                self._xtreme_profile.prime_setpoint
+                and self._heater_state_commanded == DeviceState.OFF
+                and not self.flame_active
+                and not self.hot_water_active
+        )
 
     @property
     @abstractmethod
@@ -446,7 +482,7 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
             return
 
         # Handle the temperature tracker
-        if self.setpoint is not None and self.boiler_temperature_derivative is not None and self.device_status is not BoilerStatus.HOT_WATER:
+        if self.setpoint is not None and self.boiler_temperature_derivative is not None and self.device_status is not BoilerStatus.HOT_WATER and not self.heater_primed_idle:
             self._boiler_temperature_tracker.update(
                 flame_active=self.flame_active,
                 setpoint=round(self.setpoint, 0),
@@ -475,6 +511,9 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_set_heater_state(self, state: DeviceState) -> None:
         """Set the state of the device heater."""
+        self._heater_state_commanded = state
+        self._heater_state_commanded_at = monotonic()
+
         _LOGGER.info("Set central heater state %s", state)
 
     async def async_set_control_setpoint(self, value: float) -> None:
