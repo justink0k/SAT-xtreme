@@ -63,6 +63,29 @@ Entities of the fork (they only exist when the matching switch is on):
 
 Actions: `sat.start_xtreme_calibration` and `sat.stop_xtreme_calibration` (step 5).
 
+### Bug fixes
+
+These fixes apply to everyone, without a switch:
+
+- **Calibration above the maximum setpoint.** The calibration of upstream could send a control
+  setpoint of 62 °C, above the configured maximum setpoint, when the boiler reports a higher maximum
+  (MaxTSet). It now never exceeds the configured maximum.
+- **Automatic gains in the setup wizard had no effect.** The wizard stored the choice (and manual kP,
+  kI and kD) in the configuration data, while SAT reads it from the options, where automatic gains is
+  on by default. The wizard now also writes these choices to the options, and they can be changed on
+  the new *PID settings (fork)* page.
+- **Ready for Home Assistant 2026.12.** The update listener that Home Assistant 2026.12 no longer
+  supports for reloading is replaced by `OptionsFlowWithReload`.
+- **Fixes from upstream `develop` that are not in a release yet:** the coordinator is fully set up
+  before the calibration in the wizard starts (`7d43560`), the heater state command of EMS-ESP
+  (`042dcca`), and turning the heater off when all valves close (`6e05470`).
+
+Known issue of upstream that is **not** fixed: the stored value of the dynamic minimum setpoint
+(`minimum_setpoint.py`) is never loaded after a restart. It does not matter when the dynamic minimum
+setpoint is off.
+
+See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fix.
+
 ### Installation (HACS)
 
 1. In HACS, remove the official *Smart Autotune Thermostat* repository (or at least make sure it is
