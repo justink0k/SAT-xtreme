@@ -25,8 +25,7 @@
     "OTGW/value/+"
   ],
   "requirements": [
-    "pyotgw==2.2.2",
-    "sentry-sdk==2.19.2"
+    "pyotgw==2.2.2"
   ],
-  "version": "4.2.1-xtreme.18"
+  "version": "4.2.1-xtreme.19"
 }

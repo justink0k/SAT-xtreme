@@ -1,23 +1,18 @@
 import asyncio
 import logging
-import traceback
 
 from homeassistant.components import binary_sensor, button, climate, number, sensor
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.storage import Store
-from sentry_sdk import Client, Hub
 
 from .const import (
     DOMAIN,
     CLIMATE,
-    SENTRY,
     COORDINATOR,
-    OPTIONS_DEFAULTS,
     CONF_MODE,
     CONF_DEVICE,
-    CONF_ERROR_MONITORING,
     SERVICE_RESET_INTEGRAL,
     SERVICE_PULSE_WIDTH_MODULATION,
 )
@@ -41,13 +36,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     # Create a new dictionary for this entry
     hass.data[DOMAIN][entry.entry_id] = {}
-
-    try:
-        # Setup error monitoring (if enabled)
-        if entry.options.get(CONF_ERROR_MONITORING, OPTIONS_DEFAULTS[CONF_ERROR_MONITORING]):
-            await hass.async_add_executor_job(initialize_sentry, hass)
-    except Exception as ex:
-        _LOGGER.error("Error during Sentry initialization: %s", str(ex))
 
     # Resolve the coordinator by using the factory according to the mode
     hass.data[DOMAIN][entry.entry_id][COORDINATOR] = SatDataUpdateCoordinatorFactory().resolve(
@@ -87,14 +75,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Forward entry unload for used platforms
         await asyncio.gather(hass.config_entries.async_unload_platforms(entry, PLATFORMS))
     )
-
-    try:
-        if SENTRY in hass.data[DOMAIN]:
-            hass.data[DOMAIN][SENTRY].flush()
-            hass.data[DOMAIN][SENTRY].close()
-            hass.data[DOMAIN].pop(SENTRY, None)
-    except Exception as ex:
-        _LOGGER.error("Error during Sentry cleanup: %s", str(ex))
 
     # Remove the entry from the data dictionary if all components are unloaded successfully
     if unloaded:
@@ -208,35 +188,3 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     return True
 
-
-def initialize_sentry(hass: HomeAssistant):
-    """Initialize Sentry synchronously in an offloaded executor job."""
-
-    def exception_filter(event, hint):
-        """Filter events to send only SAT-related exceptions to Sentry."""
-        exc_info = hint.get("exc_info")
-
-        if exc_info:
-            _, _, exc_traceback = exc_info
-            stack = traceback.extract_tb(exc_traceback)
-
-            # Check if the exception originates from the SAT custom component
-            if any("custom_components/sat/" in frame.filename for frame in stack):
-                return event
-
-        # Ignore exceptions not related to SAT
-        return None
-
-    # Configure the Sentry client
-    client = Client(
-        traces_sample_rate=1.0,
-        before_send=exception_filter,
-        dsn="https://216fc0a74c488abdb79f9839fb7da33e@o4508432869621760.ingest.de.sentry.io/4508432872898640",
-    )
-
-    # Bind the Sentry client to the Sentry hub
-    hub = Hub(client)
-    hub.bind_client(client)
-
-    # Store the hub in Home Assistant's data for later use
-    hass.data[DOMAIN][SENTRY] = client

@@ -568,3 +568,20 @@ reports it as behind the official SAT and future upstream changes are easy to co
 
 **Files.** `custom_components/sat/esphome/__init__.py`, `README.md`, `custom_components/sat/manifest.json`,
 `tests/test_esphome_upstream_fixes.py` (new).
+
+## Version 19: no error reports to the official SAT (`4.2.1-xtreme.19`, 2026-10-22)
+
+The option *Enable error monitoring* (off by default) sent exceptions to the Sentry project of the
+official SAT, with a fixed address in the code. For SAT-xtreme this sent the fork's errors to the
+maintainer of the official SAT, who cannot act on them, and users could think they were reporting to
+this fork.
+
+- The Sentry client, its fixed address and the option are removed. A stored `error_monitoring` value
+  from an earlier version is ignored; nothing else changes.
+- `sentry-sdk` is no longer a requirement, so Home Assistant has one package less to install.
+- Report problems as an issue on GitHub instead.
+
+**Files.** `custom_components/sat/__init__.py`, `custom_components/sat/const.py`,
+`custom_components/sat/config_flow.py`, `custom_components/sat/manifest.json`,
+`custom_components/sat/translations/*.json`, `requirements_test.txt`, `README.md`,
+`tests/test_xtreme_no_error_reporting.py` (new).

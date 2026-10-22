@@ -261,6 +261,10 @@ These fixes apply to everyone, without a switch:
 - **Stored dynamic minimum setpoint never loaded.** The base return temperature of the dynamic minimum
   setpoint was saved but never loaded after a restart. It is now loaded. This only matters when the
   dynamic minimum setpoint is on.
+- **No error reports to the official SAT.** The option *Enable error monitoring* sent exceptions to the
+  Sentry project of the official SAT. In the fork it would send the fork's errors there, so the option and
+  Sentry are removed. Report problems as an
+  [issue on GitHub](https://github.com/justink0k/SAT-xtreme/issues) instead.
 
 See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fix.
 

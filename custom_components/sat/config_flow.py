@@ -737,7 +737,6 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
         schema: dict[Marker, Any] = {
             vol.Required(CONF_SIMULATION, default=options[CONF_SIMULATION]): bool,
             vol.Required(CONF_THERMAL_COMFORT, default=options[CONF_THERMAL_COMFORT]): bool,
-            vol.Required(CONF_ERROR_MONITORING, default=options[CONF_ERROR_MONITORING]): bool,
             vol.Required(CONF_DYNAMIC_MINIMUM_SETPOINT, default=options[CONF_DYNAMIC_MINIMUM_SETPOINT]): bool,
         }
 
