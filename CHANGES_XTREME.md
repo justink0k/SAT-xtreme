@@ -585,3 +585,19 @@ this fork.
 `custom_components/sat/config_flow.py`, `custom_components/sat/manifest.json`,
 `custom_components/sat/translations/*.json`, `requirements_test.txt`, `README.md`,
 `tests/test_xtreme_no_error_reporting.py` (new).
+
+**Repository housekeeping** (no effect on the integration):
+
+- The GitHub workflows run on the `xtreme` branch: the HACS check and hassfest now run on every push
+  (they waited for a `master` branch that the fork does not have), and the test workflow uses current
+  versions of `actions/checkout` and `actions/setup-python`.
+- The release workflow is removed: it built a zip file that was never attached to the release.
+- The upstream development setup (`compose.yml`, `configuration.yaml`) moved to `dev/`, so the root no
+  longer looks like configuration for users.
+- `dashboards/sat_xtreme.yaml` and its test are removed. The *Create Dashboard* button builds the
+  dashboard from the entities that exist (version 15 and 16), and the hand-written file had fallen behind
+  it.
+
+**Files.** `.github/workflows/hacs.yml`, `.github/workflows/hassfest.yml`, `.github/workflows/pytest.yml`,
+`.github/workflows/release.yml` (removed), `dev/compose.yml`, `dev/configuration.yaml` (moved),
+`dashboards/sat_xtreme.yaml` and `tests/test_xtreme_dashboard.py` (removed), `README.md`.

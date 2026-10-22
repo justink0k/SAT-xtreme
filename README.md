@@ -306,7 +306,6 @@ so your own changes are never lost without a click.
 
 Creating a dashboard from an integration is not an official Home Assistant API. If it fails, SAT-xtreme
 shows the configuration in a notification to paste into a new dashboard by hand.
-[`dashboards/sat_xtreme.yaml`](dashboards/sat_xtreme.yaml) stays available as an example.
 
 ### Disclaimer
 

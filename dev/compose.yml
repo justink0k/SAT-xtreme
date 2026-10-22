@@ -3,7 +3,7 @@ services:
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
       - homeassistant:/config
-      - ./custom_components:/config/custom_components
+      - ../custom_components:/config/custom_components
       - ./configuration.yaml:/config/configuration.yaml
     restart: unless-stopped
     ports:
