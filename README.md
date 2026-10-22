@@ -102,14 +102,12 @@ first day with step 1 on, comparing PWM blocks of the same day:
 This is a first measurement of a few hours, in the evening (with longer blocks than on a mild
 afternoon). Results for step 3 (burn time per block, starts per day) will be added once measured.
 
-Hot water keep-warm off (`HW=0`, sent by hand on the same day, before the switch existed):
-
-| | Keep-warm normal (about 3 hours) | Keep-warm off (first 3 hours) |
-|---|---|---|
-| Short hot water burns (under 30 s) | 9, about 3 per hour | 0 |
-| Hot water at the tap | normal | normal (a tap of more than a minute; it only takes longer to get warm) |
-
-The gateway kept `HW=0` across four restarts of Home Assistant, until it was changed again.
+Hot water keep-warm off (`HW=0`, sent by hand on the same day, before the switch existed): hot water
+still came out of the tap (a tap of more than a minute), and the gateway kept `HW=0` across four
+restarts of Home Assistant. Whether keep-warm stopped is **not conclusive**: the boiler's tap comfort
+was set to *On* at the time, and in that setting the Intergas ignores the DHW enable bit (see
+[Hot water keep-warm at night](#hot-water-keep-warm-at-night)). Fewer short hot water burns in the
+following hours were most likely a coincidence.
 
 ### What it improves
 
@@ -130,7 +128,8 @@ The gateway kept `HW=0` across four restarts of Home Assistant, until it was cha
 - **A PID correction that is too strong or too weak.** Gain factor, a maximum rise above the heating
   curve and manual gains on their own options page.
 - **Short hot water burns from the keep-warm function.** An optional switch turns keep-warm off and on
-  again, for example with an automation at night (see [Hot water keep-warm at night](#hot-water-keep-warm-at-night)).
+  again, for example with an automation at night, on boilers that let OpenTherm switch keep-warm (on
+  Intergas: tap comfort on Eco and P074 = 0) (see [Hot water keep-warm at night](#hot-water-keep-warm-at-night)).
 - **Not seeing what the boiler does.** Boiler data sensors that work with any gateway, and the *SAT
   Xtreme* dashboard with one click (see [Dashboard](#dashboard)).
 - **Bug fixes** that apply to everyone (see below).
@@ -207,9 +206,17 @@ example only during the day:
 
 How it works: the OpenTherm Gateway command `HW=0` clears the DHW enable bit that goes to the boiler,
 and `HW=A` gives that bit back to the thermostat on the bus (normal operation). The switch only sends
-these commands; it never changes the hot water setpoint.
+these commands; it never changes the hot water setpoint. **Whether the boiler follows the bit depends on
+the boiler and its settings.**
 
-- With the switch off, hot water still comes out of the tap on the tested Intergas Xtreme 30, it only
+- **Intergas:** the tap comfort function has three settings: *On* (always keep warm), *Eco* (self-learning:
+  no keep-warm at night and when you are away) and *Off*. According to the Intergas manual, keep-warm can
+  only be switched through OpenTherm when the tap comfort is set to **Eco** and parameter **P074**
+  (number of Eco days, factory value 7) is **0**. With *On*, or with a self-learning *Eco* (P074 above
+  0), the boiler ignores the bit and this switch has no effect. If the self-learning *Eco* already does
+  what you want, you do not need this switch at all.
+- Other boilers: check the manual for how the boiler treats the DHW enable bit of OpenTherm.
+- With the switch off, hot water still came out of the tap on the tested Intergas Xtreme 30, it only
   takes longer. Some boilers may block hot water completely when the DHW enable bit is off: test this
   first.
 - If the thermostat on the bus itself turns hot water off (for example a hot water schedule), the

@@ -67,10 +67,15 @@ measured (see "Ketelgedrag zelf herkennen" in the roadmap: detect Data-Invalid o
 3. **Test conditions differ.** Values are given at 80/60 °C or 50/30 °C and for G20 or G25 gas (the
    Netherlands uses G25.3, which gives lower numbers). A preset needs one consistent basis: 80/60 °C
    with the gas of the country, as on the rating plate.
-4. **Not every boiler speaks OpenTherm natively.** Vaillant and Wolf use eBus and need an OpenTherm
+4. **Keep-warm through OpenTherm depends on the boiler settings.** On Intergas, keep-warm (tap comfort)
+   follows the OpenTherm DHW enable bit (`HW=0` / `HW=A` on the gateway) only when the tap comfort is set
+   to *Eco* and parameter P074 (number of Eco days) is 0 (source: the Intergas manual, as reported by the
+   owner of the tested Xtreme 30). With *On*, or a self-learning *Eco* (P074 above 0), the bit is ignored.
+   A preset could note this per brand; other brands still need to be checked.
+5. **Not every boiler speaks OpenTherm natively.** Vaillant and Wolf use eBus and need an OpenTherm
    module; Nefit/Bosch use EMS. SAT can still control them through such a module or EMS-ESP, but the
    behaviour (and the anti-cycling) may differ from what the manual describes for the native bus.
-5. **The rating plate is the best source for a specific unit.** The fork's option description should
+6. **The rating plate is the best source for a specific unit.** The fork's option description should
    say so, and the preset only fills in the defaults.
 
 ## Adding a preset for your boiler

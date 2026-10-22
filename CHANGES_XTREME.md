@@ -532,3 +532,20 @@ No change to how SAT controls the boiler.
 `custom_components/sat/__init__.py`, `custom_components/sat/manifest.json`,
 `custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`, `README.md`,
 `tests/test_xtreme_dashboard_builder.py`.
+
+## Version 17: keep-warm switch depends on the boiler settings (`4.2.1-xtreme.17`, 2026-10-22)
+
+No change to how SAT controls the boiler; texts only.
+
+- The description of the **hot water keep-warm switch** and the README now say that whether the boiler
+  follows the DHW enable bit depends on the boiler. On Intergas, according to the Intergas manual,
+  keep-warm can only be switched through OpenTherm when the tap comfort is set to *Eco* and parameter
+  P074 (number of Eco days, factory value 7) is 0. With *On*, or with a self-learning *Eco*, the boiler
+  ignores the bit and the switch has no effect.
+- The README no longer presents the first `HW=0` test as a result: the tested boiler was set to *On*, so
+  the fewer short hot water burns afterwards were most likely a coincidence. What still holds: hot water
+  came out of the tap, and the gateway kept `HW=0` across restarts.
+- `docs/boiler_presets.md` notes this condition for Intergas.
+
+**Files.** `custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
+`custom_components/sat/manifest.json`, `README.md`, `docs/boiler_presets.md`.
