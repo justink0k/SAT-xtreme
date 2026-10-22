@@ -32,6 +32,7 @@ from .overshoot_protection import OvershootProtection
 from .validators import valid_serial_device
 
 DEFAULT_NAME = "Living Room"
+DEFAULT_SERIAL_URL = "socket://otgw.local:25238"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -210,8 +211,10 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self.errors,
             data_schema=vol.Schema({
                 vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
-                vol.Required(CONF_DEVICE, default=self.data.get(CONF_DEVICE, "socket://otgw.local:25238")): str,
+                vol.Required(CONF_DEVICE, default=self.data.get(CONF_DEVICE, DEFAULT_SERIAL_URL)): str,
             }),
+            # Home Assistant does not allow URLs in translations, so the example comes in as a placeholder
+            description_placeholders={"example_url": DEFAULT_SERIAL_URL},
         )
 
     async def async_step_switch(self, _user_input: dict[str, Any] | None = None):

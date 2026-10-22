@@ -80,6 +80,10 @@ These fixes apply to everyone, without an option:
   waits 15 seconds between checks.
 - **Maximum cycles per hour counted per fixed hour.** It now counts the last 60 minutes.
 - **Stored dynamic minimum setpoint never loaded** after a restart. It is now loaded.
+- **Synchronize with thermostat had no effect.** The option on the Presets page was read from the wrong place;
+  it now works.
+- **Dependency conflict with Home Assistant.** SAT required `pyotgw` 2.2.2 while Home Assistant uses 2.2.3; it
+  now requires 2.2.3.
 - **No error reports to the official SAT.** The option *Enable error monitoring* sent errors to the Sentry
   project of the official SAT; the option and Sentry are removed.
 

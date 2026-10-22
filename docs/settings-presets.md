@@ -24,9 +24,10 @@ Default off. When on, choosing a preset also sets the target temperature of ever
 
 ## Synchronize with thermostat attached to the boiler
 
-Meant to send SAT's target temperature to the thermostat on the bus as a temporary override (`TC=` on an
-OpenTherm Gateway), so the thermostat shows the same target.
+Default off. When on, every new target temperature of SAT is also sent to the thermostat on the bus as a
+temporary override (`TC=` on an OpenTherm Gateway), so the thermostat shows the same target.
 
-!!! bug "Known issue"
-    In SAT 4.2.1 (and so far in SAT-xtreme) this option is saved on the options page, but SAT reads it from
-    the configuration of the wizard, so turning it on here has no effect.
+!!! note "Fixed in SAT-xtreme 4.2.1-xtreme.22"
+    In the official SAT 4.2.1 this option was saved on the options page but read from the configuration of the
+    wizard, so turning it on here had no effect. If you turned it on earlier, it now works: check that you
+    still want it.

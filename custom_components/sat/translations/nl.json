@@ -106,7 +106,7 @@
           "device": "URL",
           "name": "Naam"
         },
-        "description": "Om een verbinding met de OpenTherm Gateway te maken via een socketverbinding, gelieve de volgende details te verstrekken. Voer in het veld Naam een naam in voor de gateway die u helpt deze te identificeren binnen uw systeem.\n\nSpecificeer het netwerkadres van de OpenTherm Gateway in het veld Apparaat. Dit kan in het formaat zijn van \"socket://otgw.local:25238\", waarbij \"otgw.local\" de hostnaam of het IP-adres van de gateway is en \"25238\" het poortnummer.\n\nDeze instellingen zijn essentieel voor het tot stand brengen van communicatie en integratie met uw OpenTherm Gateway via de socketverbinding. Zorg ervoor dat de verstrekte gegevens nauwkeurig zijn om een correcte werking te garanderen.",
+        "description": "Om een verbinding met de OpenTherm Gateway te maken via een socketverbinding, gelieve de volgende details te verstrekken. Voer in het veld Naam een naam in voor de gateway die u helpt deze te identificeren binnen uw systeem.\n\nSpecificeer het netwerkadres van de OpenTherm Gateway in het veld Apparaat. Dit kan in het formaat zijn van \"{example_url}\", waarbij \"otgw.local\" de hostnaam of het IP-adres van de gateway is en \"25238\" het poortnummer.\n\nDeze instellingen zijn essentieel voor het tot stand brengen van communicatie en integratie met uw OpenTherm Gateway via de socketverbinding. Zorg ervoor dat de verstrekte gegevens nauwkeurig zijn om een correcte werking te garanderen.",
         "title": "OpenTherm Gateway ( SERIEEL )"
       },
       "simulator": {

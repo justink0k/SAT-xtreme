@@ -106,7 +106,7 @@
           "device": "URL",
           "name": "Nome"
         },
-        "description": "Para estabelecer uma ligação com o OpenTherm Gateway usando uma ligação socket, por favor forneça os seguintes detalhes. No campo Nome, insira um nome para o gateway que o ajudará a identificá-lo dentro do seu sistema.\n\nEspecifique o endereço de rede do OpenTherm Gateway no campo Dispositivo. Isto pode ser no formato \"socket://otgw.local:25238\", onde \"otgw.local\" é o nome de host ou endereço IP do gateway e \"25238\" é o número da porta.\n\nEstas definições são essenciais para estabelecer comunicação e integração com o seu OpenTherm Gateway através da ligação socket. Assegure-se de que os detalhes fornecidos são precisos para garantir funcionalidade adequada.",
+        "description": "Para estabelecer uma ligação com o OpenTherm Gateway usando uma ligação socket, por favor forneça os seguintes detalhes. No campo Nome, insira um nome para o gateway que o ajudará a identificá-lo dentro do seu sistema.\n\nEspecifique o endereço de rede do OpenTherm Gateway no campo Dispositivo. Isto pode ser no formato \"{example_url}\", onde \"otgw.local\" é o nome de host ou endereço IP do gateway e \"25238\" é o número da porta.\n\nEstas definições são essenciais para estabelecer comunicação e integração com o seu OpenTherm Gateway através da ligação socket. Assegure-se de que os detalhes fornecidos são precisos para garantir funcionalidade adequada.",
         "title": "OpenTherm Gateway ( SERIAL )"
       },
       "simulator": {

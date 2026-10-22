@@ -648,3 +648,24 @@ Material and GitHub Pages. No change in behaviour.
 `docs/sat_configuration.md` (removed), `docs/boiler_presets.md`, `docs/background.md`,
 `docs/hot_water_keep_warm.md`, `docs/dashboard.md`, `README.md`, `.gitignore`,
 `custom_components/sat/manifest.json`, `tests/test_xtreme_manual.py` (new).
+
+## Version 22: fixes found by hassfest and while writing the manual (`4.2.1-xtreme.22`, 2026-10-22)
+
+No switch: these are bug fixes that apply to everyone. Hassfest now runs on every push (version 19) and
+reported the first two; both were already in upstream SAT.
+
+- **pyotgw 2.2.3.** SAT required `pyotgw==2.2.2`, while Home Assistant itself depends on `pyotgw==2.2.3` (for its
+  own OpenTherm Gateway integration). The requirement is now 2.2.3; the difference is a small bug fix in
+  pyotgw's reconnect handling, and SAT uses the same API.
+- **No URL in the translations.** Home Assistant does not allow URLs in translation strings. The example
+  address of the serial gateway (`socket://otgw.local:25238`) is now passed as a placeholder; the text on
+  the page is unchanged.
+- **Synchronize with thermostat works.** The option *Synchronize with thermostat attached to the boiler* on the
+  Presets page was stored in the options, but SAT read it from the configuration data of the wizard, so it
+  had no effect. SAT now reads the options, with the configuration data as a fallback for older entries.
+  **Note:** if you turned the option on earlier, SAT now really sends your target temperature to the
+  thermostat on the bus (`TC=` on an OpenTherm Gateway).
+
+**Files.** `custom_components/sat/manifest.json`, `custom_components/sat/config_flow.py`,
+`custom_components/sat/climate.py`, `custom_components/sat/translations/*.json`, `README.md`,
+`docs/settings-presets.md`, `docs/troubleshooting.md`, `tests/test_xtreme_hassfest_fixes.py` (new).

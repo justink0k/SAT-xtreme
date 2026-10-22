@@ -106,7 +106,7 @@
           "device": "URL",
           "name": "Nom"
         },
-        "description": "Pour établir une connexion avec la passerelle OpenTherm en utilisant une connexion socket, veuillez fournir les détails suivants. Dans le champ Nom, entrez un nom pour la passerelle qui vous aidera à l'identifier au sein de votre système.\n\nSpécifiez l'adresse réseau de la passerelle OpenTherm dans le champ Appareil. Cela pourrait être au format \"socket://otgw.local:25238\", où \"otgw.local\" est le nom d'hôte ou l'adresse IP de la passerelle et \"25238\" est le numéro de port.\n\nCes paramètres sont essentiels pour établir la communication et l'intégration avec votre passerelle OpenTherm via la connexion socket. Assurez-vous que les détails fournis sont précis pour garantir une fonctionnalité appropriée.",
+        "description": "Pour établir une connexion avec la passerelle OpenTherm en utilisant une connexion socket, veuillez fournir les détails suivants. Dans le champ Nom, entrez un nom pour la passerelle qui vous aidera à l'identifier au sein de votre système.\n\nSpécifiez l'adresse réseau de la passerelle OpenTherm dans le champ Appareil. Cela pourrait être au format \"{example_url}\", où \"otgw.local\" est le nom d'hôte ou l'adresse IP de la passerelle et \"25238\" est le numéro de port.\n\nCes paramètres sont essentiels pour établir la communication et l'intégration avec votre passerelle OpenTherm via la connexion socket. Assurez-vous que les détails fournis sont précis pour garantir une fonctionnalité appropriée.",
         "title": "OpenTherm Gateway ( SERIAL )"
       },
       "simulator": {

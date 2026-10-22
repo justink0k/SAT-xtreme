@@ -106,7 +106,7 @@
           "device": "URL",
           "name": "Nombre"
         },
-        "description": "Para establecer una conexión con la Puerta de Enlace OpenTherm usando una conexión de socket, por favor proporcione los siguientes detalles. En el campo Nombre, introduzca un nombre para la puerta de enlace que le ayude a identificarla dentro de su sistema.\n\nEspecifique la dirección de red de la Puerta de Enlace OpenTherm en el campo Dispositivo. Esto podría estar en el formato de \"socket://otgw.local:25238\", donde \"otgw.local\" es el nombre de host o la dirección IP de la puerta de enlace y \"25238\" es el número de puerto.\n\nEstos ajustes son esenciales para establecer la comunicación e integración con su Puerta de Enlace OpenTherm a través de la conexión de socket. Asegúrese de que los detalles proporcionados sean precisos para garantizar una funcionalidad adecuada.",
+        "description": "Para establecer una conexión con la Puerta de Enlace OpenTherm usando una conexión de socket, por favor proporcione los siguientes detalles. En el campo Nombre, introduzca un nombre para la puerta de enlace que le ayude a identificarla dentro de su sistema.\n\nEspecifique la dirección de red de la Puerta de Enlace OpenTherm en el campo Dispositivo. Esto podría estar en el formato de \"{example_url}\", donde \"otgw.local\" es el nombre de host o la dirección IP de la puerta de enlace y \"25238\" es el número de puerto.\n\nEstos ajustes son esenciales para establecer la comunicación e integración con su Puerta de Enlace OpenTherm a través de la conexión de socket. Asegúrese de que los detalles proporcionados sean precisos para garantizar una funcionalidad adecuada.",
         "title": "Puerta de Enlace OpenTherm (SERIAL)"
       },
       "simulator": {

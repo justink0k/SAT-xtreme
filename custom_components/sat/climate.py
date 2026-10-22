@@ -154,7 +154,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         self._simulation = bool(config_entry.data.get(CONF_SIMULATION))
         self._heating_system = str(config_entry.data.get(CONF_HEATING_SYSTEM))
         self._overshoot_protection = bool(config_entry.data.get(CONF_OVERSHOOT_PROTECTION))
-        self._push_setpoint_to_thermostat = bool(config_entry.data.get(CONF_PUSH_SETPOINT_TO_THERMOSTAT))
+        # Xtreme fork: the Presets page stores this option in the options; older entries only have it in the data
+        self._push_setpoint_to_thermostat = bool(config_entry.options.get(CONF_PUSH_SETPOINT_TO_THERMOSTAT, config_entry.data.get(CONF_PUSH_SETPOINT_TO_THERMOSTAT)))
 
         # User Configuration
         self._heating_mode = str(config_entry.options.get(CONF_HEATING_MODE))
