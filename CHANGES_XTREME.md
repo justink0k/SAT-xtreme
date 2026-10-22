@@ -678,3 +678,14 @@ moves to a newer pyotgw. The requirement is now `pyotgw>=2.2.3`, so it follows H
 
 **Files.** `custom_components/sat/manifest.json`, `README.md`, `docs/troubleshooting.md`,
 `tests/test_xtreme_hassfest_fixes.py`.
+
+## Version 24: simulation warning (`4.2.1-xtreme.24`, 2026-10-22)
+
+No switch: a bug fix for everyone. The option *Simulation* on the Advanced page is stored in the options, but
+the thermostat read it from the configuration data of the wizard (the same upstream bug as *Synchronize with
+thermostat* in version 22). The coordinator already read the options, so commands to the boiler were correctly
+suppressed in simulation; only the warning `Simulation mode!` in the log never appeared. The thermostat now
+reads the options, with the configuration data as a fallback for older entries.
+
+**Files.** `custom_components/sat/climate.py`, `custom_components/sat/manifest.json`, `README.md`,
+`docs/settings-advanced.md`, `docs/troubleshooting.md`, `tests/test_xtreme_hassfest_fixes.py`.

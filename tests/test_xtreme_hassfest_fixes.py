@@ -1,4 +1,4 @@
-"""Tests for the fixes of 4.2.1-xtreme.22 and .23: pyotgw version, no URLs in translations, push setpoint to thermostat."""
+"""Tests for the fixes of 4.2.1-xtreme.22 to .24: pyotgw version, no URLs in translations, push setpoint to thermostat, simulation option."""
 import json
 import re
 from pathlib import Path
@@ -53,3 +53,20 @@ async def test_push_setpoint_to_thermostat_is_off_by_default(hass: HomeAssistant
         await climate.async_set_target_temperature(21.5)
 
     push.assert_not_awaited()
+
+
+@pytest.mark.parametrize(*parameters(**{CONF_SIMULATION: True}))
+async def test_simulation_is_read_from_the_options(caplog: pytest.LogCaptureFixture, hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate) -> None:
+    # The climate logs the warning while it is set up, which happens in the setup phase of the fixtures
+    messages = [record.getMessage() for record in caplog.get_records("setup")]
+
+    assert climate._simulation
+    assert "Simulation mode!" in messages
+
+
+@pytest.mark.parametrize(*parameters())
+async def test_simulation_is_off_by_default(caplog: pytest.LogCaptureFixture, hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate) -> None:
+    messages = [record.getMessage() for record in caplog.get_records("setup")]
+
+    assert not climate._simulation
+    assert "Simulation mode!" not in messages

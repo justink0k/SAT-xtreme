@@ -5,7 +5,7 @@
 ## Simulation
 
 Default off. SAT calculates everything but does not send commands to the boiler (OpenTherm over MQTT or
-serial). Useful to watch what SAT would do. Not to be confused with the *Simulated Gateway* of the wizard.
+serial), and logs the warning `Simulation mode!` when SAT starts. Useful to watch what SAT would do. Not to be confused with the *Simulated Gateway* of the wizard.
 
 ## Thermal Comfort
 

@@ -175,6 +175,9 @@ These fixes apply to everyone, without a switch:
 - **Synchronize with thermostat had no effect.** The option *Synchronize with thermostat attached to the
   boiler* (Presets page) was stored in the options but read from the configuration of the wizard. It now
   works; if you turned it on earlier, check that you still want it.
+- **Simulation warning missing.** The option *Simulation* (Advanced page) was read from the wrong place by the
+  thermostat, so the warning `Simulation mode!` never appeared in the log. Commands to the boiler were already
+  correctly suppressed.
 - **Dependency conflict with Home Assistant.** SAT required `pyotgw` 2.2.2, while Home Assistant itself uses
   2.2.3. It now requires at least 2.2.3, so it follows Home Assistant.
 - **No error reports to the official SAT.** The option *Enable error monitoring* sent exceptions to the

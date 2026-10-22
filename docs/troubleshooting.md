@@ -82,6 +82,8 @@ These fixes apply to everyone, without an option:
 - **Stored dynamic minimum setpoint never loaded** after a restart. It is now loaded.
 - **Synchronize with thermostat had no effect.** The option on the Presets page was read from the wrong place;
   it now works.
+- **Simulation warning missing.** With *Simulation* on, the log now shows `Simulation mode!`; commands to the
+  boiler were already suppressed correctly.
 - **Dependency conflict with Home Assistant.** SAT required `pyotgw` 2.2.2 while Home Assistant uses 2.2.3; it
   now requires at least 2.2.3, so it follows Home Assistant.
 - **No error reports to the official SAT.** The option *Enable error monitoring* sent errors to the Sentry
