@@ -5,13 +5,13 @@ from homeassistant.components.template import DOMAIN as TEMPLATE_DOMAIN
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-from homeassistant.helpers import device_registry, entity_registry
+from homeassistant.helpers import device_registry, entity_registry, issue_registry
 from homeassistant.helpers.storage import Store
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.sat_xtreme.const import *
-from custom_components.sat_xtreme.xtreme.migration import CONF_MIGRATED_FROM, LEGACY_DOMAIN
+from custom_components.sat_xtreme.xtreme.migration import CONF_MIGRATED_FROM, LEGACY_DOMAIN, LEGACY_MOVING_NOTICE
 from tests.const import DEFAULT_USER_DATA
 
 LEGACY_OPTIONS = {
@@ -66,6 +66,8 @@ async def test_move_keeps_entities_device_options_and_stored_data(hass: HomeAssi
     legacy, climate_id, sensor_id = _legacy_entry(hass)
     await Store(hass, 1, f"sat_xtreme_opv_{legacy.entry_id}").async_save({"estimate": 44.5, "source": "plateau"})
     device_id = entity_registry.async_get(hass).async_get(climate_id).device_id
+    issue_registry.async_create_issue(hass, LEGACY_DOMAIN, LEGACY_MOVING_NOTICE, is_fixable=False,
+                                      severity=issue_registry.IssueSeverity.WARNING, translation_key=LEGACY_MOVING_NOTICE)
 
     result = await _move(hass, legacy)
 
@@ -100,6 +102,9 @@ async def test_move_keeps_entities_device_options_and_stored_data(hass: HomeAssi
     # The stored data of the fork moved with it
     assert await Store(hass, 1, f"sat_xtreme_opv_{entry.entry_id}").async_load() == {"estimate": 44.5, "source": "plateau"}
     assert await Store(hass, 1, f"sat_xtreme_opv_{legacy.entry_id}").async_load() is None
+
+    # The notice of 4.2.1-xtreme.25 that announced the move is gone
+    assert issue_registry.async_get(hass).async_get_issue(LEGACY_DOMAIN, LEGACY_MOVING_NOTICE) is None
 
 
 async def test_no_move_offered_without_a_sat_configuration(hass: HomeAssistant) -> None:

@@ -32,6 +32,7 @@ STORE_VERSION = 1
 
 # Repairs of the old entry that no longer apply after the move
 LEGACY_ISSUES = ("create_dashboard_", "update_dashboard_", "ignores_modulation_limit_")
+LEGACY_MOVING_NOTICE = "moving_to_sat_xtreme"
 
 
 def legacy_entries(hass: HomeAssistant) -> list[ConfigEntry]:
@@ -65,6 +66,9 @@ async def async_migrate_legacy_entry(hass: HomeAssistant, entry: ConfigEntry) ->
 
     for issue in LEGACY_ISSUES:
         issue_registry.async_delete_issue(hass, LEGACY_DOMAIN, f"{issue}{legacy_entry_id}")
+
+    # The notice of 4.2.1-xtreme.25 that announced this move
+    issue_registry.async_delete_issue(hass, LEGACY_DOMAIN, LEGACY_MOVING_NOTICE)
 
     if legacy_entry is not None:
         await hass.config_entries.async_remove(legacy_entry_id)

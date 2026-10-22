@@ -690,6 +690,22 @@ reads the options, with the configuration data as a fallback for older entries.
 **Files.** `custom_components/sat/climate.py`, `custom_components/sat/manifest.json`, `README.md`,
 `docs/settings-advanced.md`, `docs/troubleshooting.md`, `tests/test_xtreme_hassfest_fixes.py`.
 
+## Version 25: notice about the move to `sat_xtreme` (`4.2.1-xtreme.25`, 2026-10-22)
+
+A transition version. The next version, 4.2.1-xtreme.26, gives SAT-xtreme its own domain, `sat_xtreme`, so it
+can be listed in HACS and installed next to the official SAT. This version only prepares users for that; the
+control does not change.
+
+- A notice under *Settings → System → Repairs*, "SAT-xtreme is moving to its own domain", explains the move
+  (update, then *Add integration → SAT-xtreme → Move a configuration from SAT*, then remove the old entry and
+  change `sat.` actions to `sat_xtreme.`) and links to the manual. It has no button and can be ignored. It is
+  removed again in version 26.
+- The manual describes the move (installation page) and the notice (repairs page).
+
+**Files.** `custom_components/sat/xtreme/moving_notice.py` (new), `custom_components/sat/__init__.py`,
+`custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
+`custom_components/sat/manifest.json`, `docs/installation.md`, `docs/repairs.md`,
+`tests/test_xtreme_moving_notice.py` (new).
 ## Version 26: its own domain, `sat_xtreme` (`4.2.1-xtreme.26`, unreleased)
 
 SAT-xtreme gets its own domain, so it can be added to the default list of HACS and can be installed next to
@@ -703,7 +719,8 @@ the official SAT. No switch: the domain applies to everyone.
   unloads the old configuration, creates a new one with the same data and options, and, before the new
   entities are created, moves the entities and the device with Home Assistant's own migration helpers (entity
   IDs, unique IDs, history and restored states stay the same), copies the fork's stored data (learned OPV,
-  calibration report, keep-warm state, dashboard fingerprint) and removes the old configuration. An
+  calibration report, keep-warm state, dashboard fingerprint), removes the notice of version 25 and the old
+  configuration. An
   interrupted move continues on the next start (`custom_components/sat_xtreme/xtreme/migration.py`).
 - **An icon of its own** in `custom_components/sat_xtreme/brand/` (a flame with a thermometer, drawn by
   `dev/make_icon.py`), also used as the logo of the manual. The icon of the official SAT is no longer used.
@@ -711,9 +728,11 @@ the official SAT. No switch: the domain applies to everyone.
   explains the move.
 - `ManufacturerFactory` imports the manufacturers relative to its own package instead of a fixed
   `custom_components.sat` path.
+- The notice of version 25 ("SAT-xtreme is moving to its own domain") is removed again; the move step
+  replaces it.
 
 **Files.** `custom_components/sat_xtreme/` (renamed from `custom_components/sat/`; `manifest.json`, `const.py`,
 `services.yaml`, `__init__.py`, `config_flow.py`, `manufacturer.py`, `translations/en.json`,
-`translations/nl.json`, `xtreme/migration.py` (new), `brand/` (new)), `dev/make_icon.py` (new),
+`translations/nl.json`, `xtreme/migration.py` (new), `xtreme/moving_notice.py` (removed), `brand/` (new)), `dev/make_icon.py` (new),
 `dev/configuration.yaml`, `mkdocs.yml`, `docs/`, `README.md`, `RELEASING.md`, `CLAUDE.md`, `tests/` (import paths,
-`test_xtreme_migration.py` (new)).
+`test_xtreme_migration.py` (new), `test_xtreme_moving_notice.py` (removed)).
