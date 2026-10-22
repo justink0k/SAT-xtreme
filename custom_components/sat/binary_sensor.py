@@ -16,7 +16,7 @@ from .const import CONF_MODE, MODE_SERIAL, CONF_NAME, DOMAIN, COORDINATOR, CLIMA
 from .entity import SatClimateEntity, SatEntity
 from .helpers import seconds_since
 from .serial import binary_sensor as serial_binary_sensor
-from .xtreme_binary_sensor import async_setup_xtreme_binary_sensors
+from .xtreme.binary_sensor import async_setup_xtreme_binary_sensors
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 

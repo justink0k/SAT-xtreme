@@ -45,9 +45,9 @@ from .manufacturers.geminox import Geminox
 from .pwm import PWMState
 from .relative_modulation import RelativeModulation, RelativeModulationState
 from .summer_simmer import SummerSimmer
-from .xtreme_calibration import XtremeCalibration
-from .xtreme_opv import LearnedOpv
-from .xtreme_profile import BOILER_PRESETS, HEATER_COMMAND_REPEAT_SECONDS
+from .xtreme.calibration import XtremeCalibration
+from .xtreme.opv import LearnedOpv
+from .xtreme.profile import BOILER_PRESETS, HEATER_COMMAND_REPEAT_SECONDS
 from .util import create_pid_controller, create_heating_curve_controller, create_pwm_controller, create_minimum_setpoint_controller
 
 ATTR_ROOMS = "rooms"

@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import CONF_XTREME_IGNORE_MODULATION_LIMIT
-from .xtreme_dashboard import async_create_dashboard
+from .xtreme.dashboard import async_create_dashboard
 
 
 class IgnoreModulationLimitRepairFlow(ConfirmRepairFlow):

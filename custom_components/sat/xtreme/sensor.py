@@ -11,8 +11,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import CONF_NAME
-from .entity import SatClimateEntity, SatEntity
+from ..const import CONF_NAME
+from ..entity import SatClimateEntity, SatEntity
 
 FORK_LABEL = "Xtreme fork:"
 

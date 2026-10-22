@@ -20,7 +20,7 @@ from .manufacturers.ideal import Ideal
 from .manufacturers.intergas import Intergas
 from .manufacturers.nefit import Nefit
 from .pwm import PWMState
-from .xtreme_profile import XtremeProfile
+from .xtreme.profile import XtremeProfile
 
 if TYPE_CHECKING:
     from .climate import SatClimate

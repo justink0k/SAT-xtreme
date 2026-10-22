@@ -80,7 +80,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
 
     async def create_xtreme_dashboard(call: ServiceCall):
         """Service to create or rebuild the SAT Xtreme dashboard."""
-        from .xtreme_dashboard import async_create_dashboard
+        from .xtreme.dashboard import async_create_dashboard
 
         for climate in get_climate_entities(hass, call.data.get("entity_id", [])):
             _LOGGER.info("Create Xtreme dashboard action called for %s", climate.entity_id)

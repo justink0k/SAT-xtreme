@@ -89,7 +89,7 @@ CONF_SLEEP_TEMPERATURE = "sleep_temperature"
 CONF_COMFORT_TEMPERATURE = "comfort_temperature"
 CONF_ACTIVITY_TEMPERATURE = "activity_temperature"
 
-# Xtreme profile (fork), see xtreme_profile.py
+# Xtreme profile (fork), see xtreme/profile.py
 CONF_XTREME_PRIME_SETPOINT = "xtreme_prime_setpoint"
 CONF_XTREME_IGNORE_MODULATION_LIMIT = "xtreme_ignore_modulation_limit"
 CONF_XTREME_BOILER_MAXIMUM_POWER = "xtreme_boiler_maximum_power"

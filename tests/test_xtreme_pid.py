@@ -11,7 +11,7 @@ from custom_components.sat.config_flow import SatFlowHandler
 from custom_components.sat.const import *
 from custom_components.sat.fake import SatFakeCoordinator
 from custom_components.sat.pid import PID
-from custom_components.sat.xtreme_sensor import FORK_LABEL, SatPidOutputSensor
+from custom_components.sat.xtreme.sensor import FORK_LABEL, SatPidOutputSensor
 from tests.xtreme_helpers import parameters
 
 
@@ -147,7 +147,7 @@ async def test_fork_entities_are_labelled(hass: HomeAssistant, entry: MockConfig
     entities = []
     await sat_sensor.async_setup_entry(hass, entry, lambda new_entities: entities.extend(new_entities))
 
-    fork_entities = [entity for entity in entities if type(entity).__module__.endswith("xtreme_sensor")]
+    fork_entities = [entity for entity in entities if type(entity).__module__.endswith("xtreme.sensor")]
     assert len(fork_entities) == 6
     assert all(entity.name.startswith(FORK_LABEL) for entity in fork_entities)
     assert any(isinstance(entity, SatPidOutputSensor) for entity in fork_entities)

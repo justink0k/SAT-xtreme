@@ -18,7 +18,7 @@ from .const import (
 )
 from .coordinator import SatDataUpdateCoordinatorFactory
 from .services import async_register_services
-from .xtreme_dashboard import async_maintain_dashboard
+from .xtreme.dashboard import async_maintain_dashboard
 from .util import get_climate_entities
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)

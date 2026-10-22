@@ -9,7 +9,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-from .const import (
+from ..const import (
     OPTIONS_DEFAULTS,
     CONF_XTREME_PRIME_SETPOINT,
     CONF_XTREME_BOILER_MAXIMUM_POWER,

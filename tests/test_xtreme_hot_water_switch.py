@@ -5,12 +5,12 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-import custom_components.sat.xtreme_switch as xtreme_switch
+import custom_components.sat.xtreme.switch as xtreme_switch
 from custom_components.sat.climate import SatClimate
 from custom_components.sat.const import *
 from custom_components.sat.fake import SatFakeCoordinator
 from custom_components.sat.mqtt.opentherm import SatOpenThermMqttCoordinator
-from custom_components.sat.xtreme_switch import SatHotWaterKeepWarmSwitch
+from custom_components.sat.xtreme.switch import SatHotWaterKeepWarmSwitch
 from tests.xtreme_helpers import parameters
 
 

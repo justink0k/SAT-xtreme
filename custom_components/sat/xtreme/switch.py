@@ -11,9 +11,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.storage import Store
 
-from .const import CONF_NAME, DOMAIN, COORDINATOR, CLIMATE
-from .entity import SatClimateEntity
-from .xtreme_sensor import FORK_LABEL
+from ..const import CONF_NAME, DOMAIN, COORDINATOR, CLIMATE
+from ..entity import SatClimateEntity
+from .sensor import FORK_LABEL
 
 _LOGGER = logging.getLogger(__name__)
 

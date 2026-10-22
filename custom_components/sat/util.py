@@ -13,7 +13,7 @@ from .helpers import convert_time_str_to_seconds
 from .minimum_setpoint import MinimumSetpoint
 from .pid import PID
 from .pwm import PWM, CycleConfig
-from .xtreme_profile import XtremeProfile
+from .xtreme.profile import XtremeProfile
 
 if TYPE_CHECKING:
     from .climate import SatClimate

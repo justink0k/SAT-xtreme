@@ -28,8 +28,8 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
-    from .boiler import BoilerState
-    from .flame import FlameState
+    from ..boiler import BoilerState
+    from ..flame import FlameState
 
 _LOGGER = logging.getLogger(__name__)
 

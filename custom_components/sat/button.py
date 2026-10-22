@@ -8,8 +8,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_NAME, DOMAIN, COORDINATOR, CLIMATE
 from .entity import SatClimateEntity
-from .xtreme_dashboard import async_create_dashboard
-from .xtreme_sensor import FORK_LABEL
+from .xtreme.dashboard import async_create_dashboard
+from .xtreme.sensor import FORK_LABEL
 
 
 async def async_setup_entry(_hass: HomeAssistant, _config_entry: ConfigEntry, _async_add_entities: AddEntitiesCallback):

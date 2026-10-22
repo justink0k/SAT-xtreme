@@ -28,12 +28,12 @@ from homeassistant.helpers import issue_registry
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, MAXIMUM_RELATIVE_MODULATION, MINIMUM_RELATIVE_MODULATION
-from .coordinator import DeviceState, SatDataUpdateCoordinator
-from .xtreme_opv import LearnedOpv
+from ..const import DOMAIN, MAXIMUM_RELATIVE_MODULATION, MINIMUM_RELATIVE_MODULATION
+from ..coordinator import DeviceState, SatDataUpdateCoordinator
+from .opv import LearnedOpv
 
 if TYPE_CHECKING:
-    from .climate import SatClimate
+    from ..climate import SatClimate
 
 _LOGGER = logging.getLogger(__name__)
 

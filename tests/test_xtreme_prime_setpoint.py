@@ -13,7 +13,7 @@ from custom_components.sat.const import *
 from custom_components.sat.coordinator import DeviceState
 from custom_components.sat.fake import SatFakeCoordinator
 from custom_components.sat.flame import Flame
-from custom_components.sat.xtreme_profile import XtremeProfile
+from custom_components.sat.xtreme.profile import XtremeProfile
 from tests.xtreme_helpers import xtreme_profile_input
 
 MINIMUM_SETPOINT_VALUE = 46

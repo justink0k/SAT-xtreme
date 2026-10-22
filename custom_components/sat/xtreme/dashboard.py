@@ -19,7 +19,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry, issue_registry
 from homeassistant.helpers.storage import Store
 
-from .const import CONF_DEVICE, CONF_MODE, CONF_NAME, DOMAIN, MODE_MQTT_OPENTHERM
+from ..const import CONF_DEVICE, CONF_MODE, CONF_NAME, DOMAIN, MODE_MQTT_OPENTHERM
 
 _LOGGER = logging.getLogger(__name__)
 

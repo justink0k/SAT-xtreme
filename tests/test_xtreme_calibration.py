@@ -10,7 +10,7 @@ from custom_components.sat.climate import SatClimate
 from custom_components.sat.const import *
 from custom_components.sat.coordinator import DeviceState
 from custom_components.sat.fake import SatFakeCoordinator
-from custom_components.sat.xtreme_calibration import CalibrationPhase, XtremeCalibration, STEP_INTERVAL_SECONDS
+from custom_components.sat.xtreme.calibration import CalibrationPhase, XtremeCalibration, STEP_INTERVAL_SECONDS
 from tests.xtreme_helpers import Clock, parameters
 
 OPTIONS = {CONF_XTREME_CALIBRATION: True, CONF_XTREME_LEARNED_OPV: "learn"}
@@ -71,7 +71,7 @@ class _Boiler:
 def clock():
     clock = Clock()
 
-    with patch("custom_components.sat.xtreme_calibration.monotonic", clock), \
+    with patch("custom_components.sat.xtreme.calibration.monotonic", clock), \
             patch("custom_components.sat.flame.monotonic", clock), \
             patch("custom_components.sat.coordinator.monotonic", clock), \
             patch.object(XtremeCalibration, "_async_run", new=AsyncMock()):

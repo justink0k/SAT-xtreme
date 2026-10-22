@@ -8,7 +8,7 @@ from custom_components.sat.boiler import BoilerState
 from custom_components.sat.const import BoilerStatus, FlameStatus, PWMStatus
 from custom_components.sat.flame import FlameState
 from custom_components.sat.pwm import PWM, CycleConfig
-from custom_components.sat.xtreme_profile import XtremeProfile
+from custom_components.sat.xtreme.profile import XtremeProfile
 from tests.xtreme_helpers import Clock
 
 BASE_OFFSET = 20.0

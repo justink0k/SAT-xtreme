@@ -8,7 +8,7 @@ from homeassistant.helpers import issue_registry
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-import custom_components.sat.xtreme_dashboard as dashboard
+import custom_components.sat.xtreme.dashboard as dashboard
 from custom_components.sat.climate import SatClimate
 from custom_components.sat.const import *
 from custom_components.sat.fake import SatFakeCoordinator

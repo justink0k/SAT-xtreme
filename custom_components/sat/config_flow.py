@@ -19,7 +19,7 @@ from voluptuous import Marker
 
 from . import SatDataUpdateCoordinatorFactory
 from .const import *
-from .xtreme_profile import BOILER_PRESETS, apply_boiler_preset
+from .xtreme.profile import BOILER_PRESETS, apply_boiler_preset
 
 # Sections of the Xtreme profile page
 XTREME_SECTION_THERMOSTAT = "thermostat"

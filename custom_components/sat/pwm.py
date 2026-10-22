@@ -10,7 +10,7 @@ from homeassistant.core import State
 from .const import HEATER_STARTUP_TIMEFRAME, MINIMUM_SETPOINT, BoilerStatus, PWMStatus
 from .heating_curve import HeatingCurve
 from .setpoint_adjuster import SetpointAdjuster
-from .xtreme_profile import XtremeProfile
+from .xtreme.profile import XtremeProfile
 
 if TYPE_CHECKING:
     from .flame import FlameState

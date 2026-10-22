@@ -14,7 +14,7 @@ from .const import CONF_MODE, MODE_SERIAL, CONF_NAME, DOMAIN, COORDINATOR, CLIMA
 from .coordinator import SatDataUpdateCoordinator
 from .entity import SatEntity, SatClimateEntity
 from .serial import sensor as serial_sensor
-from .xtreme_sensor import async_setup_xtreme_sensors
+from .xtreme.sensor import async_setup_xtreme_sensors
 from .simulator import sensor as simulator_sensor
 
 if typing.TYPE_CHECKING:

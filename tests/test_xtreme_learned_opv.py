@@ -10,7 +10,7 @@ from custom_components.sat.climate import SatClimate
 from custom_components.sat.const import *
 from custom_components.sat.fake import SatFakeCoordinator
 from custom_components.sat.flame import FlameState
-from custom_components.sat.xtreme_opv import LearnedOpv, SAMPLE_PLATEAU, SAMPLE_SHUT_OFF
+from custom_components.sat.xtreme.opv import LearnedOpv, SAMPLE_PLATEAU, SAMPLE_SHUT_OFF
 from tests.xtreme_helpers import Clock, parameters, MINIMUM_SETPOINT_VALUE
 
 
@@ -50,7 +50,7 @@ def _burn(opv: LearnedOpv, clock: Clock, flows: list[float], start_on_seconds: f
 def clock():
     clock = Clock()
 
-    with patch("custom_components.sat.xtreme_opv.monotonic", clock):
+    with patch("custom_components.sat.xtreme.opv.monotonic", clock):
         yield clock
 
 

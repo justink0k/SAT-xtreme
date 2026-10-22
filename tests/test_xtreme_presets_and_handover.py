@@ -13,7 +13,7 @@ from custom_components.sat.fake import SatFakeCoordinator
 from custom_components.sat.manufacturers.intergas import Intergas
 from custom_components.sat.manufacturers.remeha import Remeha
 from custom_components.sat.mqtt.opentherm import SatOpenThermMqttCoordinator
-from custom_components.sat.xtreme_profile import BOILER_PRESETS, apply_boiler_preset
+from custom_components.sat.xtreme.profile import BOILER_PRESETS, apply_boiler_preset
 from tests.const import DEFAULT_USER_DATA
 from tests.xtreme_helpers import parameters, xtreme_profile_input
 

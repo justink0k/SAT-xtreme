@@ -13,7 +13,7 @@ They are stored as regular SAT options, so they survive updates and restarts. Ev
 by default; with all switches off the fork behaves like upstream SAT `4.2.1` plus the fixes listed
 under "Base".
 
-The constants and decision logic of the profile are in `custom_components/sat/xtreme_profile.py`.
+The constants and decision logic of the profile are in `custom_components/sat/xtreme/profile.py`.
 All decisions are logged at debug level with the prefix `Xtreme profile:`. To see them, add this to
 `configuration.yaml`:
 
@@ -87,7 +87,7 @@ on phase, so the boiler gets the heating demand right away but the setpoint 0 to
   the gateway drops the control setpoint override after about a minute and the thermostat on the bus
   takes over both the setpoint and the heating demand.
 
-**Files.** `custom_components/sat/xtreme_profile.py` (new), `custom_components/sat/const.py`,
+**Files.** `custom_components/sat/xtreme/profile.py` (new), `custom_components/sat/const.py`,
 `custom_components/sat/climate.py`, `custom_components/sat/coordinator.py`,
 `custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
 `custom_components/sat/manifest.json`, `tests/test_xtreme_prime_setpoint.py` (new).
@@ -118,7 +118,7 @@ What does not work is managing the limit: SAT keeps sending `MM=0` / `MM=100`.
   created; it has no meaning without a managed limit. Its entity remains in the entity registry as
   unavailable and can be removed there.
 
-**Files.** `custom_components/sat/xtreme_profile.py`, `custom_components/sat/const.py`,
+**Files.** `custom_components/sat/xtreme/profile.py`, `custom_components/sat/const.py`,
 `custom_components/sat/coordinator.py`, `custom_components/sat/climate.py`,
 `custom_components/sat/sensor.py`, `custom_components/sat/config_flow.py`,
 `custom_components/sat/fake/__init__.py`, `custom_components/sat/translations/en.json`,
@@ -157,7 +157,7 @@ time of the boiler, and burns of 3 minutes, which barely pay off the start.
 - New sensors: **PWM Burn Time** (burn time of the last completed on phase, with the planned on time
   and the current burn time as attributes) and **Anti-cycling Remaining**.
 
-**Files.** `custom_components/sat/xtreme_profile.py`, `custom_components/sat/xtreme_sensor.py` (new),
+**Files.** `custom_components/sat/xtreme/profile.py`, `custom_components/sat/xtreme_sensor.py` (new),
 `custom_components/sat/const.py`, `custom_components/sat/pwm.py`, `custom_components/sat/flame.py`,
 `custom_components/sat/coordinator.py`, `custom_components/sat/climate.py`,
 `custom_components/sat/util.py`, `custom_components/sat/sensor.py`,
@@ -192,7 +192,7 @@ boiler overshoots and switches itself off) or too high (more heat than needed in
 - New sensor **Learned OPV** with the mode, estimate, margin, source, number of samples, last update
   and the last 20 samples as attributes.
 
-**Files.** `custom_components/sat/xtreme_opv.py` (new), `custom_components/sat/xtreme_profile.py`,
+**Files.** `custom_components/sat/xtreme_opv.py` (new), `custom_components/sat/xtreme/profile.py`,
 `custom_components/sat/xtreme_sensor.py`, `custom_components/sat/const.py`,
 `custom_components/sat/climate.py`, `custom_components/sat/coordinator.py`,
 `custom_components/sat/config_flow.py`, `custom_components/sat/translations/en.json`,
@@ -236,7 +236,7 @@ suit a measurement that takes hours.
   notification and in the attributes of the Calibration sensor, and is stored across restarts.
 
 **Files.** `custom_components/sat/xtreme_calibration.py` (new), `custom_components/sat/button.py`
-(new), `custom_components/sat/xtreme_opv.py`, `custom_components/sat/xtreme_profile.py`,
+(new), `custom_components/sat/xtreme_opv.py`, `custom_components/sat/xtreme/profile.py`,
 `custom_components/sat/xtreme_sensor.py`, `custom_components/sat/const.py`,
 `custom_components/sat/climate.py`, `custom_components/sat/__init__.py`,
 `custom_components/sat/services.py`, `custom_components/sat/services.yaml`,
@@ -319,7 +319,7 @@ wizard, and that choice was not even used (see the fix below).
 
 **Files.** `custom_components/sat/pid.py`, `custom_components/sat/util.py`,
 `custom_components/sat/climate.py`, `custom_components/sat/config_flow.py`,
-`custom_components/sat/const.py`, `custom_components/sat/xtreme_profile.py`,
+`custom_components/sat/const.py`, `custom_components/sat/xtreme/profile.py`,
 `custom_components/sat/xtreme_sensor.py`, `custom_components/sat/button.py`,
 `custom_components/sat/xtreme_calibration.py`, `custom_components/sat/translations/en.json`,
 `custom_components/sat/manifest.json`, `dashboards/sat_xtreme.yaml`, `README.md`,
@@ -349,7 +349,7 @@ ignore the switch.
 - The stored base return temperature of the dynamic minimum setpoint is loaded after a restart (upstream
   saved it but never loaded it). Only matters when the dynamic minimum setpoint is on.
 
-**Files.** `custom_components/sat/xtreme_profile.py`, `custom_components/sat/const.py`,
+**Files.** `custom_components/sat/xtreme/profile.py`, `custom_components/sat/const.py`,
 `custom_components/sat/config_flow.py`, `custom_components/sat/climate.py`,
 `custom_components/sat/coordinator.py`, `custom_components/sat/mqtt/opentherm.py`,
 `custom_components/sat/__init__.py`, `custom_components/sat/translations/en.json`,
@@ -451,7 +451,7 @@ user turns the option on and the switch off.
 
 **Files.** `custom_components/sat/xtreme_switch.py` (new), `custom_components/sat/switch/__init__.py`
 (platform entry), `custom_components/sat/__init__.py`, `custom_components/sat/const.py`,
-`custom_components/sat/xtreme_profile.py`, `custom_components/sat/coordinator.py`,
+`custom_components/sat/xtreme/profile.py`, `custom_components/sat/coordinator.py`,
 `custom_components/sat/mqtt/opentherm.py`, `custom_components/sat/config_flow.py`,
 `custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
 `custom_components/sat/manifest.json`, `dashboards/sat_xtreme.yaml`, `README.md`,
@@ -601,3 +601,25 @@ this fork.
 **Files.** `.github/workflows/hacs.yml`, `.github/workflows/hassfest.yml`, `.github/workflows/pytest.yml`,
 `.github/workflows/release.yml` (removed), `dev/compose.yml`, `dev/configuration.yaml` (moved),
 `dashboards/sat_xtreme.yaml` and `tests/test_xtreme_dashboard.py` (removed), `README.md`.
+
+## Version 20: fork code in its own folder, documentation split up (`4.2.1-xtreme.20`, 2026-10-22)
+
+No change in behaviour; the code and the documentation are reorganised.
+
+- **The fork's own modules moved to `custom_components/sat/xtreme/`**, so it is clear at a glance what
+  belongs to the fork: `xtreme_profile.py` → `xtreme/profile.py`, and the same for `opv`, `calibration`,
+  `sensor`, `binary_sensor`, `switch` and `dashboard`. Entities, unique IDs, options and stored data are
+  unchanged.
+- **The README is shorter.** It keeps what a user needs first (what the fork is, the comparison with SAT,
+  the switches and entities, bug fixes, installation); the rest moved to `docs/`:
+  - `docs/background.md`: what the fork improves and the results on the tested setup;
+  - `docs/hot_water_keep_warm.md`: the keep-warm switch, the example automation and the boiler settings;
+  - `docs/dashboard.md`: the SAT Xtreme dashboard;
+  - `docs/sat_configuration.md`: the documentation of the official SAT (without its installation
+    section, which pointed to the official SAT).
+
+**Files.** `custom_components/sat/xtreme/` (new; the seven `xtreme_*.py` modules moved),
+`custom_components/sat/__init__.py`, `binary_sensor.py`, `button.py`, `climate.py`, `config_flow.py`,
+`const.py`, `coordinator.py`, `pwm.py`, `repairs.py`, `sensor.py`, `services.py`, `switch/__init__.py`,
+`util.py`, `custom_components/sat/manifest.json`, `README.md`, `docs/` (four new pages),
+`docs/boiler_presets.md`, `tests/` (import paths).
