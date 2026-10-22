@@ -3,8 +3,8 @@
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.sat import async_reload_entry
-from custom_components.sat.const import DOMAIN
+from custom_components.sat_xtreme import async_reload_entry
+from custom_components.sat_xtreme.const import DOMAIN
 from tests.const import DEFAULT_USER_DATA
 
 

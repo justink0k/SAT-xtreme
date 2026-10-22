@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "already_configured": "Gateway is al geconfigureerd.",
-      "reconfigure_successful": "Gateway is opnieuw geconfigureerd."
+      "reconfigure_successful": "Gateway is opnieuw geconfigureerd.",
+      "nothing_to_move": "Er is geen SAT-configuratie om over te zetten."
     },
     "error": {
       "connection": "Kan geen verbinding maken met de gateway.",
@@ -133,6 +134,7 @@
       "user": {
         "description": "SAT is een slimme thermostaat die zichzelf kan optimaliseren om de temperatuurregeling te verbeteren. Kies de modus die past bij uw verwarmingssysteem.",
         "menu_options": {
+          "move_from_sat": "Een configuratie overzetten vanuit SAT",
           "mosquitto": "MQTT Gateway (OpenTherm, EMS-ESP, andere)",
           "serial": "Seriële Gateway (bijv. OpenTherm)",
           "esphome": "ESPHome (Systeemservices en sensoren)",
@@ -140,6 +142,13 @@
           "switch": "PID-Thermostaat (PWM Aan/Uit-modus)"
         },
         "title": "Smart Autotune Thermostat (SAT)"
+      },
+      "move_from_sat": {
+        "title": "Overzetten vanuit SAT",
+        "description": "Zet een configuratie van de officiële Smart Autotune Thermostat, of van SAT-xtreme 4.2.1-xtreme.25 of ouder, over naar SAT-xtreme. Alle instellingen, de overshoot protection value, de entity-ID's en hun geschiedenis blijven behouden. De oude configuratie stopt meteen en wordt na het overzetten verwijderd; SAT-xtreme neemt binnen enkele seconden over (je thermostaat op de bus vangt een eventueel gat op). Verwijder daarna de oude integratie uit HACS, en pas automatiseringen die `sat.`-acties aanroepen aan naar `sat_xtreme.`.",
+        "data": {
+          "entry": "Over te zetten configuratie"
+        }
       }
     }
   },

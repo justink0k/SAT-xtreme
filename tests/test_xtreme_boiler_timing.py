@@ -4,11 +4,11 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.sat.boiler import BoilerState
-from custom_components.sat.const import BoilerStatus, FlameStatus, PWMStatus
-from custom_components.sat.flame import FlameState
-from custom_components.sat.pwm import PWM, CycleConfig
-from custom_components.sat.xtreme.profile import XtremeProfile
+from custom_components.sat_xtreme.boiler import BoilerState
+from custom_components.sat_xtreme.const import BoilerStatus, FlameStatus, PWMStatus
+from custom_components.sat_xtreme.flame import FlameState
+from custom_components.sat_xtreme.pwm import PWM, CycleConfig
+from custom_components.sat_xtreme.xtreme.profile import XtremeProfile
 from tests.xtreme_helpers import Clock
 
 BASE_OFFSET = 20.0
@@ -97,7 +97,7 @@ async def _tick(pwm: PWM, boiler: _Boiler, clock: Clock, seconds: float, setpoin
 def clock():
     clock = Clock()
 
-    with patch("custom_components.sat.pwm.monotonic", clock):
+    with patch("custom_components.sat_xtreme.pwm.monotonic", clock):
         yield clock
 
 

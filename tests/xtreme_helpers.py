@@ -2,7 +2,7 @@
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.template import DOMAIN as TEMPLATE_DOMAIN
 
-from custom_components.sat.const import *
+from custom_components.sat_xtreme.const import *
 
 MINIMUM_SETPOINT_VALUE = 46
 
@@ -53,7 +53,7 @@ class Clock:
 
 def xtreme_profile_input(**fields) -> dict:
     """Build the input of the sectioned Xtreme profile page from flat option values."""
-    from custom_components.sat.config_flow import XTREME_SECTION_BOILER, XTREME_SECTION_LEARNING, XTREME_SECTION_THERMOSTAT
+    from custom_components.sat_xtreme.config_flow import XTREME_SECTION_BOILER, XTREME_SECTION_LEARNING, XTREME_SECTION_THERMOSTAT
 
     sections = {
         XTREME_SECTION_THERMOSTAT: (CONF_XTREME_PRIME_SETPOINT, CONF_XTREME_HANDOVER_ON_OFF),

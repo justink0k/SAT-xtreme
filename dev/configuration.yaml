@@ -3,7 +3,7 @@ default_config:
 logger:
   default: info
   logs:
-    custom_components.sat: debug
+    custom_components.sat_xtreme: debug
     custom_components.interpolated_sensor: debug
 
 homeassistant:

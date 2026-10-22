@@ -2,58 +2,62 @@
 
 Actions (services) of SAT, for scripts and automations. All of them take the SAT climate entity as target.
 
-## sat.reset_integral
+!!! note "New names since 4.2.1-xtreme.26"
+    With its own domain, the actions of SAT-xtreme start with `sat_xtreme.` instead of `sat.`. Change
+    automations and scripts that still call `sat.reset_integral` and the like.
+
+## sat_xtreme.reset_integral
 
 Resets the integral part of the PID controller, for example when it has grown too large after a long period
 with an open window.
 
 ```yaml
-action: sat.reset_integral
+action: sat_xtreme.reset_integral
 target:
   entity_id: climate.sat
 ```
 
-## sat.pulse_width_modulation
+## sat_xtreme.pulse_width_modulation
 
 Forces [PWM](overshoot-protection.md#pulse-width-modulation-pwm) on or off. SAT may switch it back right after,
 when its own decision differs.
 
 ```yaml
-action: sat.pulse_width_modulation
+action: sat_xtreme.pulse_width_modulation
 target:
   entity_id: climate.sat
 data:
   enabled: true
 ```
 
-## sat.start_xtreme_calibration
+## sat_xtreme.start_xtreme_calibration
 
 Fork only, with the [calibration buttons](calibration.md) on. Starts the slow calibration of the overshoot
 protection value.
 
 ```yaml
-action: sat.start_xtreme_calibration
+action: sat_xtreme.start_xtreme_calibration
 target:
   entity_id: climate.sat
 ```
 
-## sat.stop_xtreme_calibration
+## sat_xtreme.stop_xtreme_calibration
 
 Fork only. Stops the calibration and returns to normal operation.
 
 ```yaml
-action: sat.stop_xtreme_calibration
+action: sat_xtreme.stop_xtreme_calibration
 target:
   entity_id: climate.sat
 ```
 
-## sat.create_xtreme_dashboard
+## sat_xtreme.create_xtreme_dashboard
 
 Fork only. Creates or rebuilds the [SAT Xtreme dashboard](dashboard.md) with the entities that exist now. Only
 changes that dashboard.
 
 ```yaml
-action: sat.create_xtreme_dashboard
+action: sat_xtreme.create_xtreme_dashboard
 target:
   entity_id: climate.sat
 ```

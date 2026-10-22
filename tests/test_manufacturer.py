@@ -1,4 +1,4 @@
-from custom_components.sat.manufacturer import MANUFACTURERS, ManufacturerFactory
+from custom_components.sat_xtreme.manufacturer import MANUFACTURERS, ManufacturerFactory
 
 
 def test_resolve_by_name():

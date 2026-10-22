@@ -8,10 +8,10 @@ SAT and the fork log their decisions at debug level. The fork's lines start with
 ```yaml
 logger:
   logs:
-    custom_components.sat: debug
+    custom_components.sat_xtreme: debug
 ```
 
-Or temporarily: *Settings → Devices & services → Smart Autotune Thermostat → ⋮ → Enable debug logging*.
+Or temporarily: *Settings → Devices & services → SAT-xtreme → ⋮ → Enable debug logging*.
 
 When you report a problem, add the relevant part of the log, your gateway and boiler, and the options you
 turned on. Remove personal data (addresses, names of rooms you would rather not share).

@@ -117,5 +117,5 @@ Open an issue with the **Boiler preset** template on the
    can see this in the log: MsgID 14 is answered with Data-Invalid, or the reported modulation stays
    above the limit you set.
 
-A preset is added to `BOILER_PRESETS` in `custom_components/sat/xtreme/profile.py` with its source, and
+A preset is added to `BOILER_PRESETS` in `custom_components/sat_xtreme/xtreme/profile.py` with its source, and
 only fills in numbers: it never turns a switch on or off.

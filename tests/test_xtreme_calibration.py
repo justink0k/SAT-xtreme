@@ -6,11 +6,11 @@ from homeassistant.components.climate import HVACMode
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.sat.climate import SatClimate
-from custom_components.sat.const import *
-from custom_components.sat.coordinator import DeviceState
-from custom_components.sat.fake import SatFakeCoordinator
-from custom_components.sat.xtreme.calibration import CalibrationPhase, XtremeCalibration, STEP_INTERVAL_SECONDS
+from custom_components.sat_xtreme.climate import SatClimate
+from custom_components.sat_xtreme.const import *
+from custom_components.sat_xtreme.coordinator import DeviceState
+from custom_components.sat_xtreme.fake import SatFakeCoordinator
+from custom_components.sat_xtreme.xtreme.calibration import CalibrationPhase, XtremeCalibration, STEP_INTERVAL_SECONDS
 from tests.xtreme_helpers import Clock, parameters
 
 OPTIONS = {CONF_XTREME_CALIBRATION: True, CONF_XTREME_LEARNED_OPV: "learn"}
@@ -71,9 +71,9 @@ class _Boiler:
 def clock():
     clock = Clock()
 
-    with patch("custom_components.sat.xtreme.calibration.monotonic", clock), \
-            patch("custom_components.sat.flame.monotonic", clock), \
-            patch("custom_components.sat.coordinator.monotonic", clock), \
+    with patch("custom_components.sat_xtreme.xtreme.calibration.monotonic", clock), \
+            patch("custom_components.sat_xtreme.flame.monotonic", clock), \
+            patch("custom_components.sat_xtreme.coordinator.monotonic", clock), \
             patch.object(XtremeCalibration, "_async_run", new=AsyncMock()):
         yield clock
 
@@ -308,7 +308,7 @@ async def test_no_repair_when_the_option_is_already_on(hass: HomeAssistant, entr
 
 @pytest.mark.parametrize(*parameters(**OPTIONS))
 async def test_repair_turns_the_option_on(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
-    from custom_components.sat.repairs import async_create_fix_flow
+    from custom_components.sat_xtreme.repairs import async_create_fix_flow
 
     flow = await async_create_fix_flow(hass, "ignores_modulation_limit", {"entry_id": entry.entry_id})
     flow.hass = hass

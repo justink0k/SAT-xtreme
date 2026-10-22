@@ -7,14 +7,14 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.sat.boiler import BoilerState
-from custom_components.sat.climate import SatClimate
-from custom_components.sat.const import *
-from custom_components.sat.coordinator import DeviceState
-from custom_components.sat.fake import SatFakeCoordinator
-from custom_components.sat.flame import Flame, FlameState
-from custom_components.sat.overshoot_protection import OvershootProtection
-from custom_components.sat.pwm import PWM, CycleConfig
+from custom_components.sat_xtreme.boiler import BoilerState
+from custom_components.sat_xtreme.climate import SatClimate
+from custom_components.sat_xtreme.const import *
+from custom_components.sat_xtreme.coordinator import DeviceState
+from custom_components.sat_xtreme.fake import SatFakeCoordinator
+from custom_components.sat_xtreme.flame import Flame, FlameState
+from custom_components.sat_xtreme.overshoot_protection import OvershootProtection
+from custom_components.sat_xtreme.pwm import PWM, CycleConfig
 from tests.xtreme_helpers import Clock, parameters
 
 
@@ -57,7 +57,7 @@ def test_flame_off_at_start_up_is_not_a_flame_off():
     clock = Clock()
     flame = Flame()
 
-    with patch("custom_components.sat.flame.monotonic", clock):
+    with patch("custom_components.sat_xtreme.flame.monotonic", clock):
         flame.update(boiler_state=_boiler_state(False))
         clock.now += 60
         flame.update(boiler_state=_boiler_state(False))
@@ -98,7 +98,7 @@ async def test_maximum_cycles_count_over_the_last_hour():
     flame = FlameState(False, True, FlameStatus.IDLE_OK, None, None, None, 0, 0.0, 0.0, None)
     setpoint = 20.0 + 0.5 * (46.0 - 20.0)
 
-    with patch("custom_components.sat.pwm.monotonic", clock):
+    with patch("custom_components.sat_xtreme.pwm.monotonic", clock):
         # Three duty cycles started in the last 50 minutes
         pwm._cycle_starts.extend([clock.now - 3000, clock.now - 1500, clock.now - 100])
         pwm._status = PWMStatus.OFF

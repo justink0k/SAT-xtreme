@@ -7,9 +7,8 @@ edit_uri: edit/xtreme/docs/
 
 theme:
   name: material
-  icon:
-    logo: material/home-thermometer-outline
-  favicon: assets/favicon.svg
+  logo: assets/icon.png
+  favicon: assets/icon.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default

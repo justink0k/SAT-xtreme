@@ -4,7 +4,7 @@ from __future__ import annotations
 from enum import Enum
 
 NAME = "Smart Autotune Thermostat"
-DOMAIN = "sat"
+DOMAIN = "sat_xtreme"
 CLIMATE = "climate"
 COORDINATOR = "coordinator"
 CONFIG_STORE = "config_store"

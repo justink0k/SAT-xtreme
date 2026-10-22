@@ -60,4 +60,4 @@ class ManufacturerFactory:
     @staticmethod
     def _import_class(module_name: str, class_name: str) -> Type[Manufacturer]:
         """Dynamically import and return a Manufacturer class."""
-        return getattr(__import__(f"custom_components.sat.manufacturers.{module_name}", fromlist=[class_name]), class_name)
+        return getattr(__import__(f"{__package__}.manufacturers.{module_name}", fromlist=[class_name]), class_name)

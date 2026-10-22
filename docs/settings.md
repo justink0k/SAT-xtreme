@@ -1,6 +1,6 @@
 # Settings
 
-All settings are under *Settings → Devices & services → Smart Autotune Thermostat → Configure*. The menu has
+All settings are under *Settings → Devices & services → SAT-xtreme → Configure*. The menu has
 these pages:
 
 | Page | What is on it |

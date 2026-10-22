@@ -3,7 +3,7 @@
 SAT-xtreme can create a **SAT Xtreme** dashboard for you. After installing or updating, a repair appears
 under *Settings → System → Repairs*: *Create the SAT Xtreme dashboard*. Click submit and the dashboard
 appears in the sidebar. To rebuild it later (for example after turning on a feature), press the button
-*Xtreme fork: Create Dashboard* or use the action `sat.create_xtreme_dashboard`; this only changes the
+*Xtreme fork: Create Dashboard* or use the action `sat_xtreme.create_xtreme_dashboard`; this only changes the
 SAT Xtreme dashboard.
 
 The dashboard looks up its entities by their unique IDs, so it works whatever they are called. With an

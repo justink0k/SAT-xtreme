@@ -10,7 +10,7 @@ VERSION_FORMAT = re.compile(r"^\d+\.\d+\.\d+-xtreme\.\d+$")
 
 
 def _version() -> str:
-    return json.loads((ROOT / "custom_components" / "sat" / "manifest.json").read_text())["version"]
+    return json.loads((ROOT / "custom_components" / "sat_xtreme" / "manifest.json").read_text())["version"]
 
 
 def test_version_has_the_release_format():

@@ -20,8 +20,8 @@ is heating that is **calmer, more comfortable, more efficient and reliable**.
 
 - **New to SAT?** Read [The control loop](how-sat-works.md) for the ideas, then
   [Installation](installation.md) and the [Setup wizard](setup-wizard.md).
-- **Coming from the official SAT?** See [Installation](installation.md#coming-from-the-official-sat): your
-  configuration is kept.
+- **Coming from the official SAT or an older SAT-xtreme?** See [Moving from SAT](installation.md#moving-from-sat):
+  your configuration, entity IDs and history are kept.
 - **Want the fork features?** [First steps](first-steps.md) gives a safe order to turn them on, one at a
   time.
 - **Something wrong?** See [Troubleshooting](troubleshooting.md).

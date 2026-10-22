@@ -19,6 +19,7 @@ from voluptuous import Marker
 
 from . import SatDataUpdateCoordinatorFactory
 from .const import *
+from .xtreme.migration import CONF_MIGRATED_FROM, async_unload_legacy_entry, legacy_entries
 from .xtreme.profile import BOILER_PRESETS, apply_boiler_preset
 
 # Sections of the Xtreme profile page
@@ -33,6 +34,7 @@ from .validators import valid_serial_device
 
 DEFAULT_NAME = "Living Room"
 DEFAULT_SERIAL_URL = "socket://otgw.local:25238"
+CONF_MOVE_ENTRY = "entry"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,7 +66,13 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, _user_input: dict[str, Any] | None = None):
         """Handle user flow."""
-        menu_options = [
+        menu_options = []
+
+        # SAT-xtreme: offer to move a configuration of the domain `sat` first
+        if self._movable_legacy_entries():
+            menu_options.append("move_from_sat")
+
+        menu_options += [
             "mosquitto",
             "esphome",
             "serial",
@@ -75,6 +83,43 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             menu_options.append("simulator")
 
         return self.async_show_menu(step_id="user", menu_options=menu_options)
+
+    def _movable_legacy_entries(self) -> list[ConfigEntry]:
+        """SAT-xtreme: the configurations of the domain `sat` (a moved configuration is removed there)."""
+        return legacy_entries(self.hass)
+
+    async def async_step_move_from_sat(self, _user_input: dict[str, Any] | None = None):
+        """SAT-xtreme: move a configuration of the official SAT (or an older SAT-xtreme) to this integration."""
+        entries = {entry.entry_id: entry for entry in self._movable_legacy_entries()}
+
+        if not entries:
+            return self.async_abort(reason="nothing_to_move")
+
+        if _user_input is not None:
+            legacy_entry = entries[_user_input[CONF_MOVE_ENTRY]]
+
+            await self.async_set_unique_id(legacy_entry.unique_id, raise_on_progress=False)
+            self._abort_if_unique_id_configured()
+
+            # Stop the old configuration; the new entry moves its entities when it is set up
+            await async_unload_legacy_entry(self.hass, legacy_entry)
+
+            return self.async_create_entry(
+                title=legacy_entry.title,
+                data={**legacy_entry.data, CONF_MIGRATED_FROM: legacy_entry.entry_id},
+                options=dict(legacy_entry.options),
+            )
+
+        return self.async_show_form(
+            step_id="move_from_sat",
+            data_schema=vol.Schema({
+                vol.Required(CONF_MOVE_ENTRY, default=next(iter(entries))): selector.SelectSelector(
+                    selector.SelectSelectorConfig(options=[
+                        SelectOptionDict(value=entry_id, label=entry.title) for entry_id, entry in entries.items()
+                    ])
+                ),
+            }),
+        )
 
     async def async_step_dhcp(self, discovery_info: DhcpServiceInfo):
         """Handle dhcp discovery."""

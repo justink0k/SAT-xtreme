@@ -11,11 +11,11 @@ release.
 - Use a `-`, not a `+`: AwesomeVersion (used by Home Assistant and HACS) ignores everything after a `+`.
 - `N` only goes up. When the fork moves to a new upstream version, it becomes for example
   `4.3.0-xtreme.1`.
-- The git tag is exactly the version in `custom_components/sat/manifest.json`, without a `v`.
+- The git tag is exactly the version in `custom_components/sat_xtreme/manifest.json`, without a `v`.
 
 ## Steps
 
-1. Raise the version in `custom_components/sat/manifest.json`.
+1. Raise the version in `custom_components/sat_xtreme/manifest.json`.
 2. Add an entry to `CHANGES_XTREME.md` whose heading contains the version in backticks, for example
    ``## Version 13: ... (`4.2.1-xtreme.13`, <date>)``, with what changed, the switch (if any), and the
    files.

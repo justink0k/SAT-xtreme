@@ -8,10 +8,10 @@ from homeassistant.helpers import issue_registry
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-import custom_components.sat.xtreme.dashboard as dashboard
-from custom_components.sat.climate import SatClimate
-from custom_components.sat.const import *
-from custom_components.sat.fake import SatFakeCoordinator
+import custom_components.sat_xtreme.xtreme.dashboard as dashboard
+from custom_components.sat_xtreme.climate import SatClimate
+from custom_components.sat_xtreme.const import *
+from custom_components.sat_xtreme.fake import SatFakeCoordinator
 from tests.xtreme_helpers import parameters
 
 
@@ -95,7 +95,7 @@ async def test_dashboard_is_offered_as_a_repair(hass: HomeAssistant, entry: Mock
     assert issue is not None and issue.is_fixable
 
     assert await async_setup_component(hass, "lovelace", {})
-    from custom_components.sat.repairs import async_create_fix_flow
+    from custom_components.sat_xtreme.repairs import async_create_fix_flow
 
     flow = await async_create_fix_flow(hass, issue.issue_id, issue.data)
     flow.hass = hass
@@ -110,7 +110,7 @@ async def test_dashboard_is_offered_as_a_repair(hass: HomeAssistant, entry: Mock
 
 @pytest.mark.parametrize(*parameters())
 async def test_burner_starts_are_counted(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
-    from custom_components.sat.coordinator import DeviceState
+    from custom_components.sat_xtreme.coordinator import DeviceState
 
     before = coordinator.flame_start_count
     for _ in range(3):
@@ -185,7 +185,7 @@ async def test_edited_dashboard_is_not_overwritten(hass: HomeAssistant, entry: M
         assert issue is not None and issue.is_fixable
 
         # The repair rebuilds it after a click
-        from custom_components.sat.repairs import async_create_fix_flow
+        from custom_components.sat_xtreme.repairs import async_create_fix_flow
 
         flow = await async_create_fix_flow(hass, issue.issue_id, issue.data)
         flow.hass = hass

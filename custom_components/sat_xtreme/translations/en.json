@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "already_configured": "Gateway is already configured.",
-      "reconfigure_successful": "Gateway has been re-configured."
+      "reconfigure_successful": "Gateway has been re-configured.",
+      "nothing_to_move": "There is no SAT configuration to move."
     },
     "error": {
       "invalid_device": "This is an invalid device.",
@@ -135,6 +136,7 @@
       "user": {
         "description": "SAT is a smart thermostat capable of auto-tuning itself to optimize temperature control. Select the mode that matches your heating system.",
         "menu_options": {
+          "move_from_sat": "Move a configuration from SAT",
           "mosquitto": "MQTT Gateway (OpenTherm, EMS-ESP, others)",
           "serial": "Serial Gateway (e.g., OpenTherm)",
           "esphome": "ESPHome (System services and sensors)",
@@ -147,6 +149,13 @@
         "description": "We have attempted to identify the most suitable manufacturer for your heating system based on your gateway type and device information. However, if this does not match your setup, you can select a different manufacturer from the list.",
         "data": {
           "manufacturer": "Manufacturer"
+        }
+      },
+      "move_from_sat": {
+        "title": "Move from SAT",
+        "description": "Moves a configuration of the official Smart Autotune Thermostat, or of SAT-xtreme 4.2.1-xtreme.25 or older, to SAT-xtreme. All settings, the overshoot protection value, the entity IDs and their history are kept. The old configuration stops right away and is removed after the move; SAT-xtreme takes over within seconds (your thermostat on the bus covers any gap). Afterwards, remove the old integration from HACS, and change automations that call `sat.` actions to `sat_xtreme.`.",
+        "data": {
+          "entry": "Configuration to move"
         }
       }
     }

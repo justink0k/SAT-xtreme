@@ -10,9 +10,9 @@ controls a central heating boiler. Changes are made carefully, one step at a tim
 - Every new behaviour is opt-in behind its own option and off by default; with everything off the
   fork behaves like upstream SAT. Bug fixes may apply without an option.
 - Every change gets tests, an entry in `CHANGES_XTREME.md`, and a version bump in
-  `custom_components/sat/manifest.json` (format `X.Y.Z-xtreme.N`, see `RELEASING.md`).
+  `custom_components/sat_xtreme/manifest.json` (format `X.Y.Z-xtreme.N`, see `RELEASING.md`).
 - Everything in the repository (code, comments, log messages, README, changelog, commit messages) is in
-  English. Translations live in `custom_components/sat/translations/`.
+  English. Translations live in `custom_components/sat_xtreme/translations/`.
 - Never put personal data (entity IDs, addresses, logs of a specific home) in the repository; the
   `local/` folder is ignored by git for that.
 - Hard limits: never exceed the configured maximum setpoint, never touch hot water (the only exception is the

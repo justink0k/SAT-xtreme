@@ -22,8 +22,8 @@ With the option on, SAT adds:
 
 - the buttons **Xtreme fork: Start Calibration** and **Xtreme fork: Stop Calibration**,
 - the sensor **Xtreme fork: Calibration** with the phase, the progress and the report,
-- the actions [`sat.start_xtreme_calibration`](actions.md#satstart_xtreme_calibration) and
-  [`sat.stop_xtreme_calibration`](actions.md#satstop_xtreme_calibration).
+- the actions [`sat_xtreme.start_xtreme_calibration`](actions.md#sat_xtremestart_xtreme_calibration) and
+  [`sat_xtreme.stop_xtreme_calibration`](actions.md#sat_xtremestop_xtreme_calibration).
 
 The calibration stops cleanly with the stop button, when you turn SAT off, and on a restart of Home
 Assistant, and SAT returns to normal operation right away. While it runs, SAT's normal control is paused.

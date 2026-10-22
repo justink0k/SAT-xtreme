@@ -10,14 +10,14 @@ is based on the official SAT tag `4.2.1`, with the official `develop` branch mer
 - Hard limits: never exceed the configured maximum setpoint, never touch hot water (except the opt-in
   keep-warm switch), and keep the failover to the thermostat on the bus working.
 - Every change gets tests, an entry in `CHANGES_XTREME.md` and a version bump.
-- Everything in the repository is in English; translations live in `custom_components/sat/translations/`.
+- Everything in the repository is in English; translations live in `custom_components/sat_xtreme/translations/`.
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `custom_components/sat/` | The integration. Files from the official SAT keep their names. |
-| `custom_components/sat/xtreme/` | Modules that only exist in the fork: `profile.py` (options, presets), `opv.py` (self-learning OPV), `calibration.py`, `sensor.py`, `binary_sensor.py`, `switch.py`, `dashboard.py`. |
+| `custom_components/sat_xtreme/` | The integration. Files from the official SAT keep their names. |
+| `custom_components/sat_xtreme/xtreme/` | Modules that only exist in the fork: `profile.py` (options, presets), `opv.py` (self-learning OPV), `calibration.py`, `sensor.py`, `binary_sensor.py`, `switch.py`, `dashboard.py`. |
 | `tests/` | Tests; the fork's tests start with `test_xtreme_`. |
 | `docs/` and `mkdocs.yml` | This manual. |
 | `dev/` | The development setup of the official SAT (Docker Compose with a test configuration). |

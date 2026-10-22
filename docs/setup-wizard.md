@@ -1,7 +1,12 @@
 # Setup wizard
 
-The wizard runs when you add the integration (*Settings → Devices & services → Add integration → Smart
-Autotune Thermostat*). You can run most of it again later with *Reconfigure* on the integration.
+The wizard runs when you add the integration (*Settings → Devices & services → Add integration → SAT-xtreme*).
+You can run most of it again later with *Reconfigure* on the integration.
+
+!!! tip "Moving from SAT"
+    If a configuration of the official SAT (or of SAT-xtreme 4.2.1-xtreme.25 or older) exists, the first choice
+    is **Move a configuration from SAT**. It skips the wizard and keeps all settings; see
+    [Moving from SAT](installation.md#moving-from-sat).
 
 ## 1. Choose the gateway
 

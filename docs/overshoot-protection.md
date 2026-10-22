@@ -66,7 +66,7 @@ SAT also never starts more blocks per hour than *Duty cycles per hour*, counted 
   is on).
 
 The attribute `pulse_width_modulation_enabled` of the climate entity shows whether PWM is active. The action
-[`sat.pulse_width_modulation`](actions.md#satpulse_width_modulation) can force it on or off temporarily.
+[`sat_xtreme.pulse_width_modulation`](actions.md#sat_xtremepulse_width_modulation) can force it on or off temporarily.
 
 ## Maximum modulation
 

@@ -19,6 +19,7 @@ from .const import (
 from .coordinator import SatDataUpdateCoordinatorFactory
 from .services import async_register_services
 from .xtreme.dashboard import async_maintain_dashboard
+from .xtreme.migration import async_migrate_legacy_entry
 from .util import get_climate_entities
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
@@ -33,6 +34,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """
     # Make sure we have our default domain property
     hass.data.setdefault(DOMAIN, {})
+
+    # SAT-xtreme: finish moving a configuration of the domain `sat`, before the entities are created
+    await async_migrate_legacy_entry(hass, entry)
 
     # Create a new dictionary for this entry
     hass.data[DOMAIN][entry.entry_id] = {}

@@ -8,8 +8,8 @@ from homeassistant.components import binary_sensor
 # only uses the module name, so a stand-in is enough here.
 sys.modules.setdefault("homeassistant.components.esphome", types.ModuleType("homeassistant.components.esphome"))
 
-from custom_components.sat.coordinator import DeviceState  # noqa: E402
-from custom_components.sat.esphome import DATA_DHW_ACTIVE, DATA_DHW_ENABLE, SatEspHomeCoordinator  # noqa: E402
+from custom_components.sat_xtreme.coordinator import DeviceState  # noqa: E402
+from custom_components.sat_xtreme.esphome import DATA_DHW_ACTIVE, DATA_DHW_ENABLE, SatEspHomeCoordinator  # noqa: E402
 
 
 def test_hot_water_active_reads_the_dhw_active_sensor():

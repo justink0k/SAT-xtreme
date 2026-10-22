@@ -129,7 +129,7 @@ Entities of the fork (the PID output, boiler data and dashboard button always ex
 | *Xtreme fork: Create Dashboard* | button that creates or rebuilds the SAT Xtreme dashboard |
 | *Xtreme fork: Hot Water Keep Warm* | switch: on = normal (`HW=A`: the DHW enable bit follows the thermostat on the bus, so keep-warm works as set on the boiler), off = no keep-warm (`HW=0`) |
 
-Actions: `sat.start_xtreme_calibration` and `sat.stop_xtreme_calibration` (step 5).
+Actions: `sat_xtreme.start_xtreme_calibration` and `sat_xtreme.stop_xtreme_calibration` (step 5).
 
 #### Hot water keep-warm at night
 
@@ -189,20 +189,18 @@ See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fi
 
 ### Installation (HACS)
 
-1. In HACS, remove the official *Smart Autotune Thermostat* repository (or at least make sure it is
-   not installed). The fork and the official SAT use the same domain (`sat`) and **cannot be installed
-   at the same time**; an update of the official version would overwrite the fork.
-2. In HACS, open *Custom repositories*, add `https://github.com/justink0k/SAT-xtreme` with type
+1. In HACS, open *Custom repositories*, add `https://github.com/justink0k/SAT-xtreme` with type
    *Integration*, and install *SAT-xtreme*.
-3. Restart Home Assistant. Your existing SAT configuration (including the overshoot protection value
-   and presets) is kept, because the domain and configuration format are unchanged.
-   After every update, also refresh the cache of your browser (Ctrl+Shift+R, or Cmd+Shift+R on a Mac)
-   or reset the frontend cache in the companion app; otherwise the options pages may still show old
-   texts.
-4. Create the dashboard: open *Settings → System → Repairs → Create the SAT Xtreme dashboard* and
-   submit.
+2. Restart Home Assistant and refresh the cache of your browser (Ctrl+Shift+R, or Cmd+Shift+R on a Mac).
+3. Add the integration *SAT-xtreme* under *Settings → Devices & services*.
+4. Create the dashboard: open *Settings → System → Repairs → Create the SAT Xtreme dashboard* and submit.
 5. Enable the options you want, one at a time, under *Configure → Xtreme profile (fork)* and
-   *Configure → PID settings (fork)*. The dashboard adds their cards by itself after saving.
+   *Configure → PID settings (fork)*.
+
+Since 4.2.1-xtreme.26, SAT-xtreme has its own domain, `sat_xtreme`. **Coming from the official SAT, or from
+SAT-xtreme 4.2.1-xtreme.25 or older?** Choose *Move a configuration from SAT* when you add the integration:
+all settings, entity IDs and their history are kept. See
+[Moving from SAT](https://justink0k.github.io/SAT-xtreme/installation/#moving-from-sat).
 
 ### Dashboard
 

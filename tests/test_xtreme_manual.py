@@ -5,9 +5,11 @@ from pathlib import Path
 
 import yaml
 
+from custom_components.sat_xtreme.const import DOMAIN
+
 ROOT = Path(__file__).parent.parent
 DOCS = ROOT / "docs"
-PACKAGE = ROOT / "custom_components" / "sat"
+PACKAGE = ROOT / "custom_components" / "sat_xtreme"
 
 
 def _manual() -> str:
@@ -54,7 +56,7 @@ def test_every_action_is_in_the_manual():
     manual = _manual()
 
     for action in yaml.safe_load((PACKAGE / "services.yaml").read_text()):
-        assert f"sat.{action}" in manual, f"action sat.{action} is not described in docs/"
+        assert f"{DOMAIN}.{action}" in manual, f"action {DOMAIN}.{action} is not described in docs/"
 
 
 def test_every_repair_is_in_the_manual():

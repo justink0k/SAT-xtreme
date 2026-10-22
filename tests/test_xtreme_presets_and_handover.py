@@ -7,13 +7,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.sat.climate import SatClimate
-from custom_components.sat.const import *
-from custom_components.sat.fake import SatFakeCoordinator
-from custom_components.sat.manufacturers.intergas import Intergas
-from custom_components.sat.manufacturers.remeha import Remeha
-from custom_components.sat.mqtt.opentherm import SatOpenThermMqttCoordinator
-from custom_components.sat.xtreme.profile import BOILER_PRESETS, apply_boiler_preset
+from custom_components.sat_xtreme.climate import SatClimate
+from custom_components.sat_xtreme.const import *
+from custom_components.sat_xtreme.fake import SatFakeCoordinator
+from custom_components.sat_xtreme.manufacturers.intergas import Intergas
+from custom_components.sat_xtreme.manufacturers.remeha import Remeha
+from custom_components.sat_xtreme.mqtt.opentherm import SatOpenThermMqttCoordinator
+from custom_components.sat_xtreme.xtreme.profile import BOILER_PRESETS, apply_boiler_preset
 from tests.const import DEFAULT_USER_DATA
 from tests.xtreme_helpers import parameters, xtreme_profile_input
 
@@ -181,7 +181,7 @@ def test_every_fork_option_is_explained_in_english_and_dutch():
     import json
     from pathlib import Path
 
-    folder = Path(__file__).parent.parent / "custom_components" / "sat" / "translations"
+    folder = Path(__file__).parent.parent / "custom_components" / "sat_xtreme" / "translations"
     for language in ("en", "nl"):
         steps = json.loads((folder / f"{language}.json").read_text())["options"]["step"]
 

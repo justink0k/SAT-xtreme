@@ -8,12 +8,12 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.sat.climate import SatClimate
-from custom_components.sat.const import *
-from custom_components.sat.fake import SatFakeCoordinator
+from custom_components.sat_xtreme.climate import SatClimate
+from custom_components.sat_xtreme.const import *
+from custom_components.sat_xtreme.fake import SatFakeCoordinator
 from tests.xtreme_helpers import parameters
 
-PACKAGE = Path(__file__).parent.parent / "custom_components" / "sat"
+PACKAGE = Path(__file__).parent.parent / "custom_components" / "sat_xtreme"
 URL = re.compile(r"[a-z][a-z0-9+.-]*://", re.IGNORECASE)
 
 

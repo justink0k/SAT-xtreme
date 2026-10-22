@@ -8,12 +8,12 @@ from homeassistant.components.template import DOMAIN as TEMPLATE_DOMAIN
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.sat.climate import SatClimate
-from custom_components.sat.const import *
-from custom_components.sat.coordinator import DeviceState
-from custom_components.sat.fake import SatFakeCoordinator
-from custom_components.sat.flame import Flame
-from custom_components.sat.xtreme.profile import XtremeProfile
+from custom_components.sat_xtreme.climate import SatClimate
+from custom_components.sat_xtreme.const import *
+from custom_components.sat_xtreme.coordinator import DeviceState
+from custom_components.sat_xtreme.fake import SatFakeCoordinator
+from custom_components.sat_xtreme.flame import Flame
+from custom_components.sat_xtreme.xtreme.profile import XtremeProfile
 from tests.xtreme_helpers import xtreme_profile_input
 
 MINIMUM_SETPOINT_VALUE = 46
@@ -139,7 +139,7 @@ async def test_continuous_operation_is_unchanged(hass: HomeAssistant, entry: Moc
 async def test_heater_off_is_not_resent(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
     clock = _Clock()
 
-    with patch("custom_components.sat.coordinator.monotonic", clock), \
+    with patch("custom_components.sat_xtreme.coordinator.monotonic", clock), \
             patch.object(SatFakeCoordinator, "async_set_heater_state", wraps=coordinator.async_set_heater_state, autospec=False) as spy:
         await climate.async_set_heater_state(DeviceState.OFF)
         await climate.async_set_heater_state(DeviceState.OFF)
@@ -168,7 +168,7 @@ async def test_heater_off_is_sent_while_boiler_has_not_started(hass: HomeAssista
 async def test_heater_off_is_resent_when_boiler_does_not_confirm(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
     clock = _Clock()
 
-    with patch("custom_components.sat.coordinator.monotonic", clock):
+    with patch("custom_components.sat_xtreme.coordinator.monotonic", clock):
         await coordinator.async_set_heater_state(DeviceState.OFF)
 
         # The command got lost: the boiler still reports central heating after the repeat window
@@ -208,7 +208,7 @@ async def test_long_off_phase_is_not_stuck_off(hass: HomeAssistant, entry: MockC
     await coordinator.async_set_boiler_temperature(46)
     await coordinator.async_set_control_setpoint(MINIMUM_SETPOINT_VALUE)
 
-    with patch("custom_components.sat.flame.monotonic", clock):
+    with patch("custom_components.sat_xtreme.flame.monotonic", clock):
         # A burn, followed by a primed off phase of 15 minutes
         await coordinator.async_set_heater_state(DeviceState.ON)
         flame.update(boiler_state=coordinator.boiler)

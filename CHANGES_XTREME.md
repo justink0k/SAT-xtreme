@@ -689,3 +689,31 @@ reads the options, with the configuration data as a fallback for older entries.
 
 **Files.** `custom_components/sat/climate.py`, `custom_components/sat/manifest.json`, `README.md`,
 `docs/settings-advanced.md`, `docs/troubleshooting.md`, `tests/test_xtreme_hassfest_fixes.py`.
+
+## Version 26: its own domain, `sat_xtreme` (`4.2.1-xtreme.26`, unreleased)
+
+SAT-xtreme gets its own domain, so it can be added to the default list of HACS and can be installed next to
+the official SAT. No switch: the domain applies to everyone.
+
+- **The integration moved** from `custom_components/sat` to `custom_components/sat_xtreme`, and the domain in
+  `manifest.json` is `sat_xtreme`. Actions are now `sat_xtreme.reset_integral`, `sat_xtreme.pulse_width_modulation`,
+  `sat_xtreme.start_xtreme_calibration`, `sat_xtreme.stop_xtreme_calibration` and `sat_xtreme.create_xtreme_dashboard`.
+- **Moving from SAT.** When a configuration of the domain `sat` exists (the official SAT, or SAT-xtreme
+  4.2.1-xtreme.25 or older), *Add integration → SAT-xtreme* first offers **Move a configuration from SAT**. It
+  unloads the old configuration, creates a new one with the same data and options, and, before the new
+  entities are created, moves the entities and the device with Home Assistant's own migration helpers (entity
+  IDs, unique IDs, history and restored states stay the same), copies the fork's stored data (learned OPV,
+  calibration report, keep-warm state, dashboard fingerprint) and removes the old configuration. An
+  interrupted move continues on the next start (`custom_components/sat_xtreme/xtreme/migration.py`).
+- **An icon of its own** in `custom_components/sat_xtreme/brand/` (a flame with a thermometer, drawn by
+  `dev/make_icon.py`), also used as the logo of the manual. The icon of the official SAT is no longer used.
+- The manual, the README and `RELEASING.md` use the new domain, paths and action names; the installation page
+  explains the move.
+- `ManufacturerFactory` imports the manufacturers relative to its own package instead of a fixed
+  `custom_components.sat` path.
+
+**Files.** `custom_components/sat_xtreme/` (renamed from `custom_components/sat/`; `manifest.json`, `const.py`,
+`services.yaml`, `__init__.py`, `config_flow.py`, `manufacturer.py`, `translations/en.json`,
+`translations/nl.json`, `xtreme/migration.py` (new), `brand/` (new)), `dev/make_icon.py` (new),
+`dev/configuration.yaml`, `mkdocs.yml`, `docs/`, `README.md`, `RELEASING.md`, `CLAUDE.md`, `tests/` (import paths,
+`test_xtreme_migration.py` (new)).

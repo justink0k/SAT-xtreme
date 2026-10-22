@@ -2,13 +2,13 @@ reset_integral:
   target:
     entity:
       domain: climate
-      integration: "sat"
+      integration: "sat_xtreme"
 
 pulse_width_modulation:
   target:
     entity:
       domain: climate
-      integration: "sat"
+      integration: "sat_xtreme"
   fields:
     enabled:
       required: true
@@ -18,16 +18,16 @@ start_xtreme_calibration:
   target:
     entity:
       domain: climate
-      integration: "sat"
+      integration: "sat_xtreme"
 
 stop_xtreme_calibration:
   target:
     entity:
       domain: climate
-      integration: "sat"
+      integration: "sat_xtreme"
 
 create_xtreme_dashboard:
   target:
     entity:
       domain: climate
-      integration: "sat"
+      integration: "sat_xtreme"

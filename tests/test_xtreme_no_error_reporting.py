@@ -2,10 +2,10 @@
 import json
 from pathlib import Path
 
-from custom_components.sat import const
+from custom_components.sat_xtreme import const
 
 ROOT = Path(__file__).parent.parent
-PACKAGE = ROOT / "custom_components" / "sat"
+PACKAGE = ROOT / "custom_components" / "sat_xtreme"
 
 
 def test_no_sentry_in_the_integration():

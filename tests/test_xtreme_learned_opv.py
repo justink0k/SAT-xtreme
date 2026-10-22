@@ -5,12 +5,12 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.sat.boiler import BoilerState
-from custom_components.sat.climate import SatClimate
-from custom_components.sat.const import *
-from custom_components.sat.fake import SatFakeCoordinator
-from custom_components.sat.flame import FlameState
-from custom_components.sat.xtreme.opv import LearnedOpv, SAMPLE_PLATEAU, SAMPLE_SHUT_OFF
+from custom_components.sat_xtreme.boiler import BoilerState
+from custom_components.sat_xtreme.climate import SatClimate
+from custom_components.sat_xtreme.const import *
+from custom_components.sat_xtreme.fake import SatFakeCoordinator
+from custom_components.sat_xtreme.flame import FlameState
+from custom_components.sat_xtreme.xtreme.opv import LearnedOpv, SAMPLE_PLATEAU, SAMPLE_SHUT_OFF
 from tests.xtreme_helpers import Clock, parameters, MINIMUM_SETPOINT_VALUE
 
 
@@ -50,7 +50,7 @@ def _burn(opv: LearnedOpv, clock: Clock, flows: list[float], start_on_seconds: f
 def clock():
     clock = Clock()
 
-    with patch("custom_components.sat.xtreme.opv.monotonic", clock):
+    with patch("custom_components.sat_xtreme.xtreme.opv.monotonic", clock):
         yield clock
 
 
