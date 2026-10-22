@@ -240,6 +240,10 @@ These fixes apply to everyone, without a switch:
   the new *PID settings (fork)* page.
 - **Prepared for Home Assistant 2026.12.** The update listener that Home Assistant 2026.12 no longer
   supports for reloading is replaced by `OptionsFlowWithReload`.
+- **ESPHome: hot water and flame read from the right entities** (from upstream `develop`, `a590150` and
+  `6ae78b4`). Hot water is now read from the `dhw_active` binary sensor (it used the hot water *enable*
+  setting) and the flame from the binary sensor domain. ESPHome users need the `dhw_active` binary
+  sensor in their ESPHome configuration (see the example below).
 - **Fixes from upstream `develop` that are not in a release yet:** the coordinator is fully set up
   before the calibration in the wizard starts (`7d43560`), the heater state command of EMS-ESP
   (`042dcca`), and turning the heater off when all valves close (`6e05470`).
@@ -424,9 +428,11 @@ number:
       name: t_dhw_set
       step: 1
       restore_value: true
+      initial_value: 45
     t_set:
       name: t_set
       restore_value: true
+      initial_value: 10
     max_t_set:
       name: max_t_set
       step: 1
@@ -462,6 +468,8 @@ binary_sensor:
   - platform: opentherm
     flame_on:
       name: flame_on
+    dhw_active:
+      name: dhw_active
 
 switch:
   - platform: opentherm

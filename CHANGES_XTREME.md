@@ -549,3 +549,22 @@ No change to how SAT controls the boiler; texts only.
 
 **Files.** `custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
 `custom_components/sat/manifest.json`, `README.md`, `docs/boiler_presets.md`.
+
+## Version 18: merge of upstream develop (`4.2.1-xtreme.18`, 2026-10-22)
+
+The fork is merged with upstream `develop` (last upstream commit 2026-03-01), so GitHub no longer
+reports it as behind the official SAT and future upstream changes are easy to compare.
+
+- **ESPHome fixes from upstream** (`a590150`, `6ae78b4`): hot water is read from the `dhw_active`
+  binary sensor instead of the hot water *enable* setting, the flame from the binary sensor domain, and
+  the ESPHome example in the README gains `dhw_active` and initial values for `t_dhw_set` and `t_set`.
+  Does not affect the OpenTherm Gateway.
+- The three upstream fixes that were already cherry-picked in the base (`7d43560`, `042dcca`, `6e05470`)
+  are now part of the history as well; their content was already in the fork (the conflict in
+  `climate.py` was resolved by keeping the fork's version, which contains `6e05470`).
+- **Not taken over:** upstream's issue and pull request templates and the stale-issue workflow. They
+  point to the official SAT, and the workflow would close issues (such as boiler preset requests)
+  automatically.
+
+**Files.** `custom_components/sat/esphome/__init__.py`, `README.md`, `custom_components/sat/manifest.json`,
+`tests/test_esphome_upstream_fixes.py` (new).
