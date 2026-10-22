@@ -88,7 +88,10 @@ Open an issue with the **Boiler preset** template on the
    **rating plate**, with a photo of the plate.
 3. The factory anti-cycling time and the name of the parameter, with the manual (title, document
    number, version, page) as source.
-4. Optionally: whether the boiler ignores the maximum modulation (`MM=`). On an OpenTherm Gateway you
+4. Optionally: whether the boiler stops keeping hot water warm when the DHW enable bit is off (`HW=0`),
+   whether hot water still comes out of the tap then, and which boiler settings that needs (for
+   example tap comfort on *Eco* and P074 = 0 on Intergas).
+5. Optionally: whether the boiler ignores the maximum modulation (`MM=`). On an OpenTherm Gateway you
    can see this in the log: MsgID 14 is answered with Data-Invalid, or the reported modulation stays
    above the limit you set.
 

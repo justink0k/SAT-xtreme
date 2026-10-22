@@ -56,6 +56,22 @@ body:
         - Not tested
         - "Yes: MsgID 14 is answered with Data-Invalid, or it modulates above the limit"
         - "No: it stays below the limit"
+  - type: dropdown
+    id: keep_warm
+    attributes:
+      label: Does the boiler stop keeping hot water warm with HW=0 (DHW enable bit off)?
+      description: Tested with the keep-warm switch of SAT-xtreme, or by sending HW=0 to the OpenTherm Gateway.
+      options:
+        - Not tested
+        - "Yes: no more short hot water burns, hot water still comes out of the tap"
+        - "Yes, but hot water at the tap is blocked too"
+        - "No: the boiler ignores the bit"
+  - type: input
+    id: keep_warm_settings
+    attributes:
+      label: Boiler settings needed for HW=0 to work (if any)
+      description: For example the comfort or eco setting and parameters, with the manual as source.
+      placeholder: "Tap comfort on Eco and P074 = 0 (Intergas)"
   - type: textarea
     id: notes
     attributes:
