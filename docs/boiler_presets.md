@@ -1,12 +1,34 @@
-# Boiler presets – research notes
+# Boiler presets
 
-Research for a future "Boiler preset" option in the SAT-xtreme fork. Every value has a source. Values
-without a reliable source are marked **unknown** and must not go into a preset.
+*Xtreme profile (fork) → Boiler → Boiler preset.* Default *Custom*.
 
-Status: collected 2026-10-21. The fork ships one preset (Intergas Xtreme 30 (2024)); the other models
-below are research notes, not presets. New presets come from users who own the boiler.
+## Using a preset
 
-## What a preset would contain
+A preset fills in the **maximum and minimum heating output** and the **anti-cycling time** of a known boiler
+on the [Xtreme profile page](settings-xtreme-profile.md#boiler). It only fills in numbers: it never turns an
+option on or off.
+
+- Choose a preset and save: its values are filled in.
+- Change one of those values yourself and save: the preset goes back to *Custom*, so it is always clear which
+  values are in use.
+- When the preset is for another manufacturer than the one SAT detected, SAT logs a warning.
+
+Available presets:
+
+| Preset | Heating output (80/60 °C) | Anti-cycling time | Source |
+|---|---|---|---|
+| Intergas Xtreme 30 (2024) | 3.9 – 19.5 kW | 300 s | Rating plate of a 2024 unit (G25.3, Pn 80/60) and the factory value of parameter P036 |
+
+Your boiler is not listed? Enter the values from its rating plate and manual yourself, and consider
+[adding a preset](#adding-a-preset-for-your-boiler).
+
+## Research notes
+
+Every value below has a source. Values without a reliable source are marked **unknown** and must not go into
+a preset. Collected 2026-10-21; the other models are research notes, not presets. New presets come from users
+who own the boiler.
+
+### What a preset would contain
 
 | Field | Why SAT needs it | Notes |
 |---|---|---|
@@ -18,7 +40,7 @@ below are research notes, not presets. New presets come from users who own the b
 Not in a preset: the overshoot protection value (OPV). It depends on the house and the radiators,
 not on the boiler, so it stays learned or calibrated per installation.
 
-## Results per model
+### Results per model
 
 Natural gas, central heating, 80/60 °C unless noted. "min – max" in kW.
 
@@ -41,7 +63,7 @@ Natural gas, central heating, 80/60 °C unless noted. "min – max" in kW.
 Not found with a usable source (yet): Bosch Condens / Buderus GB172i, Worcester Greenstar, Ideal Logic,
 Baxi, Ariston, Immergas, Ferroli, Sime, Itho Daalderop, De Dietrich, Brötje.
 
-## Ignores the modulation limit (MM=)
+### Ignores the modulation limit (MM=)
 
 No manufacturer documents whether its boiler honours the maximum relative modulation setting
 (OpenTherm MsgID 14). What exists:
@@ -53,9 +75,9 @@ No manufacturer documents whether its boiler honours the maximum relative modula
 
 So the upstream list says "no relative modulation", while the measurement says "modulation reported,
 limit ignored". A preset should therefore not set this switch from the brand alone; it should be
-measured (see "Ketelgedrag zelf herkennen" in the roadmap: detect Data-Invalid on MsgID 14).
+measured. The fork's [calibration](calibration.md) does this in its modulation test.
 
-## Findings that matter for the design
+### Findings that matter for the design
 
 1. **Anti-cycling is not one number.** It ranges from 5 minutes (Intergas, ATAG) via 7 (Wolf) and 10
    (Nefit) to up to 20 minutes on Vaillant, where the effective time also depends on the flow

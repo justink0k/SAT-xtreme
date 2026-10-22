@@ -1,0 +1,103 @@
+site_name: SAT-xtreme manual
+site_description: The manual of SAT-xtreme, an unofficial fork of the Smart Autotune Thermostat for Home Assistant.
+site_url: https://justink0k.github.io/SAT-xtreme/
+repo_url: https://github.com/justink0k/SAT-xtreme
+repo_name: justink0k/SAT-xtreme
+edit_uri: edit/xtreme/docs/
+
+theme:
+  name: material
+  icon:
+    logo: material/home-thermometer-outline
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep orange
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.action.edit
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: installation.md
+      - Setup wizard: setup-wizard.md
+      - First steps: first-steps.md
+  - How SAT works:
+      - The control loop: how-sat-works.md
+      - Overshoot protection and PWM: overshoot-protection.md
+  - Gateways:
+      - Overview: gateways.md
+      - ESPHome: esphome.md
+  - Settings:
+      - Overview: settings.md
+      - General: settings-general.md
+      - Presets: settings-presets.md
+      - System configuration: settings-system.md
+      - Advanced: settings-advanced.md
+      - PID settings (fork): settings-pid.md
+      - Xtreme profile (fork): settings-xtreme-profile.md
+  - Fork features:
+      - Keep the setpoint ready: prime-setpoint.md
+      - Boilers that ignore the modulation limit: modulation-limit.md
+      - Align PWM with the boiler: boiler-timing.md
+      - Self-learning OPV: learned-opv.md
+      - Calibration: calibration.md
+      - Hand over to the thermostat: handover.md
+      - Hot water keep-warm: hot_water_keep_warm.md
+      - Boiler presets: boiler_presets.md
+      - Dashboard: dashboard.md
+  - Reference:
+      - Entities: entities.md
+      - Actions: actions.md
+      - Repairs: repairs.md
+  - Troubleshooting: troubleshooting.md
+  - About:
+      - Background and results: background.md
+      - Development: development.md
+      - Changelog: https://github.com/justink0k/SAT-xtreme/blob/xtreme/CHANGES_XTREME.md
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn

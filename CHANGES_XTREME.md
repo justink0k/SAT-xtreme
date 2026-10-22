@@ -623,3 +623,28 @@ No change in behaviour; the code and the documentation are reorganised.
 `const.py`, `coordinator.py`, `pwm.py`, `repairs.py`, `sensor.py`, `services.py`, `switch/__init__.py`,
 `util.py`, `custom_components/sat/manifest.json`, `README.md`, `docs/` (four new pages),
 `docs/boiler_presets.md`, `tests/` (import paths).
+
+## Version 21: the manual as a website (`4.2.1-xtreme.21`, 2026-10-22)
+
+A complete manual, written from the code, published at <https://justink0k.github.io/SAT-xtreme/> with MkDocs
+Material and GitHub Pages. No change in behaviour.
+
+- **Contents:** installation and the setup wizard, how SAT works (heating curve, PID, OPV and PWM), the
+  gateways (with the ESPHome configuration), every options page field by field with its default and range,
+  one page per fork feature, the entities, actions and repairs, troubleshooting with the list of bug fixes,
+  and development notes.
+- `docs/sat_configuration.md` is replaced by these pages. The boiler presets page now starts with how to use
+  a preset; the research notes follow.
+- The README and the *Documentation* link of the integration in Home Assistant point to the manual.
+- The workflow `.github/workflows/docs.yml` builds the manual with `mkdocs build --strict` (broken links and
+  anchors fail the build) and publishes it on every push to `xtreme` that changes `docs/` or `mkdocs.yml`.
+- `tests/test_xtreme_manual.py` checks that every fork option, fork entity, action and repair is described in
+  the manual and that every page is in the navigation.
+- Found while writing: the option *Synchronize with thermostat attached to the boiler* (Presets page) is
+  stored in the options but read from the configuration of the wizard, so it has no effect. This is an
+  upstream bug; the manual notes it, and it is not fixed in this version.
+
+**Files.** `mkdocs.yml`, `requirements_docs.txt`, `.github/workflows/docs.yml`, `docs/` (new pages, `assets/`),
+`docs/sat_configuration.md` (removed), `docs/boiler_presets.md`, `docs/background.md`,
+`docs/hot_water_keep_warm.md`, `docs/dashboard.md`, `README.md`, `.gitignore`,
+`custom_components/sat/manifest.json`, `tests/test_xtreme_manual.py` (new).

@@ -1,4 +1,6 @@
-# Hot water keep-warm at night
+# Hot water keep-warm
+
+*Xtreme profile (fork) → Boiler → Hot water keep-warm switch.* Default off. OpenTherm Gateway over MQTT only.
 
 The keep-warm (comfort) function of many combi boilers fires the burner for a few seconds now and then
 to keep the hot water ready. Each of those short burns starts the anti-cycling time of the boiler, so it

@@ -65,10 +65,10 @@ The features were developed for, and so far only tested on, one setup:
 
 Other boilers and gateways that SAT supports should work too, but they have not been tested. If you
 use SAT-xtreme with another setup, please report how it works (good or bad) on the issue tracker, and
-consider [adding a boiler preset](docs/boiler_presets.md#adding-a-preset-for-your-boiler) for your boiler.
+consider [adding a boiler preset](https://justink0k.github.io/SAT-xtreme/boiler_presets/#adding-a-preset-for-your-boiler) for your boiler.
 
 How the features work out on the tested setup, and the problems they solve, is described in
-[Background and results](docs/background.md).
+[Background and results](https://justink0k.github.io/SAT-xtreme/background/).
 
 ### SAT-xtreme compared to SAT
 
@@ -108,11 +108,11 @@ modified, and how to go back to the official version.
 | Step 4: self-learning overshoot protection value (OPV) | *Configure → Xtreme profile (fork)* | off |
 | Step 5: slow calibration of the OPV, with start/stop buttons | *Configure → Xtreme profile (fork)* | off |
 | Step 6: prepared for Home Assistant 2026.12 | built in | always |
-| Boiler preset: fills in the rated power and anti-cycling time of a known boiler ([how to add yours](docs/boiler_presets.md#adding-a-preset-for-your-boiler)) | *Configure → Xtreme profile (fork)* | Custom |
+| Boiler preset: fills in the rated power and anti-cycling time of a known boiler ([how to add yours](https://justink0k.github.io/SAT-xtreme/boiler_presets/#adding-a-preset-for-your-boiler)) | *Configure → Xtreme profile (fork)* | Custom |
 | Hand over to the thermostat right away when SAT is turned off (CS=0, OpenTherm Gateway via MQTT) | *Configure → Xtreme profile (fork)* | off |
 | Hot water keep-warm switch: turn the boiler's keep-warm (comfort) function off, by hand or with an automation (HW=0 / HW=A, OpenTherm Gateway via MQTT) | *Configure → Xtreme profile (fork)* | off |
 | PID settings: automatic gains, gain factor, maximum rise above the heating curve, manual gains | *Configure → PID settings (fork)* | unchanged |
-| Dashboard *SAT Xtreme*, created with one click (see [Dashboard](docs/dashboard.md)) | *Settings → System → Repairs*, or the button *Xtreme fork: Create Dashboard* | not created until you click |
+| Dashboard *SAT Xtreme*, created with one click (see [Dashboard](https://justink0k.github.io/SAT-xtreme/dashboard/)) | *Settings → System → Repairs*, or the button *Xtreme fork: Create Dashboard* | not created until you click |
 
 Entities of the fork (the PID output, boiler data and dashboard button always exist; the others only when the matching switch is on):
 
@@ -135,7 +135,7 @@ Actions: `sat.start_xtreme_calibration` and `sat.stop_xtreme_calibration` (step 
 
 The keep-warm switch turns the keep-warm (comfort) function of the boiler off, for example at night, to
 avoid short hot water burns. Whether the boiler follows it depends on the boiler and its settings (on
-Intergas: tap comfort on *Eco* and P074 = 0). See [Hot water keep-warm](docs/hot_water_keep_warm.md)
+Intergas: tap comfort on *Eco* and P074 = 0). See [Hot water keep-warm](https://justink0k.github.io/SAT-xtreme/hot_water_keep_warm/)
 for an example automation and the details.
 
 ### Bug fixes
@@ -154,7 +154,7 @@ These fixes apply to everyone, without a switch:
 - **ESPHome: hot water and flame read from the right entities** (from upstream `develop`, `a590150` and
   `6ae78b4`). Hot water is now read from the `dhw_active` binary sensor (it used the hot water *enable*
   setting) and the flame from the binary sensor domain. ESPHome users need the `dhw_active` binary
-  sensor in their ESPHome configuration (see the [ESPHome example](docs/sat_configuration.md#opentherm)).
+  sensor in their ESPHome configuration (see the [ESPHome example](https://justink0k.github.io/SAT-xtreme/esphome/)).
 - **Fixes from upstream `develop` that are not in a release yet:** the coordinator is fully set up
   before the calibration in the wizard starts (`7d43560`), the heater state command of EMS-ESP
   (`042dcca`), and turning the heater off when all valves close (`6e05470`).
@@ -199,16 +199,13 @@ See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fi
 ### Dashboard
 
 SAT-xtreme can create a **SAT Xtreme** dashboard with one click, from the entities that exist and with
-any gateway. See [Dashboard](docs/dashboard.md).
+any gateway. See [Dashboard](https://justink0k.github.io/SAT-xtreme/dashboard/).
 
 ### Documentation
 
-- [SAT configuration](docs/sat_configuration.md): setting up SAT itself (gateways, ESPHome, options, terminology).
-- [Background and results](docs/background.md): what the fork improves and the measurements so far.
-- [Hot water keep-warm](docs/hot_water_keep_warm.md): the keep-warm switch and how boilers treat it.
-- [Dashboard](docs/dashboard.md): the SAT Xtreme dashboard.
-- [Boiler presets](docs/boiler_presets.md): the preset list and how to add your boiler.
-- [CHANGES_XTREME.md](CHANGES_XTREME.md): every change of the fork, with its files and version.
+The complete manual is at **[justink0k.github.io/SAT-xtreme](https://justink0k.github.io/SAT-xtreme/)**: how SAT
+works, every gateway and setting, each fork feature, the entities and actions, and troubleshooting. Its
+source is in [docs/](docs/).
 
 ### Disclaimer
 

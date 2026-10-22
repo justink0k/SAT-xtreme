@@ -23,7 +23,7 @@
   Intergas: tap comfort on Eco and P074 = 0) (see [Hot water keep-warm at night](hot_water_keep_warm.md)).
 - **Not seeing what the boiler does.** Boiler data sensors that work with any gateway, and the *SAT
   Xtreme* dashboard with one click (see [Dashboard](dashboard.md)).
-- **Bug fixes** that apply to everyone (see [the README](../README.md#bug-fixes)).
+- **Bug fixes** that apply to everyone (see [Troubleshooting](troubleshooting.md#bug-fixes-in-the-fork)).
 
 The boiler settings that come with the fork (19.5 / 3.9 kW rated power, 300 s anti-cycling time) are
 the values of the tested Intergas Xtreme 30. Before you turn on steps 2 or 3, enter the values from your

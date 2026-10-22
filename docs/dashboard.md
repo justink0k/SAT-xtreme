@@ -20,3 +20,8 @@ so your own changes are never lost without a click.
 Creating a dashboard from an integration is not an official Home Assistant API. If it fails, SAT-xtreme
 shows the configuration in a notification to paste into a new dashboard by hand.
 
+
+!!! tip "A dashboard with the same address"
+    The dashboard uses the address `/sat-xtreme`. If you already made a dashboard with that address yourself,
+    SAT-xtreme sees it as existing and does not offer to create it; the button *Xtreme fork: Create Dashboard*
+    then replaces its content.

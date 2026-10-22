@@ -17,7 +17,7 @@
       "hostname": "otgw"
     }
   ],
-  "documentation": "https://github.com/justink0k/SAT-xtreme",
+  "documentation": "https://justink0k.github.io/SAT-xtreme/",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/justink0k/SAT-xtreme/issues",
   "mqtt": [
@@ -27,5 +27,5 @@
   "requirements": [
     "pyotgw==2.2.2"
   ],
-  "version": "4.2.1-xtreme.20"
+  "version": "4.2.1-xtreme.21"
 }
