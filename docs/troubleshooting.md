@@ -83,7 +83,7 @@ These fixes apply to everyone, without an option:
 - **Synchronize with thermostat had no effect.** The option on the Presets page was read from the wrong place;
   it now works.
 - **Dependency conflict with Home Assistant.** SAT required `pyotgw` 2.2.2 while Home Assistant uses 2.2.3; it
-  now requires 2.2.3.
+  now requires at least 2.2.3, so it follows Home Assistant.
 - **No error reports to the official SAT.** The option *Enable error monitoring* sent errors to the Sentry
   project of the official SAT; the option and Sentry are removed.
 

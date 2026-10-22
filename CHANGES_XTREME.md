@@ -669,3 +669,12 @@ reported the first two; both were already in upstream SAT.
 **Files.** `custom_components/sat/manifest.json`, `custom_components/sat/config_flow.py`,
 `custom_components/sat/climate.py`, `custom_components/sat/translations/*.json`, `README.md`,
 `docs/settings-presets.md`, `docs/troubleshooting.md`, `tests/test_xtreme_hassfest_fixes.py` (new).
+
+## Version 23: pyotgw as a minimum version (`4.2.1-xtreme.23`, 2026-10-22)
+
+No switch: a fix for everyone. Version 22 pinned `pyotgw==2.2.3`. Hassfest does not allow pinning a package
+that Home Assistant itself depends on, because the integration would then block or break when Home Assistant
+moves to a newer pyotgw. The requirement is now `pyotgw>=2.2.3`, so it follows Home Assistant.
+
+**Files.** `custom_components/sat/manifest.json`, `README.md`, `docs/troubleshooting.md`,
+`tests/test_xtreme_hassfest_fixes.py`.

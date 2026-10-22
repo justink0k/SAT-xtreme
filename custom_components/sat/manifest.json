@@ -25,7 +25,7 @@
     "OTGW/value/+"
   ],
   "requirements": [
-    "pyotgw==2.2.3"
+    "pyotgw>=2.2.3"
   ],
-  "version": "4.2.1-xtreme.22"
+  "version": "4.2.1-xtreme.23"
 }

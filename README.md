@@ -176,7 +176,7 @@ These fixes apply to everyone, without a switch:
   boiler* (Presets page) was stored in the options but read from the configuration of the wizard. It now
   works; if you turned it on earlier, check that you still want it.
 - **Dependency conflict with Home Assistant.** SAT required `pyotgw` 2.2.2, while Home Assistant itself uses
-  2.2.3. It now requires 2.2.3.
+  2.2.3. It now requires at least 2.2.3, so it follows Home Assistant.
 - **No error reports to the official SAT.** The option *Enable error monitoring* sent exceptions to the
   Sentry project of the official SAT. In the fork it would send the fork's errors there, so the option and
   Sentry are removed. Report problems as an

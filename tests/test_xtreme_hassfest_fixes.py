@@ -1,4 +1,4 @@
-"""Tests for the fixes of 4.2.1-xtreme.22: pyotgw version, no URLs in translations, push setpoint to thermostat."""
+"""Tests for the fixes of 4.2.1-xtreme.22 and .23: pyotgw version, no URLs in translations, push setpoint to thermostat."""
 import json
 import re
 from pathlib import Path
@@ -17,10 +17,12 @@ PACKAGE = Path(__file__).parent.parent / "custom_components" / "sat"
 URL = re.compile(r"[a-z][a-z0-9+.-]*://", re.IGNORECASE)
 
 
-def test_pyotgw_matches_home_assistant():
+def test_pyotgw_follows_home_assistant():
     requirements = json.loads((PACKAGE / "manifest.json").read_text())["requirements"]
 
-    assert "pyotgw==2.2.3" in requirements
+    # Home Assistant depends on pyotgw itself; hassfest wants a minimum version, not a pin
+    assert "pyotgw>=2.2.3" in requirements
+    assert not any(requirement.startswith("pyotgw==") for requirement in requirements)
 
 
 def _strings(node, path=""):
