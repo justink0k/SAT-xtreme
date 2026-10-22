@@ -19,6 +19,7 @@ from .const import (
 from .coordinator import SatDataUpdateCoordinatorFactory
 from .services import async_register_services
 from .xtreme.dashboard import async_maintain_dashboard
+from .xtreme.moving_notice import async_show_moving_notice
 from .util import get_climate_entities
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
@@ -55,6 +56,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     # SAT-xtreme: offer the dashboard, or keep it up to date when it is unchanged since SAT-xtreme built it
     hass.async_create_task(async_maintain_dashboard(hass, entry))
+
+    # SAT-xtreme: explain the move to the domain `sat_xtreme` (4.2.1-xtreme.26)
+    async_show_moving_notice(hass)
 
     return True
 

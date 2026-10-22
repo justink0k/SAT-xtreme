@@ -37,6 +37,26 @@ install SAT-xtreme as above and restart. Nothing of the fork is turned on until 
 After the restart, a repair appears under *Settings → System → Repairs* that offers to create the
 [dashboard](dashboard.md).
 
+## Moving from SAT
+
+From 4.2.1-xtreme.26, SAT-xtreme uses its own domain, `sat_xtreme`, so it can be listed in HACS and installed
+next to the official SAT. A configuration of the official SAT, or of SAT-xtreme 4.2.1-xtreme.25 or older (both
+use the domain `sat`), can then be moved with all its settings:
+
+1. Update SAT-xtreme in HACS as usual and restart Home Assistant. The old configuration keeps running.
+2. Open *Settings → Devices & services → Add integration → SAT-xtreme* and choose **Move a configuration
+   from SAT**. Pick the configuration and submit.
+3. SAT-xtreme stops the old configuration and takes over within seconds. If you have a thermostat on the bus,
+   it covers the short gap.
+4. Remove the old SAT-xtreme entry (or the official *Smart Autotune Thermostat*) in HACS and restart Home
+   Assistant.
+5. Change automations and scripts that call `sat.` actions to `sat_xtreme.` (for example
+   `sat_xtreme.reset_integral`).
+
+All settings and options (including the overshoot protection value and the presets), the entity IDs and their
+history, the device, the learned OPV, the calibration report, the keep-warm state and the
+[dashboard](dashboard.md) are kept.
+
 ## Going back to the official SAT
 
 1. Turn off the options under *Configure → Xtreme profile (fork)* (optional, but it makes the switch-over

@@ -389,6 +389,10 @@
           }
         }
       }
+    },
+    "moving_to_sat_xtreme": {
+      "title": "SAT-xtreme verhuist naar een eigen domein",
+      "description": "De volgende versie van SAT-xtreme (4.2.1-xtreme.26) gebruikt een eigen domein, `sat_xtreme`, zodat hij in HACS kan worden opgenomen en naast de officiële SAT kan worden geïnstalleerd. Er verandert niets totdat je zelf kiest om over te zetten:\n\n1. Werk SAT-xtreme zoals gewoonlijk bij in HACS en herstart Home Assistant. Deze configuratie blijft draaien.\n2. Open *Instellingen → Apparaten & diensten → Integratie toevoegen → SAT-xtreme* en kies **Een configuratie overzetten vanuit SAT**. Alle instellingen, entity-ID's en hun geschiedenis blijven behouden.\n3. Verwijder de oude SAT-xtreme uit HACS, en pas automatiseringen die `sat.`-acties aanroepen aan naar `sat_xtreme.`.\n\nNegeer deze melding als je er niet meer aan herinnerd wilt worden."
     }
   }
 }

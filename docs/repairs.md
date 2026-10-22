@@ -18,3 +18,9 @@ changes to the dashboard are lost. Ignore it to keep your version.
 Appears when the [calibration](calibration.md) found that the boiler keeps modulating with the maximum
 modulation set to 0 %. It shows the modulation that was measured. Submit to turn on
 [The boiler ignores the modulation limit](modulation-limit.md); SAT reloads.
+
+## SAT-xtreme is moving to its own domain
+
+Appears in 4.2.1-xtreme.25. It explains that the next version, 4.2.1-xtreme.26, uses its own domain
+`sat_xtreme`, and how to move: see [Moving from SAT](installation.md#moving-from-sat). It has no button; ignore
+it to hide it.

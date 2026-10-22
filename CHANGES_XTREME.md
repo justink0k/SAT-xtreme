@@ -689,3 +689,20 @@ reads the options, with the configuration data as a fallback for older entries.
 
 **Files.** `custom_components/sat/climate.py`, `custom_components/sat/manifest.json`, `README.md`,
 `docs/settings-advanced.md`, `docs/troubleshooting.md`, `tests/test_xtreme_hassfest_fixes.py`.
+
+## Version 25: notice about the move to `sat_xtreme` (`4.2.1-xtreme.25`, 2026-10-22)
+
+A transition version. The next version, 4.2.1-xtreme.26, gives SAT-xtreme its own domain, `sat_xtreme`, so it
+can be listed in HACS and installed next to the official SAT. This version only prepares users for that; the
+control does not change.
+
+- A notice under *Settings → System → Repairs*, "SAT-xtreme is moving to its own domain", explains the move
+  (update, then *Add integration → SAT-xtreme → Move a configuration from SAT*, then remove the old entry and
+  change `sat.` actions to `sat_xtreme.`) and links to the manual. It has no button and can be ignored. It is
+  removed again in version 26.
+- The manual describes the move (installation page) and the notice (repairs page).
+
+**Files.** `custom_components/sat/xtreme/moving_notice.py` (new), `custom_components/sat/__init__.py`,
+`custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
+`custom_components/sat/manifest.json`, `docs/installation.md`, `docs/repairs.md`,
+`tests/test_xtreme_moving_notice.py` (new).
