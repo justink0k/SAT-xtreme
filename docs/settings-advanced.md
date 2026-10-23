@@ -21,7 +21,7 @@ setpoint based on the return temperature (or the boiler temperature, see
 [adjustment factor](settings-general.md#adjustment-factor-for-return-temperature) on the General page.
 
 !!! note
-    When the fork's [self-learning OPV](learned-opv.md) is set to *Learn and apply*, the learned value is used
+    When the fork's [learned OPV](learned-opv.md) is set to *Learn and apply*, the learned value is used
     to decide on PWM instead.
 
 ## Force Pulse Width Modulation

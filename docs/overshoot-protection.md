@@ -22,13 +22,13 @@ You get the OPV in one of these ways:
 
 - the 20-minute calibration in the [setup wizard](setup-wizard.md#5-calibrate-the-system);
 - entering it by hand in the wizard;
-- the slower [fork calibration](calibration.md), which also works for boilers that ignore the modulation
+- the fork's [slow calibration](calibration.md), which also works for boilers that ignore the modulation
   limit;
-- the [self-learning OPV](learned-opv.md) of the fork, which keeps learning during normal heating.
+- the [learned OPV](learned-opv.md) of the fork, which keeps learning during normal heating.
 
 Overshoot protection is turned on by the setup wizard as soon as it stores an OPV (by calibrating or by
 entering the value). It is not an option on the options pages; to change the OPV later, run *Reconfigure* on
-the integration, or let the fork's [self-learning OPV](learned-opv.md) take over.
+the integration, or let the fork's [learned OPV](learned-opv.md) take over.
 
 ## Pulse width modulation (PWM)
 
@@ -46,7 +46,7 @@ With **Automatic duty cycle** (the default), SAT turns the duty cycle into on an
 
 - The length of a block follows from *Duty cycles per hour*: with 4 per hour a block lasts 15 minutes, with
   3 per hour 20 minutes.
-- Every burn lasts at least 3 minutes (with the fork's [Align PWM with the boiler](boiler-timing.md): the
+- Every burn lasts at least 3 minutes (with the fork's [boiler timing](boiler-timing.md): the
   *minimum burn time*, 6 minutes by default). At a low duty cycle SAT makes the pause longer instead of the
   burn shorter, up to a block of twice the normal length.
 - Below a very low duty cycle, SAT does not start the boiler at all until the demand rises.
@@ -62,7 +62,7 @@ SAT also never starts more blocks per hour than *Duty cycles per hour*, counted 
 - Always for a [switch](gateways.md#switch-or-relay) (it can only turn the heating on and off), and when
   *Force Pulse Width Modulation* is on (see [Advanced](settings-advanced.md)).
 - With overshoot protection on: when the requested setpoint is below the OPV (or below the learned OPV when
-  the fork's [self-learning OPV](learned-opv.md) is applied, or below the dynamic minimum setpoint when that
+  the fork's [learned OPV](learned-opv.md) is applied, or below the dynamic minimum setpoint when that
   is on).
 
 The attribute `pulse_width_modulation_enabled` of the climate entity shows whether PWM is active. The action
@@ -73,13 +73,13 @@ The attribute `pulse_width_modulation_enabled` of the climate entity shows wheth
 With an OpenTherm boiler, SAT can also limit the maximum modulation (`MM=` on an OpenTherm Gateway). During
 PWM it may set it to 0 %, so the boiler burns at its minimum power. **Some boilers ignore this limit** (for
 example the Intergas Xtreme): they keep modulating higher. The fork has an option for those boilers; see
-[Boilers that ignore the modulation limit](modulation-limit.md).
+[Ignore modulation limit](modulation-limit.md).
 
 ## What the fork improves here
 
 | Problem | Fork feature |
 |---|---|
-| With a thermostat on the bus, each block starts late because the new setpoint arrives late. | [Keep the setpoint ready](prime-setpoint.md) |
-| The on time counts from the heating demand, not from the flame; pauses can be shorter than the anti-cycling time of the boiler. | [Align PWM with the boiler](boiler-timing.md) |
-| The OPV is a fixed value. | [Self-learning OPV](learned-opv.md) |
-| The calibration relies on `MM=0` and can report a meaningless value. | [Calibration](calibration.md) |
+| With a thermostat on the bus, each block starts late because the new setpoint arrives late. | [Setpoint priming](prime-setpoint.md) |
+| The on time counts from the heating demand, not from the flame; pauses can be shorter than the anti-cycling time of the boiler. | [Boiler timing](boiler-timing.md) |
+| The OPV is a fixed value. | [Learned OPV](learned-opv.md) |
+| The calibration relies on `MM=0` and can report a meaningless value. | [Slow calibration](calibration.md) |

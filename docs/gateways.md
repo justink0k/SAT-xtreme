@@ -2,6 +2,17 @@
 
 SAT reaches the boiler through a gateway. Which one you use decides what SAT can control.
 
+Supported hardware:
+
+- [OpenTherm Gateway (OTGW)](https://otgw.tclcode.com/), over MQTT or serial
+- [DIYLess](https://diyless.com/) Master OpenTherm Shield
+- [Ihor Melnyk's](http://ihormelnyk.com/opentherm_adapter) OpenTherm adapter
+- [Jiří Praus'](https://www.tindie.com/products/jiripraus/opentherm-gateway-arduino-shield/) OpenTherm Gateway Arduino Shield
+- [ESPHome OpenTherm](esphome.md) boards
+- [EMS-ESP](https://emsesp.org/) for EMS boilers
+- a switch or relay, as an on/off thermostat
+
+
 | Gateway | Setpoint | Max. modulation | Hot water setpoint | Fork features |
 |---|---|---|---|---|
 | [OpenTherm Gateway over MQTT](#opentherm-gateway-mqtt) | yes | yes | yes | all (tested); [hand over](handover.md) and the [keep-warm switch](hot_water_keep_warm.md) only work here |
@@ -35,7 +46,7 @@ thermostat on the bus takes over again.
 
 In gateway mode the gateway only replaces the control setpoint **inside the messages of the thermostat**.
 A thermostat that sends the setpoint rarely (a Nest: about every 150 seconds) therefore delays every new
-setpoint. The fork's [Keep the setpoint ready](prime-setpoint.md) avoids that delay, and
+setpoint. The fork's [setpoint priming](prime-setpoint.md) avoids that delay, and
 [Hand over to the thermostat](handover.md) gives control back right away when you turn SAT off.
 
 !!! tip "Use the PIC firmware in gateway mode"

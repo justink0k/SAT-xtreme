@@ -32,7 +32,7 @@ data:
 
 ## sat_xtreme.start_xtreme_calibration
 
-Fork only, with the [calibration buttons](calibration.md) on. Starts the slow calibration of the overshoot
+Fork only, with the [slow calibration](calibration.md) buttons on. Starts the slow calibration of the overshoot
 protection value.
 
 ```yaml

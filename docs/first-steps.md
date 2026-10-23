@@ -30,11 +30,11 @@ All fork features are on the page *Configure → Xtreme profile (fork)* and *Con
 | Order | Feature | When |
 |---|---|---|
 | 1 | [Boiler preset](boiler_presets.md) or your own boiler values | Always first: the features below use them. Take the values from the rating plate and the manual. |
-| 2 | [Keep the setpoint ready](prime-setpoint.md) | You have an OpenTherm Gateway with a thermostat on the bus. |
-| 3 | [The boiler ignores the modulation limit](modulation-limit.md) | Your boiler keeps modulating when SAT sends `MM=0` (the calibration can test this). |
-| 4 | [Align PWM with the boiler](boiler-timing.md) | You see short burns or burns that start late; fill in the anti-cycling time first. |
-| 5 | [Self-learning OPV](learned-opv.md), *Learn only* | To see whether your OPV is right. Switch to *Learn and apply* once the learned value looks plausible. |
-| 6 | [Calibration](calibration.md) | When you do not trust the OPV, or the wizard calibration failed. |
+| 2 | [Setpoint priming](prime-setpoint.md) | You have an OpenTherm Gateway with a thermostat on the bus. |
+| 3 | [Ignore modulation limit](modulation-limit.md) | Your boiler keeps modulating when SAT sends `MM=0` (the calibration can test this). |
+| 4 | [Boiler timing](boiler-timing.md) | You see short burns or burns that start late; fill in the anti-cycling time first. |
+| 5 | [Learned OPV](learned-opv.md), *Learn only* | To see whether your OPV is right. Switch to *Learn and apply* once the learned value looks plausible. |
+| 6 | [Slow calibration](calibration.md) | When you do not trust the OPV, or the wizard calibration failed. |
 | 7 | [PID settings](settings-pid.md) | When the correction is too strong (the room overshoots) or too weak. |
 | any | [Hand over to the thermostat](handover.md), [hot water keep-warm](hot_water_keep_warm.md) | Whenever you want them. |
 

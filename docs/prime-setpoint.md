@@ -1,6 +1,6 @@
-# Keep the setpoint ready
+# Setpoint priming
 
-*Xtreme profile (fork) → Thermostat on the bus → Keep the setpoint ready between PWM blocks.* Default off.
+*Xtreme profile (fork) → Thermostat on the bus → Keep the setpoint ready between PWM blocks (setpoint priming).* Default off.
 
 ## The problem
 
@@ -32,6 +32,10 @@ seconds.
 
 ## Result on the tested setup
 
+![One PWM block: with SAT 4.2.1 the flame starts 2 minutes after the heating demand, with setpoint priming after 5 seconds](images/pwm-block.svg)
+
+*One measured PWM block on the tested setup (Intergas Xtreme 30, OpenTherm Gateway, Nest on the bus), 21 October 2026.*
+
 On the first day with this option on (Intergas Xtreme 30, Nest on the bus): the time from heating demand to
 flame went from 64 – 150 seconds to 3 – 5 seconds, and the burn time matched the planned block instead of
 being 1 – 2.5 minutes shorter. See [Background and results](background.md#results-on-the-tested-setup).
@@ -39,5 +43,5 @@ being 1 – 2.5 minutes shorter. See [Background and results](background.md#resu
 ## How to check it
 
 On the [dashboard](dashboard.md), compare *Heating Demand* and *Flame*: the flame should follow the demand
-within seconds (unless the boiler is anti-cycling; see [Align PWM with the boiler](boiler-timing.md)). The
+within seconds (unless the boiler is anti-cycling; see [boiler timing](boiler-timing.md)). The
 debug log shows lines starting with `Xtreme profile: PWM off phase`.

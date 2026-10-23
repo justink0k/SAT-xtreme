@@ -1,6 +1,6 @@
-# Boilers that ignore the modulation limit
+# Ignore modulation limit
 
-*Xtreme profile (fork) → Boiler → The boiler ignores the modulation limit.* Default off.
+*Xtreme profile (fork) → Boiler → The boiler ignores the modulation limit (ignore modulation limit).* Default off.
 
 ## The problem
 
@@ -16,7 +16,7 @@ reported modulation at all.
 - On an OpenTherm Gateway, message 14 (the maximum modulation) is answered with *Data-Invalid* in the log of
   the gateway.
 - With `MM=0` the boiler keeps modulating well above 0 %.
-- The fork's [calibration](calibration.md) tests this in its first 10 minutes. When the boiler ignores the
+- The fork's [slow calibration](calibration.md) tests this in its first 10 minutes. When the boiler ignores the
   limit, it offers a [repair](repairs.md#the-boiler-ignores-the-modulation-limit) that turns this option on
   with one click.
 

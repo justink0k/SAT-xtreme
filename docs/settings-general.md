@@ -33,7 +33,7 @@ warm the house up faster but less efficiently. For underfloor heating stay at or
 
 !!! danger "A hard limit"
     SAT never sends a higher control setpoint than this, and the fork keeps to it as well, also during the
-    [calibration](calibration.md). (The calibration of the official SAT 4.2.1 could exceed it.)
+    [slow calibration](calibration.md). (The calibration of the official SAT 4.2.1 could exceed it.)
 
 ## Heating Curve Coefficient
 

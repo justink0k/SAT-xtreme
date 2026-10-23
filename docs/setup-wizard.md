@@ -54,7 +54,7 @@ For gateways that can send a setpoint (OpenTherm, ESPHome, EMS-ESP), SAT asks ho
 [overshoot protection value](overshoot-protection.md) (OPV):
 
 - **Calibrate** (about 20 minutes): SAT tries to find the OPV right away. Open all radiator valves first.
-  If you have SAT-xtreme, consider the slower and more careful [fork calibration](calibration.md) instead,
+  If you have SAT-xtreme, consider the slower and more careful [slow calibration](calibration.md) of the fork instead,
   especially when your boiler ignores the modulation limit.
 - **Enter the value**: if you already know the OPV.
 - **Enter PID values**: skip the OPV and set the PID gains by hand (not recommended).

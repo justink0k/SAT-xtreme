@@ -267,7 +267,7 @@
             "name": "Thermostat on the bus",
             "description": "For an OpenTherm Gateway with a thermostat (for example a Nest) still connected to the boiler.",
             "data": {
-              "xtreme_prime_setpoint": "Keep the setpoint ready between PWM blocks",
+              "xtreme_prime_setpoint": "Keep the setpoint ready between PWM blocks (setpoint priming)",
               "xtreme_handover_on_off": "Hand over to the thermostat when SAT is turned off"
             },
             "data_description": {
@@ -280,10 +280,10 @@
             "description": "Settings for your boiler. Take the values from the rating plate and the installation manual of your boiler, or choose a preset.",
             "data": {
               "xtreme_boiler_preset": "Boiler preset",
-              "xtreme_ignore_modulation_limit": "The boiler ignores the modulation limit",
+              "xtreme_ignore_modulation_limit": "The boiler ignores the modulation limit (ignore modulation limit)",
               "xtreme_boiler_maximum_power": "Maximum heating output",
               "xtreme_boiler_minimum_power": "Minimum heating output",
-              "xtreme_boiler_timing": "Align PWM with the boiler",
+              "xtreme_boiler_timing": "Align PWM with the boiler (boiler timing)",
               "xtreme_anti_cycling_time": "Anti-cycling time of the boiler",
               "xtreme_anti_cycling_margin": "Extra margin on the anti-cycling time",
               "xtreme_minimum_burn_time": "Minimum burn time per PWM block",
@@ -307,8 +307,8 @@
             "name": "Learning and calibration",
             "description": "Find the overshoot protection value (OPV): the lowest flow temperature at which your boiler burns steadily at minimum power.",
             "data": {
-              "xtreme_learned_opv": "Self-learning OPV",
-              "xtreme_calibration": "Calibration buttons"
+              "xtreme_learned_opv": "Self-learning OPV (learned OPV)",
+              "xtreme_calibration": "Calibration buttons (slow calibration)"
             },
             "data_description": {
               "xtreme_learned_opv": "SAT learns the OPV during normal heating. 'Learn only' shows the learned value in a sensor while SAT keeps using your own OPV. 'Learn and apply' lets SAT use the learned value.",

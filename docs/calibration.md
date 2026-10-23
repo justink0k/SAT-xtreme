@@ -1,6 +1,6 @@
-# Calibration
+# Slow calibration
 
-*Xtreme profile (fork) → Learning and calibration → Calibration buttons.* Default off.
+*Xtreme profile (fork) → Learning and calibration → Calibration buttons (slow calibration).* Default off.
 
 A careful calibration of the [overshoot protection value](overshoot-protection.md#the-overshoot-protection-value-opv)
 that, unlike the 20-minute calibration of the setup wizard, also works for boilers that
@@ -57,7 +57,7 @@ The whole calibration stops after at most 10 hours.
 
 ## The result
 
-The result becomes the starting value of the [self-learning OPV](learned-opv.md). The sensor shows a report
+The result becomes the starting value of the [learned OPV](learned-opv.md). The sensor shows a report
 with the value of every round. If the self-learning OPV is *Off*, the result is stored and shown, and used as
 soon as you turn learning on.
 

@@ -15,6 +15,6 @@ changes to the dashboard are lost. Ignore it to keep your version.
 
 ## The boiler ignores the modulation limit
 
-Appears when the [calibration](calibration.md) found that the boiler keeps modulating with the maximum
+Appears when the [slow calibration](calibration.md) found that the boiler keeps modulating with the maximum
 modulation set to 0 %. It shows the modulation that was measured. Submit to turn on
-[The boiler ignores the modulation limit](modulation-limit.md); SAT reloads.
+*The boiler ignores the modulation limit* ([ignore modulation limit](modulation-limit.md)); SAT reloads.

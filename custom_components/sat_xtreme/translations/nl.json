@@ -256,7 +256,7 @@
             "name": "Thermostaat op de bus",
             "description": "Voor een OpenTherm Gateway waarbij een thermostaat (bijvoorbeeld een Nest) nog op de ketel is aangesloten.",
             "data": {
-              "xtreme_prime_setpoint": "Setpoint klaar houden tussen PWM-blokken",
+              "xtreme_prime_setpoint": "Setpoint klaar houden tussen PWM-blokken (setpoint priming)",
               "xtreme_handover_on_off": "Overdragen aan de thermostaat als SAT uit gaat"
             },
             "data_description": {
@@ -269,10 +269,10 @@
             "description": "Instellingen voor je ketel. Neem de waarden over van het typeplaatje en uit de installatiehandleiding, of kies een preset.",
             "data": {
               "xtreme_boiler_preset": "Ketelpreset",
-              "xtreme_ignore_modulation_limit": "De ketel negeert de modulatiegrens",
+              "xtreme_ignore_modulation_limit": "De ketel negeert de modulatiegrens (ignore modulation limit)",
               "xtreme_boiler_maximum_power": "Maximaal vermogen cv",
               "xtreme_boiler_minimum_power": "Minimaal vermogen cv",
-              "xtreme_boiler_timing": "PWM afstemmen op de ketel",
+              "xtreme_boiler_timing": "PWM afstemmen op de ketel (boiler timing)",
               "xtreme_anti_cycling_time": "Anti-pendeltijd van de ketel",
               "xtreme_anti_cycling_margin": "Extra marge op de anti-pendeltijd",
               "xtreme_minimum_burn_time": "Minimale brandtijd per PWM-blok",
@@ -296,8 +296,8 @@
             "name": "Leren en kalibreren",
             "description": "Bepaal de overshoot-beveiligingswaarde (OPV): de laagste aanvoertemperatuur waarbij je ketel rustig op minimaal vermogen brandt.",
             "data": {
-              "xtreme_learned_opv": "Zelflerende OPV",
-              "xtreme_calibration": "Kalibratieknoppen"
+              "xtreme_learned_opv": "Zelflerende OPV (learned OPV)",
+              "xtreme_calibration": "Kalibratieknoppen (slow calibration)"
             },
             "data_description": {
               "xtreme_learned_opv": "SAT leert de OPV tijdens gewoon stoken. 'Alleen leren' toont de geleerde waarde in een sensor terwijl SAT je eigen OPV blijft gebruiken. 'Leren en gebruiken' laat SAT de geleerde waarde gebruiken.",

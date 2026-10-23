@@ -32,8 +32,8 @@ turned on. Remove personal data (addresses, names of rooms you would rather not 
 
 ??? question "The boiler starts minutes after the heating demand"
     With an OpenTherm Gateway and a thermostat on the bus, the setpoint arrives late; turn on
-    [Keep the setpoint ready](prime-setpoint.md). If the boiler is anti-cycling (for example after hot water),
-    [Align PWM with the boiler](boiler-timing.md) makes SAT wait for it instead.
+    [setpoint priming](prime-setpoint.md). If the boiler is anti-cycling (for example after hot water),
+    [boiler timing](boiler-timing.md) makes SAT wait for it instead.
 
 ??? question "The keep-warm switch has no effect"
     Whether the boiler follows the DHW enable bit depends on the boiler and its settings. On Intergas, the tap
@@ -46,7 +46,7 @@ turned on. Remove personal data (addresses, names of rooms you would rather not 
 
 ??? question "The wizard calibration gives a strange value (for example 32 °C)"
     The boiler probably ignores the modulation limit. Enter a plausible value by hand, turn on the fork's
-    [calibration](calibration.md) and run it.
+    [slow calibration](calibration.md) and run it.
 
 ??? question "The room overshoots the target"
     The PID correction is too strong or the heating curve too high. Lower the

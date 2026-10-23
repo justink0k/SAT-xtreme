@@ -1,6 +1,6 @@
-# Self-learning OPV
+# Learned OPV
 
-*Xtreme profile (fork) → Learning and calibration → Self-learning OPV.* Default *Off*.
+*Xtreme profile (fork) → Learning and calibration → Self-learning OPV (learned OPV).* Default *Off*.
 
 The [overshoot protection value](overshoot-protection.md#the-overshoot-protection-value-opv) (OPV) decides when
 SAT switches to PWM and how warm each PWM block burns. In the official SAT it is a fixed value from the setup
@@ -36,9 +36,9 @@ sample cannot change much.
   the [maximum setpoint](settings-general.md#maximum-setpoint).
 - When learning starts, the estimate is set so the value equals your configured OPV; nothing changes until
   samples arrive.
-- A [calibration](calibration.md) sets the starting value for learning.
+- A [slow calibration](calibration.md) sets the starting value for learning.
 - The boiler must report its modulation. For brands where the official SAT does not use the reported
-  modulation, turn on [The boiler ignores the modulation limit](modulation-limit.md) if the boiler does report
+  modulation, turn on [ignore modulation limit](modulation-limit.md) if the boiler does report
   it.
 
 The learned value is stored and survives restarts and updates.

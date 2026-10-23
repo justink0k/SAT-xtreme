@@ -34,7 +34,7 @@ Useful attributes of the climate entity:
 | *Boiler Manufacturer* | always | The manufacturer SAT uses. |
 | *Flame Status* | always | The health of the flame (for example healthy, short cycling). |
 | *Boiler Status* | always | What the boiler is doing according to SAT. |
-| *Current Power (Boiler)* | when the modulation limit is managed, or with [ignore the modulation limit](modulation-limit.md) | The current heating power in kW. |
+| *Current Power (Boiler)* | when the modulation limit is managed, or with [Ignore modulation limit](modulation-limit.md) | The current heating power in kW. |
 | *Current Consumption (Boiler)* | with the power sensor and both [consumption values](settings-advanced.md#minimum-consumption-and-maximum-consumption) | Gas use. |
 
 With a serial OpenTherm Gateway or the simulator, SAT adds more sensors with the raw boiler data.
@@ -72,11 +72,11 @@ All names start with **Xtreme fork:**.
 | *Hot Water Active* | always (binary) | The boiler is making hot water. |
 | *Heating Demand* | always (binary) | SAT asks the boiler for heat. |
 | *Create Dashboard* | always (button) | Creates or rebuilds the [dashboard](dashboard.md). |
-| *PWM Burn Time* | [Align PWM with the boiler](boiler-timing.md) | Burn time of the last PWM block, with the planned on time. |
-| *Anti-cycling Remaining* | [Align PWM with the boiler](boiler-timing.md) | Seconds until the boiler may start again. |
-| *Learned OPV* | [Self-learning OPV](learned-opv.md) not *Off* | The learned OPV, with its samples. |
-| *Calibration* | [Calibration buttons](calibration.md) | Phase, progress and report of the calibration. |
-| *Start Calibration*, *Stop Calibration* | [Calibration buttons](calibration.md) (buttons) | Start or stop the calibration. |
+| *PWM Burn Time* | [Boiler timing](boiler-timing.md) | Burn time of the last PWM block, with the planned on time. |
+| *Anti-cycling Remaining* | [Boiler timing](boiler-timing.md) | Seconds until the boiler may start again. |
+| *Learned OPV* | [Learned OPV](learned-opv.md) not *Off* | The learned OPV, with its samples. |
+| *Calibration* | [Slow calibration](calibration.md) | Phase, progress and report of the calibration. |
+| *Start Calibration*, *Stop Calibration* | [Slow calibration](calibration.md) (buttons) | Start or stop the calibration. |
 | *Hot Water Keep Warm* | [Keep-warm switch](hot_water_keep_warm.md) (switch) | On: normal (`HW=A`); off: no keep-warm (`HW=0`). |
 
 The unique IDs of the fork's entities contain `-xtreme-`, so they never clash with entities of the official SAT.

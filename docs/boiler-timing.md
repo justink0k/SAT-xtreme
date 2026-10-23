@@ -1,6 +1,6 @@
-# Align PWM with the boiler
+# Boiler timing
 
-*Xtreme profile (fork) → Boiler → Align PWM with the boiler.* Default off.
+*Xtreme profile (fork) → Boiler → Align PWM with the boiler (boiler timing).* Default off.
 
 ## The problem
 

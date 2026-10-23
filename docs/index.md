@@ -32,11 +32,11 @@ is heating that is **calmer, more comfortable, more efficient and reliable**.
 
 | Feature | What it does | Page |
 |---|---|---|
-| Keep the setpoint ready | The boiler starts within seconds of a PWM block instead of waiting for the thermostat on the bus. | [Keep the setpoint ready](prime-setpoint.md) |
-| Ignore the modulation limit | For boilers that do not follow `MM=`; keeps the power sensor working. | [Modulation limit](modulation-limit.md) |
-| Align PWM with the boiler | Counts real burn time, waits for the anti-cycling time, longer minimum burn. | [Align PWM with the boiler](boiler-timing.md) |
-| Self-learning OPV | Learns the overshoot protection value during normal heating. | [Self-learning OPV](learned-opv.md) |
-| Calibration | A careful calibration of the OPV with start and stop buttons. | [Calibration](calibration.md) |
+| Keep the setpoint ready | The boiler starts within seconds of a PWM block instead of waiting for the thermostat on the bus. | [Setpoint priming](prime-setpoint.md) |
+| Ignore the modulation limit | For boilers that do not follow `MM=`; keeps the power sensor working. | [Ignore modulation limit](modulation-limit.md) |
+| Align PWM with the boiler | Counts real burn time, waits for the anti-cycling time, longer minimum burn. | [Boiler timing](boiler-timing.md) |
+| Self-learning OPV | Learns the overshoot protection value during normal heating. | [Learned OPV](learned-opv.md) |
+| Calibration | A careful calibration of the OPV with start and stop buttons. | [Slow calibration](calibration.md) |
 | PID settings | Gain factor, maximum rise above the heating curve, manual gains. | [PID settings](settings-pid.md) |
 | Hand over to the thermostat | Gives control back to the thermostat on the bus right away when SAT is turned off. | [Hand over](handover.md) |
 | Hot water keep-warm switch | Turns the keep-warm function off, for example at night. | [Hot water keep-warm](hot_water_keep_warm.md) |

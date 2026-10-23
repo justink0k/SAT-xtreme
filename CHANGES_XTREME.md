@@ -6,6 +6,10 @@ license: what was changed, in which files, and when.
 
 The fork is based on upstream tag `4.2.1`.
 
+Feature names: older entries call the features "step 1" to "step 5". Since version 29 they are called
+**setpoint priming** (step 1), **ignore modulation limit** (step 2), **boiler timing** (step 3), **learned OPV**
+(step 4) and **slow calibration** (step 5).
+
 ## Switches
 
 All switches live in one place: *Settings → Devices & services → SAT → Configure → Xtreme profile*.
@@ -782,3 +786,28 @@ version 26 and 27 could lose the entities.
 `custom_components/sat_xtreme/translations/nl.json`, `custom_components/sat_xtreme/manifest.json`, `README.md`,
 `docs/installation.md`, `docs/setup-wizard.md`, `docs/index.md`, `docs/repairs.md`, `docs/actions.md`,
 `tests/test_xtreme_migration.py`.
+
+## Version 29: a shorter README (`4.2.1-xtreme.29`, 2026-10-23)
+
+No change in behaviour.
+
+- **The README is rewritten** to about 800 words: what SAT-xtreme is and for whom, a chart of one measured
+  PWM block, "Is this for you?", the supported gateways, a short comparison with SAT 4.2.1, installing and moving
+  from the official SAT (with what to check afterwards), and links to the manual. The "Open in HACS" button is at
+  the top. The remark about upstream commits and the comparison of test counts are gone.
+- **The chart** (`docs/images/pwm-block.svg`) shows one PWM block with SAT 4.2.1 and with setpoint priming,
+  from two blocks measured on 21 October 2026. It is drawn by `dev/make_pwm_chart.py` and works in the light and
+  dark theme of GitHub.
+- **Feature names** replace "step 1" to "step 5" in the README and the manual: setpoint priming, ignore
+  modulation limit, boiler timing, learned OPV and slow calibration. The option labels keep their description
+  and show the name between brackets, for example *Keep the setpoint ready between PWM blocks (setpoint
+  priming)*.
+- `dev/screenshot_dashboard.py` takes screenshots of the SAT Xtreme dashboard with Playwright (URL and token from
+  environment variables); a dashboard screenshot for the README will follow later.
+- **Nothing is lost:** the goals, the full comparison with SAT 4.2.1 and the list of supported hardware moved to
+  the manual (background and gateways pages); the chart is also on the setpoint priming page.
+
+**Files.** `README.md`, `dev/make_pwm_chart.py` (new), `dev/screenshot_dashboard.py` (new), `docs/images/pwm-block.svg` (new), `docs/background.md`,
+`docs/gateways.md`, `docs/prime-setpoint.md` and the other pages of `docs/` (feature names), `mkdocs.yml`,
+`custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
+`custom_components/sat_xtreme/manifest.json`.

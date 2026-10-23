@@ -34,8 +34,8 @@ who own the boiler.
 |---|---|---|
 | Minimum heating output (Pn min, 80/60 °C) | PWM decisions, power sensor fallback | Fixed per model. The most important value for low-load behaviour. |
 | Maximum heating output (Pn max, 80/60 °C) | power sensor fallback | Many boilers let the installer lower the maximum (see below), so this is the model maximum, not necessarily the installed value. |
-| Anti-cycling time | step 3: minimum off phase, wait after hot water | Varies a lot per brand, and on some boilers it depends on the flow temperature. |
-| Ignores the modulation limit (MM=) | step 2 | No manufacturer documents this; only community knowledge. |
+| Anti-cycling time | boiler timing: minimum off phase, wait after hot water | Varies a lot per brand, and on some boilers it depends on the flow temperature. |
+| Ignores the modulation limit (MM=) | ignore modulation limit | No manufacturer documents this; only community knowledge. |
 
 Not in a preset: the overshoot protection value (OPV). It depends on the house and the radiators,
 not on the boiler, so it stays learned or calibrated per installation.
@@ -75,7 +75,7 @@ No manufacturer documents whether its boiler honours the maximum relative modula
 
 So the upstream list says "no relative modulation", while the measurement says "modulation reported,
 limit ignored". A preset should therefore not set this switch from the brand alone; it should be
-measured. The fork's [calibration](calibration.md) does this in its modulation test.
+measured. The fork's [slow calibration](calibration.md) does this in its modulation test.
 
 ### Findings that matter for the design
 

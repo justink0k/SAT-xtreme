@@ -76,11 +76,11 @@ nav:
       - PID settings (fork): settings-pid.md
       - Xtreme profile (fork): settings-xtreme-profile.md
   - Fork features:
-      - Keep the setpoint ready: prime-setpoint.md
-      - Boilers that ignore the modulation limit: modulation-limit.md
-      - Align PWM with the boiler: boiler-timing.md
-      - Self-learning OPV: learned-opv.md
-      - Calibration: calibration.md
+      - Setpoint priming: prime-setpoint.md
+      - Ignore modulation limit: modulation-limit.md
+      - Boiler timing: boiler-timing.md
+      - Learned OPV: learned-opv.md
+      - Slow calibration: calibration.md
       - Hand over to the thermostat: handover.md
       - Hot water keep-warm: hot_water_keep_warm.md
       - Boiler presets: boiler_presets.md
