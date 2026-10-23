@@ -19,7 +19,7 @@ from .const import (
 from .coordinator import SatDataUpdateCoordinatorFactory
 from .services import async_register_services
 from .xtreme.dashboard import async_maintain_dashboard
-from .xtreme.migration import async_migrate_legacy_entry, async_offer_legacy_cleanup
+from .xtreme.migration import async_migrate_legacy_entry
 from .util import get_climate_entities
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
@@ -59,9 +59,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     # SAT-xtreme: offer the dashboard, or keep it up to date when it is unchanged since SAT-xtreme built it
     hass.async_create_task(async_maintain_dashboard(hass, entry))
-
-    # SAT-xtreme: after a move from `sat`, offer to remove the files of the older SAT-xtreme
-    hass.async_create_task(async_offer_legacy_cleanup(hass))
 
     return True
 

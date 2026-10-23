@@ -2,9 +2,9 @@
 
 Actions (services) of SAT, for scripts and automations. All of them take the SAT climate entity as target.
 
-!!! note "New names since 4.2.1-xtreme.26"
-    With its own domain, the actions of SAT-xtreme start with `sat_xtreme.` instead of `sat.`. Change
-    automations and scripts that still call `sat.reset_integral` and the like.
+!!! note "Coming from the official SAT"
+    The actions of SAT-xtreme start with `sat_xtreme.`; those of the official SAT with `sat.`. After
+    [moving](installation.md#moving-from-the-official-sat), change automations and scripts that call `sat.` actions.
 
 ## sat_xtreme.reset_integral
 

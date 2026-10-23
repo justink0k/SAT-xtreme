@@ -706,7 +706,7 @@ control does not change.
 `custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
 `custom_components/sat/manifest.json`, `docs/installation.md`, `docs/repairs.md`,
 `tests/test_xtreme_moving_notice.py` (new).
-## Version 26: its own domain, `sat_xtreme` (`4.2.1-xtreme.26`, 2026-10-22, pre-release)
+## Version 26: its own domain, `sat_xtreme` (`4.2.1-xtreme.26`, 2026-10-22, pre-release only)
 
 SAT-xtreme gets its own domain, so it can be added to the default list of HACS and can be installed next to
 the official SAT. No switch: the domain applies to everyone.
@@ -737,7 +737,7 @@ the official SAT. No switch: the domain applies to everyone.
 `dev/configuration.yaml`, `mkdocs.yml`, `docs/`, `README.md`, `RELEASING.md`, `CLAUDE.md`, `tests/` (import paths,
 `test_xtreme_migration.py` (new), `test_xtreme_moving_notice.py` (removed)).
 
-## Version 27: what the HACS test showed (`4.2.1-xtreme.27`, pre-release)
+## Version 27: what the HACS test showed (`4.2.1-xtreme.27`, 2026-10-23)
 
 Version 26 was tested in a separate Home Assistant with HACS 2.0.5: HACS installed 4.2.1-xtreme.25, then
 4.2.1-xtreme.26, and the configuration was moved. The move worked (all entities kept their IDs, the thermostat
@@ -758,3 +758,27 @@ kept its mode and target). Two things needed a change:
 `custom_components/sat_xtreme/__init__.py`, `custom_components/sat_xtreme/translations/en.json`,
 `custom_components/sat_xtreme/translations/nl.json`, `custom_components/sat_xtreme/manifest.json`, `README.md`,
 `docs/installation.md`, `docs/repairs.md`, `tests/test_xtreme_migration.py`.
+
+## Version 28: the move keeps the entities (`4.2.1-xtreme.28`, 2026-10-23)
+
+No switch: bug fixes for everyone. The first real move (on Home Assistant 2026.10) showed that the move of
+version 26 and 27 could lose the entities.
+
+- **Entities move before the device.** When a config entry is removed from a device, Home Assistant removes
+  the entities of that entry on that device right away. The move removed the old entry from the device first,
+  so the entities were removed and SAT-xtreme created new ones: with another entity ID when the old one was
+  renamed or contained an area, and without the restored state (the thermostat came back off at 7 °C). The
+  entities now move first. The earlier tests did not see this because the recreated entities got the same IDs
+  there; the tests now use renamed entities and check that the registry entries themselves are kept.
+- **Ignored discoveries are skipped.** An ignored discovery of the official SAT is no longer offered as a
+  configuration to move.
+- **Only for moving from the official SAT.** The repair that removed the files of an older SAT-xtreme
+  (version 27) and the clean-up of the notice of version 25 are removed again: they were only needed for the one
+  installation that moved from an older SAT-xtreme, which is done. The manual and the move step now describe a
+  new installation and the move from the official SAT.
+
+**Files.** `custom_components/sat_xtreme/xtreme/migration.py`, `custom_components/sat_xtreme/repairs.py`,
+`custom_components/sat_xtreme/__init__.py`, `custom_components/sat_xtreme/translations/en.json`,
+`custom_components/sat_xtreme/translations/nl.json`, `custom_components/sat_xtreme/manifest.json`, `README.md`,
+`docs/installation.md`, `docs/setup-wizard.md`, `docs/index.md`, `docs/repairs.md`, `docs/actions.md`,
+`tests/test_xtreme_migration.py`.

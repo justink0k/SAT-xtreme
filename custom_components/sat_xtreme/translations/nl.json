@@ -145,7 +145,7 @@
       },
       "move_from_sat": {
         "title": "Overzetten vanuit SAT",
-        "description": "Zet een configuratie van de officiële Smart Autotune Thermostat, of van SAT-xtreme 4.2.1-xtreme.25 of ouder, over naar SAT-xtreme. Alle instellingen, de overshoot protection value, de entity-ID's en hun geschiedenis blijven behouden. De oude configuratie stopt meteen en wordt na het overzetten verwijderd; SAT-xtreme neemt binnen enkele seconden over (je thermostaat op de bus vangt een eventueel gat op). Verwijder daarna de oude bestanden: bij een oudere SAT-xtreme met de reparatie die verschijnt (verwijder SAT-xtreme niet in HACS), bij de officiële SAT door die in HACS te verwijderen. Pas automatiseringen die `sat.`-acties aanroepen aan naar `sat_xtreme.`.",
+        "description": "Zet een configuratie van de officiële Smart Autotune Thermostat over naar SAT-xtreme. Alle instellingen, de overshoot protection value, de entity-ID's en hun geschiedenis blijven behouden. De officiële SAT stopt meteen en zijn configuratie wordt na het overzetten verwijderd; SAT-xtreme neemt binnen enkele seconden over (je thermostaat op de bus vangt een eventueel gat op). Verwijder daarna de officiële SAT in HACS, en pas automatiseringen die `sat.`-acties aanroepen aan naar `sat_xtreme.`.",
         "data": {
           "entry": "Over te zetten configuratie"
         }
@@ -396,20 +396,6 @@
             "title": "Het dashboard SAT Xtreme opnieuw opbouwen?",
             "description": "Er zijn functies van SAT-xtreme aan- of uitgezet, dus het dashboard SAT Xtreme is niet meer actueel. SAT-xtreme heeft het niet automatisch bijgewerkt, omdat het dashboard met de hand is aangepast. Klik op Verzenden om het opnieuw op te bouwen met de kaarten van de functies die nu aan staan; je eigen aanpassingen aan dit dashboard gaan dan verloren. Negeer deze melding om je eigen versie te houden."
           }
-        }
-      }
-    },
-    "remove_legacy_files": {
-      "title": "Verwijder de bestanden van de oudere SAT-xtreme",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "De oude SAT-xtreme-bestanden verwijderen?",
-            "description": "Je configuratie is overgezet naar SAT-xtreme, maar de bestanden van de oudere versie (domein `sat`) staan nog in `{folder}`. HACS houdt ze niet meer bij, en ze zorgen voor een tweede SAT-xtreme in de lijst met integraties. Bevestig om deze map te verwijderen en herstart daarna Home Assistant. Alleen de oudere SAT-xtreme wordt verwijderd: de map wordt eerst gecontroleerd, en de officiële Smart Autotune Thermostat wordt nooit aangeraakt. Verwijder SAT-xtreme niet in HACS: dan verwijder je de nieuwe versie."
-          }
-        },
-        "abort": {
-          "legacy_files_in_use": "De map is niet verwijderd: een configuratie gebruikt hem nog, of het is geen oudere SAT-xtreme."
         }
       }
     }
