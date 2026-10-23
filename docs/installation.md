@@ -33,15 +33,20 @@ the browser cache again.
 A configuration of the official SAT, or of SAT-xtreme 4.2.1-xtreme.25 or older (both use the domain `sat`),
 can be moved to SAT-xtreme with all its settings.
 
-1. Install SAT-xtreme as above and restart Home Assistant. Leave the old integration installed for now: it
-   keeps heating until the move.
-2. Open *Settings → Devices & services → Add integration → SAT-xtreme* and choose **Move a configuration
+1. **Restart Home Assistant first.** HACS only notices the new domain after a restart; before that, the
+   update fails with "No manifest.json file found", without harm.
+2. Install or update SAT-xtreme in HACS and restart Home Assistant again. HACS puts the new version in
+   `custom_components/sat_xtreme`, next to the old one, which keeps heating until the move.
+3. Open *Settings → Devices & services → Add integration → SAT-xtreme* and choose **Move a configuration
    from SAT**. Pick the configuration and submit.
-3. SAT-xtreme stops the old configuration and takes over within seconds. If you have a thermostat on the bus,
+4. SAT-xtreme stops the old configuration and takes over within seconds. If you have a thermostat on the bus,
    it covers the short gap.
-4. Remove the old integration in HACS (the official *Smart Autotune Thermostat*, or the old SAT-xtreme
-   entry) and restart Home Assistant.
-5. Change automations and scripts that call `sat.` actions to `sat_xtreme.` (for example
+5. Remove the old files:
+    - **Coming from an older SAT-xtreme:** open *Settings → System → Repairs → Remove the files of the older
+      SAT-xtreme* and submit, then restart Home Assistant. **Do not remove SAT-xtreme in HACS**: HACS now
+      tracks the new version, so that would remove it.
+    - **Coming from the official SAT:** remove *Smart Autotune Thermostat* in HACS and restart Home Assistant.
+6. Change automations and scripts that call `sat.` actions to `sat_xtreme.` (for example
    `sat_xtreme.reset_integral`).
 
 What is kept:

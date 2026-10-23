@@ -198,8 +198,8 @@ See [CHANGES_XTREME.md](CHANGES_XTREME.md) for the files and versions of each fi
    *Configure → PID settings (fork)*.
 
 Since 4.2.1-xtreme.26, SAT-xtreme has its own domain, `sat_xtreme`. **Coming from the official SAT, or from
-SAT-xtreme 4.2.1-xtreme.25 or older?** Choose *Move a configuration from SAT* when you add the integration:
-all settings, entity IDs and their history are kept. See
+SAT-xtreme 4.2.1-xtreme.25 or older?** Restart Home Assistant before you update, then choose *Move a configuration
+from SAT* when you add the integration: all settings, entity IDs and their history are kept. See
 [Moving from SAT](https://justink0k.github.io/SAT-xtreme/installation/#moving-from-sat).
 
 ### Dashboard

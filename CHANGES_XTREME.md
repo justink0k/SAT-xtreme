@@ -706,7 +706,7 @@ control does not change.
 `custom_components/sat/translations/en.json`, `custom_components/sat/translations/nl.json`,
 `custom_components/sat/manifest.json`, `docs/installation.md`, `docs/repairs.md`,
 `tests/test_xtreme_moving_notice.py` (new).
-## Version 26: its own domain, `sat_xtreme` (`4.2.1-xtreme.26`, unreleased)
+## Version 26: its own domain, `sat_xtreme` (`4.2.1-xtreme.26`, 2026-10-22, pre-release)
 
 SAT-xtreme gets its own domain, so it can be added to the default list of HACS and can be installed next to
 the official SAT. No switch: the domain applies to everyone.
@@ -736,3 +736,25 @@ the official SAT. No switch: the domain applies to everyone.
 `translations/nl.json`, `xtreme/migration.py` (new), `xtreme/moving_notice.py` (removed), `brand/` (new)), `dev/make_icon.py` (new),
 `dev/configuration.yaml`, `mkdocs.yml`, `docs/`, `README.md`, `RELEASING.md`, `CLAUDE.md`, `tests/` (import paths,
 `test_xtreme_migration.py` (new), `test_xtreme_moving_notice.py` (removed)).
+
+## Version 27: what the HACS test showed (`4.2.1-xtreme.27`, pre-release)
+
+Version 26 was tested in a separate Home Assistant with HACS 2.0.5: HACS installed 4.2.1-xtreme.25, then
+4.2.1-xtreme.26, and the configuration was moved. The move worked (all entities kept their IDs, the thermostat
+kept its mode and target). Two things needed a change:
+
+- **HACS leaves the old folder behind.** HACS installs the new version in `custom_components/sat_xtreme` and no
+  longer tracks `custom_components/sat`, so the older SAT-xtreme stayed installed and appeared a second time
+  under *Add integration*. Removing SAT-xtreme in HACS would remove the new version instead. After the move, a
+  repair **"Remove the files of the older SAT-xtreme"** now offers to remove the old folder with one click. It
+  only removes the folder when its manifest is an older SAT-xtreme (name `SAT-xtreme`, version
+  `*-xtreme.*`) and no configuration of the domain `sat` is left; the official SAT is never touched.
+- **HACS only sees the new domain after a restart.** While Home Assistant runs, HACS keeps the old folder name,
+  and the update fails with "No manifest.json file found" (without harm: the old version keeps running). The
+  manual, the README and the move step now say to restart Home Assistant before updating, and that SAT-xtreme
+  users must not remove SAT-xtreme in HACS.
+
+**Files.** `custom_components/sat_xtreme/xtreme/migration.py`, `custom_components/sat_xtreme/repairs.py`,
+`custom_components/sat_xtreme/__init__.py`, `custom_components/sat_xtreme/translations/en.json`,
+`custom_components/sat_xtreme/translations/nl.json`, `custom_components/sat_xtreme/manifest.json`, `README.md`,
+`docs/installation.md`, `docs/repairs.md`, `tests/test_xtreme_migration.py`.

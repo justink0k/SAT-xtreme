@@ -135,3 +135,67 @@ async def test_interrupted_move_continues_on_the_next_setup(hass: HomeAssistant)
     assert hass.config_entries.async_get_entry(legacy.entry_id) is None
     assert entity_registry.async_get(hass).async_get(climate_id).platform == DOMAIN
     assert CONF_MIGRATED_FROM not in entry.data
+
+
+# Removing the files of the older SAT-xtreme after the move
+
+import json as _json
+from pathlib import Path
+
+import pytest
+
+from custom_components.sat_xtreme import repairs
+from custom_components.sat_xtreme.xtreme import migration
+
+
+def _write_manifest(folder: Path, **manifest) -> None:
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "manifest.json").write_text(_json.dumps({"domain": "sat", **manifest}))
+
+
+@pytest.fixture
+def legacy_folder(tmp_path, monkeypatch) -> Path:
+    folder = tmp_path / "custom_components" / "sat"
+    monkeypatch.setattr(migration, "legacy_folder", lambda hass: folder)
+    return folder
+
+
+async def test_old_sat_xtreme_files_are_offered_and_removed(hass: HomeAssistant, legacy_folder: Path) -> None:
+    _write_manifest(legacy_folder, name="SAT-xtreme", version="4.2.1-xtreme.25")
+
+    await migration.async_offer_legacy_cleanup(hass)
+    assert issue_registry.async_get(hass).async_get_issue(DOMAIN, migration.LEGACY_FILES_ISSUE).is_fixable
+
+    flow = await repairs.async_create_fix_flow(hass, migration.LEGACY_FILES_ISSUE, None)
+    assert isinstance(flow, repairs.RemoveLegacyFilesRepairFlow)
+
+    assert await migration.async_remove_legacy_files(hass)
+    assert not legacy_folder.exists()
+    assert issue_registry.async_get(hass).async_get_issue(DOMAIN, migration.LEGACY_FILES_ISSUE) is None
+
+
+async def test_official_sat_is_never_removed(hass: HomeAssistant, legacy_folder: Path) -> None:
+    _write_manifest(legacy_folder, name="Smart Autotune Thermostat", version="4.2.1")
+
+    await migration.async_offer_legacy_cleanup(hass)
+
+    assert issue_registry.async_get(hass).async_get_issue(DOMAIN, migration.LEGACY_FILES_ISSUE) is None
+    assert not await migration.async_remove_legacy_files(hass)
+    assert (legacy_folder / "manifest.json").exists()
+
+
+async def test_files_in_use_are_not_removed(hass: HomeAssistant, legacy_folder: Path) -> None:
+    _write_manifest(legacy_folder, name="SAT-xtreme", version="4.2.1-xtreme.25")
+    MockConfigEntry(domain=LEGACY_DOMAIN, title="Still here", data=DEFAULT_USER_DATA).add_to_hass(hass)
+
+    await migration.async_offer_legacy_cleanup(hass)
+
+    assert issue_registry.async_get(hass).async_get_issue(DOMAIN, migration.LEGACY_FILES_ISSUE) is None
+    assert not await migration.async_remove_legacy_files(hass)
+    assert (legacy_folder / "manifest.json").exists()
+
+
+async def test_no_cleanup_without_old_files(hass: HomeAssistant, legacy_folder: Path) -> None:
+    await migration.async_offer_legacy_cleanup(hass)
+
+    assert issue_registry.async_get(hass).async_get_issue(DOMAIN, migration.LEGACY_FILES_ISSUE) is None

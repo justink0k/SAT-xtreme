@@ -12,7 +12,10 @@ Every step can run again, so an interrupted move continues on the next start.
 """
 from __future__ import annotations
 
+import json
 import logging
+import shutil
+from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import HomeAssistant
@@ -33,6 +36,11 @@ STORE_VERSION = 1
 # Repairs of the old entry that no longer apply after the move
 LEGACY_ISSUES = ("create_dashboard_", "update_dashboard_", "ignores_modulation_limit_")
 LEGACY_MOVING_NOTICE = "moving_to_sat_xtreme"
+
+# Repair that offers to remove the files of SAT-xtreme 4.2.1-xtreme.25 or older after the move. HACS installs the
+# new version in `custom_components/sat_xtreme` and no longer tracks the old folder, so it would stay behind.
+LEGACY_FILES_ISSUE = "remove_legacy_files"
+LEGACY_NAME = "SAT-xtreme"
 
 
 def legacy_entries(hass: HomeAssistant) -> list[ConfigEntry]:
@@ -112,3 +120,56 @@ async def _move_stores(hass: HomeAssistant, legacy_entry_id: str, entry_id: str)
 
         await Store(hass, STORE_VERSION, f"{prefix}{entry_id}").async_save(data)
         await legacy_store.async_remove()
+
+
+def legacy_folder(hass: HomeAssistant) -> Path:
+    """The folder of the integration with the domain `sat`."""
+    return Path(hass.config.path("custom_components", LEGACY_DOMAIN))
+
+
+def is_old_sat_xtreme(folder: Path) -> bool:
+    """Whether the folder holds an older SAT-xtreme (never the official SAT, which has another name and version)."""
+    try:
+        manifest = json.loads((folder / "manifest.json").read_text())
+    except (OSError, ValueError):
+        return False
+
+    return (
+        manifest.get("domain") == LEGACY_DOMAIN
+        and manifest.get("name") == LEGACY_NAME
+        and "-xtreme." in str(manifest.get("version", ""))
+    )
+
+
+async def async_offer_legacy_cleanup(hass: HomeAssistant) -> None:
+    """Offer to remove the old SAT-xtreme files once no configuration of the domain `sat` is left."""
+    removable = not legacy_entries(hass) and await hass.async_add_executor_job(is_old_sat_xtreme, legacy_folder(hass))
+
+    if not removable:
+        issue_registry.async_delete_issue(hass, DOMAIN, LEGACY_FILES_ISSUE)
+        return
+
+    issue_registry.async_create_issue(
+        hass,
+        DOMAIN,
+        LEGACY_FILES_ISSUE,
+        is_fixable=True,
+        severity=issue_registry.IssueSeverity.WARNING,
+        translation_key=LEGACY_FILES_ISSUE,
+        translation_placeholders={"folder": "custom_components/sat"},
+    )
+
+
+async def async_remove_legacy_files(hass: HomeAssistant) -> bool:
+    """Remove the old SAT-xtreme files, after checking again that they are SAT-xtreme and no longer in use."""
+    folder = legacy_folder(hass)
+
+    if legacy_entries(hass) or not await hass.async_add_executor_job(is_old_sat_xtreme, folder):
+        _LOGGER.warning("SAT-xtreme: '%s' was not removed: it is still in use or it is not an older SAT-xtreme.", folder)
+        return False
+
+    await hass.async_add_executor_job(shutil.rmtree, folder)
+    issue_registry.async_delete_issue(hass, DOMAIN, LEGACY_FILES_ISSUE)
+    _LOGGER.info("SAT-xtreme: removed the files of the older SAT-xtreme in '%s'. Restart Home Assistant.", folder)
+
+    return True
