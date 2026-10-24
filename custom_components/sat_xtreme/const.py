@@ -106,6 +106,7 @@ CONF_XTREME_BOILER_PRESET = "xtreme_boiler_preset"
 CONF_XTREME_HANDOVER_ON_OFF = "xtreme_handover_on_off"
 CONF_XTREME_HOT_WATER_SWITCH = "xtreme_hot_water_switch"
 CONF_XTREME_SETPOINT_CHAIN = "xtreme_setpoint_chain"
+CONF_XTREME_CYCLE_TRACKING = "xtreme_cycle_tracking"
 
 BOILER_PRESET_CUSTOM = "custom"
 
@@ -194,6 +195,7 @@ OPTIONS_DEFAULTS = {
     CONF_XTREME_HANDOVER_ON_OFF: False,
     CONF_XTREME_HOT_WATER_SWITCH: False,
     CONF_XTREME_SETPOINT_CHAIN: False,
+    CONF_XTREME_CYCLE_TRACKING: False,
 }
 
 # Overshoot protection

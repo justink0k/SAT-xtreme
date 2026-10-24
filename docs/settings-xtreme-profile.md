@@ -56,6 +56,7 @@ Extra sensors to see what SAT does. They only read; they change nothing in the c
 | Option | Default | Details |
 |---|---|---|
 | Show the setpoint chain | off | Adds the sensor *Setpoint Chain*; see [Setpoint chain](setpoint-chain.md) |
+| Track burner cycles | off | Records every burner cycle, with sensors, events and a history; see [Burner cycles](burner-cycles.md) |
 
 ## Where the options are stored
 

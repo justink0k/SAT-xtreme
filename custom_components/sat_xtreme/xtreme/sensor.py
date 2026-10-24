@@ -1,6 +1,7 @@
 """Sensors of the Xtreme profile, for following the profile on a dashboard."""
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
@@ -8,11 +9,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfTemperature, UnitOfTime
 from homeassistant.core import Event, EventStateChangedData
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from ..const import CONF_NAME
 from ..entity import SatClimateEntity, SatEntity
+from .cycles import CycleTracker, create_cycle_tracker
 
 FORK_LABEL = "Xtreme fork:"
 
@@ -42,6 +44,16 @@ def async_setup_xtreme_sensors(coordinator, config_entry: ConfigEntry, climate, 
 
     if profile.setpoint_chain:
         entities.append(SatSetpointChainSensor(coordinator, config_entry, climate))
+
+    if profile.cycle_tracking:
+        tracker = create_cycle_tracker(coordinator, climate, config_entry)
+        entities += [
+            SatLastCycleSensor(coordinator, config_entry, tracker),
+            SatCyclesSensor(coordinator, config_entry, tracker, "cycles-last-hour", "Cycles Last Hour", 3600),
+            SatCyclesSensor(coordinator, config_entry, tracker, "cycles-last-24h", "Cycles Last 24h", 86400),
+            SatAverageBurnTimeSensor(coordinator, config_entry, tracker, "average-burn-time-last-hour", "Average Burn Time Last Hour", 3600),
+            SatAverageBurnTimeSensor(coordinator, config_entry, tracker, "average-burn-time-last-24h", "Average Burn Time Last 24h", 86400),
+        ]
 
     if entities:
         async_add_entities(entities)
@@ -286,3 +298,83 @@ class SatBurnerStartsSensor(SatXtremeBoilerSensor, RestoreEntity):
     @property
     def native_value(self) -> int:
         return self._restored + self._coordinator.flame_start_count
+
+
+class SatCycleSensor(SatXtremeBoilerSensor):
+    """Base class for the burner cycle sensors; they update when a cycle starts or ends."""
+
+    def __init__(self, coordinator, config_entry: ConfigEntry, tracker: CycleTracker):
+        super().__init__(coordinator, config_entry)
+        self._tracker = tracker
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(self._tracker.async_add_listener(self.async_write_ha_state))
+
+
+class SatLastCycleSensor(SatCycleSensor):
+    """The burn time of the last cycle, with all its data. This sensor also starts and stops the tracker."""
+
+    _key = "last-cycle"
+    _label = "Last Cycle"
+    _attr_device_class = SensorDeviceClass.DURATION
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_icon = "mdi:fire-circle"
+
+    async def async_added_to_hass(self) -> None:
+        await self._tracker.async_start(self.hass)
+        await super().async_added_to_hass()
+
+    async def async_will_remove_from_hass(self) -> None:
+        await self._tracker.async_stop()
+        await super().async_will_remove_from_hass()
+
+    @property
+    def native_value(self) -> int | None:
+        return cycle["duration"] if (cycle := self._tracker.last_cycle) is not None else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return dict(self._tracker.last_cycle or {})
+
+
+class SatCyclesWindowSensor(SatCycleSensor):
+    """A value over the cycles that ended in the last window; also refreshed every minute as the window moves."""
+
+    def __init__(self, coordinator, config_entry: ConfigEntry, tracker: CycleTracker, key: str, label: str, seconds: int):
+        super().__init__(coordinator, config_entry, tracker)
+        self._key = key
+        self._label = label
+        self._seconds = seconds
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(async_track_time_interval(self.hass, lambda _now: self.async_write_ha_state(), timedelta(minutes=1)))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        counts = self._tracker.counts(self._seconds)
+        return {"heating": counts["heating"], "hot_water": counts["hot_water"], "mixed": counts["mixed"]}
+
+
+class SatCyclesSensor(SatCyclesWindowSensor):
+    """Number of burner cycles (heating and hot water) in the window."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:counter"
+
+    @property
+    def native_value(self) -> int:
+        return self._tracker.counts(self._seconds)["count"]
+
+
+class SatAverageBurnTimeSensor(SatCyclesWindowSensor):
+    """Average burn time of the cycles in the window."""
+
+    _attr_device_class = SensorDeviceClass.DURATION
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    @property
+    def native_value(self) -> int | None:
+        return self._tracker.counts(self._seconds)["average_duration"]

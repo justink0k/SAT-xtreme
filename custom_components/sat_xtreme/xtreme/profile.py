@@ -28,6 +28,7 @@ from ..const import (
     CONF_XTREME_HANDOVER_ON_OFF,
     CONF_XTREME_HOT_WATER_SWITCH,
     CONF_XTREME_SETPOINT_CHAIN,
+    CONF_XTREME_CYCLE_TRACKING,
     BOILER_PRESET_CUSTOM,
 )
 
@@ -151,6 +152,10 @@ class XtremeProfile:
     # one the gateway reports for the boiler. Read only, it changes nothing in the control.
     setpoint_chain: bool = False
 
+    # Diagnostics: recognise every burner cycle and record its data (events, sensors and a history that
+    # survives a restart). Read only, it changes nothing in the control.
+    cycle_tracking: bool = False
+
     @property
     def anti_cycling_wait(self) -> int:
         """Seconds to wait after the last flame before a new on phase may start."""
@@ -184,6 +189,7 @@ class XtremeProfile:
             handover_on_off=bool(values.get(CONF_XTREME_HANDOVER_ON_OFF)),
             hot_water_switch=bool(values.get(CONF_XTREME_HOT_WATER_SWITCH)),
             setpoint_chain=bool(values.get(CONF_XTREME_SETPOINT_CHAIN)),
+            cycle_tracking=bool(values.get(CONF_XTREME_CYCLE_TRACKING)),
         )
 
         if profile.enabled:
@@ -205,6 +211,7 @@ class XtremeProfile:
             ("handover_on_off", self.handover_on_off),
             ("hot_water_switch", self.hot_water_switch),
             ("setpoint_chain", self.setpoint_chain),
+            ("cycle_tracking", self.cycle_tracking),
         )
 
         return [name for name, enabled in switches if enabled]

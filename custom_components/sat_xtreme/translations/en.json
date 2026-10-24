@@ -319,10 +319,12 @@
             "name": "Diagnostics",
             "description": "Extra sensors to see what SAT does. They only read; they change nothing in the control.",
             "data": {
-              "xtreme_setpoint_chain": "Show the setpoint chain"
+              "xtreme_setpoint_chain": "Show the setpoint chain",
+              "xtreme_cycle_tracking": "Track burner cycles"
             },
             "data_description": {
-              "xtreme_setpoint_chain": "Adds the sensor \"Xtreme fork: Setpoint Chain\". Its value is the setpoint SAT calculates (heating curve plus PID); its attributes show the setpoint SAT sends to the gateway and the setpoint the gateway reports for the boiler, so you can see where a difference comes from."
+              "xtreme_setpoint_chain": "Adds the sensor \"Xtreme fork: Setpoint Chain\". Its value is the setpoint SAT calculates (heating curve plus PID); its attributes show the setpoint SAT sends to the gateway and the setpoint the gateway reports for the boiler, so you can see where a difference comes from.",
+              "xtreme_cycle_tracking": "Recognises every burner cycle (flame on to flame off) and records its duration, temperatures, setpoint, kind (heating or hot water), why it ended and whether it started within the anti-cycling time. Adds the sensor \"Last Cycle\", counters for the last hour and 24 hours, the events sat_xtreme_cycle_started and sat_xtreme_cycle_ended, and keeps the last 500 cycles across restarts."
             }
           }
         }

@@ -887,3 +887,32 @@ the option off, nothing changes.
 `custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
 `tests/test_xtreme_setpoint_chain.py` (new), `tests/xtreme_helpers.py`, `tests/test_xtreme_presets_and_handover.py`,
 `docs/setpoint-chain.md` (new), `docs/settings-xtreme-profile.md`, `docs/entities.md`, `mkdocs.yml`.
+
+## Unreleased: burner cycle diagnostics
+
+A new option, off by default: *Xtreme profile (fork) → Diagnostics → Track burner cycles*. Read only; with the
+option off, nothing is tracked, no events are fired and no file is written. The learned OPV and boiler timing do
+not use it.
+
+- **Every burner cycle** (flame on to flame off) is recorded with its start, end and duration, the flow
+  temperature at the start and its minimum, maximum and time-weighted average, the return temperature at the
+  start and end, the control setpoint at the start and end, the kind (`heating`, `hot_water`, `mixed`), the
+  reason it ended (`hot_water`, `pwm_block_ended`, `no_heating_demand`, `setpoint_reached` with a margin of
+  2 °C, `unknown`) and whether it started within the anti-cycling time. Short cycles are recorded too; a
+  cycle running during a restart is not.
+- **Events** `sat_xtreme_cycle_started` and `sat_xtreme_cycle_ended`.
+- **Sensors** *Last Cycle*, *Cycles Last Hour*, *Cycles Last 24h*, *Average Burn Time Last Hour* and
+  *Average Burn Time Last 24h*; the counters count all cycles and split them by kind in their attributes.
+- **History** of the last 500 cycles in the Home Assistant store `sat_xtreme_cycles_<entry_id>`, kept across
+  restarts and moved along when a configuration is moved.
+- **Source of the idea:** the cycle tracking of the closed upstream pull request
+  [Alexwijn/SAT#124](https://github.com/Alexwijn/SAT/pull/124) (GPL-3.0). No code was taken from it; the
+  fork's module records other data, keeps a history and does not classify cycles for the control.
+
+**Files.** `custom_components/sat_xtreme/xtreme/cycles.py` (new), `custom_components/sat_xtreme/xtreme/sensor.py`,
+`custom_components/sat_xtreme/xtreme/profile.py`, `custom_components/sat_xtreme/xtreme/migration.py`,
+`custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/const.py`,
+`custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
+`tests/test_xtreme_cycles.py` (new), `tests/test_xtreme_setpoint_chain.py`, `tests/xtreme_helpers.py`,
+`docs/burner-cycles.md` (new), `docs/settings-xtreme-profile.md`, `docs/entities.md`, `docs/actions.md`,
+`mkdocs.yml`.

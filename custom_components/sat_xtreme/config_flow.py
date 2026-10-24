@@ -868,6 +868,7 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
 
         diagnostics = vol.Schema({
             vol.Required(CONF_XTREME_SETPOINT_CHAIN, default=options[CONF_XTREME_SETPOINT_CHAIN]): bool,
+            vol.Required(CONF_XTREME_CYCLE_TRACKING, default=options[CONF_XTREME_CYCLE_TRACKING]): bool,
         })
 
         return self.async_show_form(

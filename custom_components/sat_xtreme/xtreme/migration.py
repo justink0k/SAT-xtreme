@@ -30,7 +30,7 @@ LEGACY_DOMAIN = "sat"
 CONF_MIGRATED_FROM = "xtreme_migrated_from"
 
 # Stored data of the fork, keyed by the config entry (all at storage version 1)
-STORE_PREFIXES = ("sat_xtreme_opv_", "sat_xtreme_calibration_", "sat_xtreme_dashboard_", "sat_xtreme_hot_water_")
+STORE_PREFIXES = ("sat_xtreme_opv_", "sat_xtreme_calibration_", "sat_xtreme_dashboard_", "sat_xtreme_hot_water_", "sat_xtreme_cycles_")
 STORE_VERSION = 1
 
 # Repairs of the old entry that no longer apply after the move

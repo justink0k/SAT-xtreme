@@ -44,7 +44,7 @@ async def test_option_on_the_xtreme_profile_page(hass: HomeAssistant, entry: Moc
     result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "xtreme_profile"})
 
     diagnostics = result["data_schema"].schema["diagnostics"].schema
-    assert {str(key): key.default() for key in diagnostics.schema} == {CONF_XTREME_SETPOINT_CHAIN: False}
+    assert {str(key): key.default() for key in diagnostics.schema} == {CONF_XTREME_SETPOINT_CHAIN: False, CONF_XTREME_CYCLE_TRACKING: False}
 
     result = await hass.config_entries.options.async_configure(result["flow_id"], xtreme_profile_input(**{CONF_XTREME_SETPOINT_CHAIN: True}))
     await hass.async_block_till_done()

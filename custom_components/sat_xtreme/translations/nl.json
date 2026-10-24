@@ -308,10 +308,12 @@
             "name": "Diagnose",
             "description": "Extra sensoren om te zien wat SAT doet. Ze lezen alleen; ze veranderen niets aan de regeling.",
             "data": {
-              "xtreme_setpoint_chain": "Toon de setpointketen"
+              "xtreme_setpoint_chain": "Toon de setpointketen",
+              "xtreme_cycle_tracking": "Volg branderscycli"
             },
             "data_description": {
-              "xtreme_setpoint_chain": "Voegt de sensor \"Xtreme fork: Setpoint Chain\" toe. De waarde is het setpoint dat SAT berekent (stooklijn plus PID); de attributen tonen het setpoint dat SAT naar de gateway stuurt en het setpoint dat de gateway voor de ketel meldt, zodat je ziet waar een verschil vandaan komt."
+              "xtreme_setpoint_chain": "Voegt de sensor \"Xtreme fork: Setpoint Chain\" toe. De waarde is het setpoint dat SAT berekent (stooklijn plus PID); de attributen tonen het setpoint dat SAT naar de gateway stuurt en het setpoint dat de gateway voor de ketel meldt, zodat je ziet waar een verschil vandaan komt.",
+              "xtreme_cycle_tracking": "Herkent elke branderscyclus (vlam aan tot vlam uit) en legt de duur, temperaturen, het setpoint, de soort (cv of warm water), de reden van het einde en of hij binnen de anti-pendeltijd begon vast. Voegt de sensor \"Last Cycle\" toe, tellers voor het afgelopen uur en de afgelopen 24 uur, de events sat_xtreme_cycle_started en sat_xtreme_cycle_ended, en bewaart de laatste 500 cycli ook na een herstart."
             }
           }
         }

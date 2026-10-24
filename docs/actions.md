@@ -6,6 +6,10 @@ Actions (services) of SAT, for scripts and automations. All of them take the SAT
     The actions of SAT-xtreme start with `sat_xtreme.`; those of the official SAT with `sat.`. After
     [moving](installation.md#moving-from-the-official-sat), change automations and scripts that call `sat.` actions.
 
+!!! info "Events"
+    With [Burner cycles](burner-cycles.md) on, SAT-xtreme fires the events `sat_xtreme_cycle_started` and
+    `sat_xtreme_cycle_ended`.
+
 ## sat_xtreme.reset_integral
 
 Resets the integral part of the PID controller, for example when it has grown too large after a long period

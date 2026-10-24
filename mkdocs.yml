@@ -86,6 +86,7 @@ nav:
       - Boiler presets: boiler_presets.md
       - Dashboard: dashboard.md
       - Setpoint chain: setpoint-chain.md
+      - Burner cycles: burner-cycles.md
   - Reference:
       - Entities: entities.md
       - Actions: actions.md
