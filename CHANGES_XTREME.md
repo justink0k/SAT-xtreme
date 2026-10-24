@@ -865,7 +865,13 @@ No change in the integration.
 **Files.** `requirements_docs.txt`, `.github/workflows/docs.yml`, `docs/development.md`,
 `custom_components/sat_xtreme/manifest.json`.
 
-## Unreleased: setpoint chain sensor (diagnostics)
+## Version 33: four ideas from the upstream cycle refactor (`4.2.1-xtreme.33`, 2026-10-24)
+
+Four new options, all off by default; with them off, SAT-xtreme behaves as in version 32. The ideas come from
+the closed upstream pull request [Alexwijn/SAT#124](https://github.com/Alexwijn/SAT/pull/124); the refactor
+itself was not taken over, and no code was copied.
+
+### Setpoint chain sensor (diagnostics)
 
 A new option, off by default: *Xtreme profile (fork) → Diagnostics → Show the setpoint chain*. Read only; with
 the option off, nothing changes.
@@ -888,7 +894,7 @@ the option off, nothing changes.
 `tests/test_xtreme_setpoint_chain.py` (new), `tests/xtreme_helpers.py`, `tests/test_xtreme_presets_and_handover.py`,
 `docs/setpoint-chain.md` (new), `docs/settings-xtreme-profile.md`, `docs/entities.md`, `mkdocs.yml`.
 
-## Unreleased: burner cycle diagnostics
+### Burner cycle diagnostics
 
 A new option, off by default: *Xtreme profile (fork) → Diagnostics → Track burner cycles*. Read only; with the
 option off, nothing is tracked, no events are fired and no file is written. The learned OPV and boiler timing do
@@ -917,7 +923,7 @@ not use it.
 `docs/burner-cycles.md` (new), `docs/settings-xtreme-profile.md`, `docs/entities.md`, `docs/actions.md`,
 `mkdocs.yml`.
 
-## Unreleased: maximum setpoint entity
+### Maximum setpoint entity
 
 A new option, off by default: *Xtreme profile (fork) → Boiler → Maximum setpoint as an entity*. With the option
 off, nothing changes.
@@ -942,7 +948,7 @@ off, nothing changes.
 `custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_maximum_setpoint.py` (new),
 `docs/maximum-setpoint.md` (new), `docs/settings-xtreme-profile.md`, `docs/entities.md`, `mkdocs.yml`.
 
-## Unreleased: stale sensors
+### Stale sensors
 
 A new section *Sensors* on the Xtreme profile page, with the option *Handle stale sensors*, off by default.
 With the option off, nothing changes and the *Temperature sensor maximum value age* of SAT works as before.
@@ -969,4 +975,4 @@ With the option off, nothing changes and the *Temperature sensor maximum value a
 `custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
 `tests/test_xtreme_stale_sensors.py` (new), `tests/xtreme_helpers.py`, `tests/test_xtreme_presets_and_handover.py`,
 `docs/stale-sensors.md` (new), `docs/settings-xtreme-profile.md`, `docs/settings-system.md`, `docs/entities.md`,
-`docs/repairs.md`, `mkdocs.yml`.
+`docs/repairs.md`, `mkdocs.yml`, `custom_components/sat_xtreme/manifest.json`.
