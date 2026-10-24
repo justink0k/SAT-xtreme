@@ -88,6 +88,7 @@ nav:
       - Dashboard: dashboard.md
       - Setpoint chain: setpoint-chain.md
       - Burner cycles: burner-cycles.md
+      - Stale sensors: stale-sensors.md
   - Reference:
       - Entities: entities.md
       - Actions: actions.md

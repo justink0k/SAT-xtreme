@@ -27,6 +27,9 @@ Not shown for underfloor heating. Fewer blocks per hour means longer burns and f
 
 ## Temperature sensor maximum value age
 
+!!! info "Fork"
+    With [Stale sensors](stale-sensors.md) on, SAT-xtreme replaces this check for the inside and outside sensor.
+
 Default 6 hours. When the inside (or humidity) sensor has not reported for longer than this, SAT treats the
 value as missing, and when the PID controller has not been updated for longer than this, SAT resets it. Set it
 to 0 to turn this off.

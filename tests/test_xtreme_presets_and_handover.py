@@ -163,11 +163,11 @@ async def test_minimum_setpoint_storage_is_loaded(hass: HomeAssistant, hass_stor
 
 
 @pytest.mark.parametrize(*parameters())
-async def test_xtreme_profile_page_has_four_sections(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
+async def test_xtreme_profile_page_has_five_sections(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "xtreme_profile"})
 
-    assert [str(key) for key in result["data_schema"].schema] == ["thermostat", "boiler", "learning", "diagnostics"]
+    assert [str(key) for key in result["data_schema"].schema] == ["thermostat", "boiler", "learning", "sensors", "diagnostics"]
 
     # The sections are stored as flat options
     result = await hass.config_entries.options.async_configure(result["flow_id"], xtreme_profile_input(**{CONF_XTREME_HANDOVER_ON_OFF: True, CONF_XTREME_LEARNED_OPV: "learn"}))

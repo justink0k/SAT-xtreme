@@ -27,6 +27,7 @@ XTREME_SECTION_THERMOSTAT = "thermostat"
 XTREME_SECTION_BOILER = "boiler"
 XTREME_SECTION_LEARNING = "learning"
 XTREME_SECTION_DIAGNOSTICS = "diagnostics"
+XTREME_SECTION_SENSORS = "sensors"
 from .coordinator import SatDataUpdateCoordinator
 from .helpers import calculate_default_maximum_setpoint, snake_case
 from .manufacturer import ManufacturerFactory, MANUFACTURERS
@@ -819,6 +820,9 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
         if _user_input is not None:
             # The fields are grouped in sections on the page, but stored as flat options
             submitted = {key: value for group in _user_input.values() if isinstance(group, dict) for key, value in group.items()}
+
+            # An emptied entity field is left out of the input: store that it was removed
+            submitted.setdefault(CONF_XTREME_BACKUP_INSIDE_SENSOR, None)
             return await self.update_options(apply_boiler_preset(await self.get_options(), submitted))
 
         options = await self.get_options()
@@ -867,6 +871,19 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
             vol.Required(CONF_XTREME_CALIBRATION, default=options[CONF_XTREME_CALIBRATION]): bool,
         })
 
+        sensors = vol.Schema({
+            vol.Required(CONF_XTREME_STALE_SENSORS, default=options[CONF_XTREME_STALE_SENSORS]): bool,
+            vol.Required(CONF_XTREME_INSIDE_MAX_AGE, default=options[CONF_XTREME_INSIDE_MAX_AGE]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=10, max=1440, step=5, unit_of_measurement="min")
+            ),
+            vol.Optional(CONF_XTREME_BACKUP_INSIDE_SENSOR, description={"suggested_value": options[CONF_XTREME_BACKUP_INSIDE_SENSOR]}): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=sensor.DOMAIN, device_class=[sensor.SensorDeviceClass.TEMPERATURE])
+            ),
+            vol.Required(CONF_XTREME_OUTSIDE_MAX_AGE, default=options[CONF_XTREME_OUTSIDE_MAX_AGE]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=30, max=2880, step=10, unit_of_measurement="min")
+            ),
+        })
+
         diagnostics = vol.Schema({
             vol.Required(CONF_XTREME_SETPOINT_CHAIN, default=options[CONF_XTREME_SETPOINT_CHAIN]): bool,
             vol.Required(CONF_XTREME_CYCLE_TRACKING, default=options[CONF_XTREME_CYCLE_TRACKING]): bool,
@@ -878,6 +895,7 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
                 vol.Required(XTREME_SECTION_THERMOSTAT): section(thermostat, {"collapsed": False}),
                 vol.Required(XTREME_SECTION_BOILER): section(boiler, {"collapsed": False}),
                 vol.Required(XTREME_SECTION_LEARNING): section(learning, {"collapsed": False}),
+                vol.Required(XTREME_SECTION_SENSORS): section(sensors, {"collapsed": False}),
                 vol.Required(XTREME_SECTION_DIAGNOSTICS): section(diagnostics, {"collapsed": False}),
             })
         )

@@ -306,6 +306,22 @@
               "xtreme_calibration": "Voegt een start- en stopknop en een statussensor toe voor een zorgvuldige kalibratie van de OPV. Eerst test hij ongeveer 10 minuten of de ketel de modulatiegrens volgt. Zo ja, dan meet elke van de 5 rondes op minimaal vermogen (samen ongeveer 2 uur). Zo nee, dan verlaagt elke ronde het setpoint stap voor stap (meestal 5 tot 6 uur; langer bij zacht weer, omdat de kalibratie pauzeert zolang de kamer meer dan 1 °C boven de doeltemperatuur is; uiterlijk 10 uur). Pauzeert bij warm water en is altijd te stoppen. De uitkomst wordt de beginwaarde van de zelflerende OPV."
             }
           },
+          "sensors": {
+            "name": "Sensoren",
+            "description": "Wat SAT doet als de binnen- of buitentemperatuur niet meer wordt bijgewerkt, bijvoorbeeld als een Zigbee-sensor wegvalt.",
+            "data": {
+              "xtreme_stale_sensors": "Verouderde sensoren afhandelen",
+              "xtreme_inside_max_age": "Maximale leeftijd van de binnentemperatuur",
+              "xtreme_backup_inside_sensor": "Reservesensor binnen",
+              "xtreme_outside_max_age": "Maximale leeftijd van de buitentemperatuur"
+            },
+            "data_description": {
+              "xtreme_stale_sensors": "Vervangt de 'maximale leeftijd van de temperatuursensor' van SAT voor de binnen- en buitensensor. De leeftijd telt vanaf de laatste melding van de sensor, ook als die dezelfde waarde meldde. Zonder bruikbare binnensensor stookt SAT alleen op de stooklijn en nooit hoger dan het setpoint dat het op dat moment vroeg; een verouderde buitentemperatuur wordt vervangen door de laatst bekende waarde. Een reparatiemelding en de binaire sensor 'Stale Sensor' tonen dit, en SAT gaat vanzelf terug naar normaal.",
+              "xtreme_inside_max_age": "Na zoveel minuten zonder melding telt de binnensensor als verouderd. Neem meer dan het langste meldinterval van je sensor.",
+              "xtreme_backup_inside_sensor": "Optioneel. Wordt gebruikt zolang de binnensensor verouderd is en deze sensor niet.",
+              "xtreme_outside_max_age": "Na zoveel minuten zonder melding telt de buitentemperatuur als verouderd."
+            }
+          },
           "diagnostics": {
             "name": "Diagnose",
             "description": "Extra sensoren om te zien wat SAT doet. Ze lezen alleen; ze veranderen niets aan de regeling.",
@@ -412,6 +428,14 @@
           }
         }
       }
+    },
+    "stale_inside_sensor": {
+      "title": "De binnentemperatuur van {name} is verouderd",
+      "description": "De binnensensor {sensor} heeft langer dan de maximale leeftijd niets gemeld. SAT-xtreme gebruikt nu de reservesensor als die actueel is, en stookt anders alleen op de stooklijn, nooit hoger dan het setpoint van het moment dat de sensor wegviel. Controleer de sensor (batterij, Zigbee-verbinding). Deze melding verdwijnt vanzelf als de sensor weer meldt."
+    },
+    "stale_outside_sensor": {
+      "title": "De buitentemperatuur van {name} is verouderd",
+      "description": "De buitentemperatuur ({sensor}) heeft langer dan de maximale leeftijd niets gemeld. SAT-xtreme gebruikt de laatst bekende waarde tot er weer een melding komt. Deze melding verdwijnt dan vanzelf."
     }
   }
 }

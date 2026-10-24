@@ -317,6 +317,22 @@
               "xtreme_calibration": "Adds a start and stop button and a status sensor for a careful calibration of the OPV. It first tests for about 10 minutes whether the boiler follows the modulation limit. If it does, each of the 5 rounds measures at minimum power (about 2 hours in total). If not, each round lowers the setpoint step by step (usually 5 to 6 hours; longer in mild weather, because the calibration pauses while the room is more than 1 °C above the target; at most 10 hours). It pauses for hot water and can be stopped at any time. The result becomes the starting value of the self-learning OPV."
             }
           },
+          "sensors": {
+            "name": "Sensors",
+            "description": "What SAT does when the inside or outside temperature is no longer updated, for example when a Zigbee sensor drops out.",
+            "data": {
+              "xtreme_stale_sensors": "Handle stale sensors",
+              "xtreme_inside_max_age": "Maximum age of the inside temperature",
+              "xtreme_backup_inside_sensor": "Backup inside sensor",
+              "xtreme_outside_max_age": "Maximum age of the outside temperature"
+            },
+            "data_description": {
+              "xtreme_stale_sensors": "Replaces the 'Temperature Sensor maximum value age' of SAT for the inside and outside sensor. The age counts from the last report of the sensor, also when it reported the same value. Without a usable inside sensor, SAT heats on the heating curve only and never above the setpoint it requested at that moment; a stale outside temperature is replaced by the last known value. A repair and the binary sensor 'Stale Sensor' show it, and SAT returns to normal by itself.",
+              "xtreme_inside_max_age": "After this many minutes without a report, the inside sensor counts as stale. Take more than the longest report interval of your sensor.",
+              "xtreme_backup_inside_sensor": "Optional. Used while the inside sensor is stale and this sensor is not.",
+              "xtreme_outside_max_age": "After this many minutes without a report, the outside temperature counts as stale."
+            }
+          },
           "diagnostics": {
             "name": "Diagnostics",
             "description": "Extra sensors to see what SAT does. They only read; they change nothing in the control.",
@@ -437,6 +453,14 @@
           }
         }
       }
+    },
+    "stale_inside_sensor": {
+      "title": "The inside temperature of {name} is stale",
+      "description": "The inside sensor {sensor} has not reported for longer than the maximum age. SAT-xtreme now uses the backup inside sensor if it is up to date, otherwise it heats on the heating curve only, never above the setpoint it requested when the sensor was lost. Check the sensor (battery, Zigbee connection). This repair disappears by itself when the sensor reports again."
+    },
+    "stale_outside_sensor": {
+      "title": "The outside temperature of {name} is stale",
+      "description": "The outside temperature ({sensor}) has not reported for longer than the maximum age. SAT-xtreme uses the last known value until it reports again. This repair disappears by itself when it reports again."
     }
   }
 }

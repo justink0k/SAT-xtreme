@@ -941,3 +941,32 @@ off, nothing changes.
 `custom_components/sat_xtreme/const.py`, `custom_components/sat_xtreme/translations/en.json`,
 `custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_maximum_setpoint.py` (new),
 `docs/maximum-setpoint.md` (new), `docs/settings-xtreme-profile.md`, `docs/entities.md`, `mkdocs.yml`.
+
+## Unreleased: stale sensors
+
+A new section *Sensors* on the Xtreme profile page, with the option *Handle stale sensors*, off by default.
+With the option off, nothing changes and the *Temperature sensor maximum value age* of SAT works as before.
+
+- **The age of a sensor** counts from its last report (`last_reported`, with `last_updated` as fallback), so a
+  sensor that reports the same value is not seen as stale. *Unavailable* and *unknown* are not usable. The
+  sensors are checked every minute. For the inside and outside sensor this replaces the maximum value age check
+  of SAT, including its reset of the PID controller.
+- **Inside temperature:** after *Maximum age of the inside temperature* (default 90 minutes) SAT uses the
+  optional *Backup inside sensor* when it is up to date. Without a usable inside sensor SAT heats on the heating
+  curve only, without the PID correction, and never above the setpoint it requested at that moment; the PID
+  controller is left as it is. SAT returns to normal by itself when a sensor reports again.
+- **Outside temperature:** after *Maximum age of the outside temperature* (default 3 hours) SAT uses the last
+  known value.
+- **The binary sensor *Xtreme fork: Stale Sensor*** and the repairs *The inside temperature of {name} is stale*
+  and *The outside temperature of {name} is stale* show it while it lasts.
+- **Source of the idea:** the stale sensor handling of the closed upstream pull request
+  [Alexwijn/SAT#124](https://github.com/Alexwijn/SAT/pull/124) (GPL-3.0), which reset the PID controller and
+  skipped the control. No code was taken from it; the fork uses a backup sensor and a safe mode instead.
+
+**Files.** `custom_components/sat_xtreme/xtreme/stale.py` (new), `custom_components/sat_xtreme/climate.py`,
+`custom_components/sat_xtreme/xtreme/binary_sensor.py`, `custom_components/sat_xtreme/xtreme/profile.py`,
+`custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/const.py`,
+`custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
+`tests/test_xtreme_stale_sensors.py` (new), `tests/xtreme_helpers.py`, `tests/test_xtreme_presets_and_handover.py`,
+`docs/stale-sensors.md` (new), `docs/settings-xtreme-profile.md`, `docs/settings-system.md`, `docs/entities.md`,
+`docs/repairs.md`, `mkdocs.yml`.

@@ -20,6 +20,9 @@ def async_setup_xtreme_binary_sensors(coordinator, config_entry: ConfigEntry, cl
         SatHeatingDemandBinarySensor(coordinator, config_entry, climate),
     ])
 
+    if coordinator.xtreme_profile.stale_sensors:
+        async_add_entities([SatStaleSensorBinarySensor(coordinator, config_entry, climate)])
+
 
 class _XtremeName:
     _key: str = ""
@@ -72,3 +75,23 @@ class SatHeatingDemandBinarySensor(_XtremeName, SatClimateEntity, BinarySensorEn
     @property
     def is_on(self) -> bool:
         return self._coordinator.heater_state_commanded == DeviceState.ON
+
+
+class SatStaleSensorBinarySensor(_XtremeName, SatClimateEntity, BinarySensorEntity):
+    """On while the inside or outside temperature is stale; the attributes show the ages and the sensor in use."""
+
+    _key = "stale-sensor"
+    _label = "Stale Sensor"
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(self._climate.stale_sensors.add_listener(self.async_write_ha_state))
+
+    @property
+    def is_on(self) -> bool:
+        return self._climate.stale_sensors.stale
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        return self._climate.stale_sensors.attributes

@@ -2,7 +2,7 @@
 
 *Configure → Xtreme profile (fork)*
 
-All features of the fork, in four sections. Every option is **off** by default; with everything off, SAT
+All features of the fork, in five sections. Every option is **off** by default; with everything off, SAT
 behaves like the official version. Turn on one option at a time and watch the effect for a few days (see
 [First steps](first-steps.md)).
 
@@ -49,6 +49,17 @@ Find the [overshoot protection value](overshoot-protection.md#the-overshoot-prot
 |---|---|---|
 | Self-learning OPV (learned OPV) | Off | *Off*, *Learn only* or *Learn and apply*; see [Learned OPV](learned-opv.md) |
 | Calibration buttons (slow calibration) | off | Adds the start and stop buttons and the status sensor; see [Slow calibration](calibration.md) |
+
+## Sensors
+
+What SAT does when the inside or outside temperature is no longer updated.
+
+| Option | Default | Range | Details |
+|---|---|---|---|
+| Handle stale sensors | off | | See [Stale sensors](stale-sensors.md) |
+| Maximum age of the inside temperature | 90 min | 10 – 1440 min | |
+| Backup inside sensor | none | | Optional |
+| Maximum age of the outside temperature | 180 min | 30 – 2880 min | |
 
 ## Diagnostics
 

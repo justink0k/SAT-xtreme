@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional
 
 from ..const import (
     OPTIONS_DEFAULTS,
@@ -30,6 +30,10 @@ from ..const import (
     CONF_XTREME_SETPOINT_CHAIN,
     CONF_XTREME_CYCLE_TRACKING,
     CONF_XTREME_MAXIMUM_SETPOINT_ENTITY,
+    CONF_XTREME_STALE_SENSORS,
+    CONF_XTREME_INSIDE_MAX_AGE,
+    CONF_XTREME_BACKUP_INSIDE_SENSOR,
+    CONF_XTREME_OUTSIDE_MAX_AGE,
     BOILER_PRESET_CUSTOM,
 )
 
@@ -161,6 +165,14 @@ class XtremeProfile:
     # maximum setpoint option and applies it right away, between the OPV and a ceiling per heating system.
     maximum_setpoint_entity: bool = False
 
+    # Stale sensors: a maximum age for the inside and outside temperature (in minutes, measured from the last
+    # report), an optional backup inside sensor, and heating on the heating curve only when no inside sensor
+    # is usable. Replaces the maximum value age check of SAT for these sensors.
+    stale_sensors: bool = False
+    inside_max_age: float = 90
+    backup_inside_sensor: Optional[str] = None
+    outside_max_age: float = 180
+
     @property
     def anti_cycling_wait(self) -> int:
         """Seconds to wait after the last flame before a new on phase may start."""
@@ -196,6 +208,10 @@ class XtremeProfile:
             setpoint_chain=bool(values.get(CONF_XTREME_SETPOINT_CHAIN)),
             cycle_tracking=bool(values.get(CONF_XTREME_CYCLE_TRACKING)),
             maximum_setpoint_entity=bool(values.get(CONF_XTREME_MAXIMUM_SETPOINT_ENTITY)),
+            stale_sensors=bool(values.get(CONF_XTREME_STALE_SENSORS)),
+            inside_max_age=float(values.get(CONF_XTREME_INSIDE_MAX_AGE)),
+            backup_inside_sensor=values.get(CONF_XTREME_BACKUP_INSIDE_SENSOR) or None,
+            outside_max_age=float(values.get(CONF_XTREME_OUTSIDE_MAX_AGE)),
         )
 
         if profile.enabled:
@@ -219,6 +235,7 @@ class XtremeProfile:
             ("setpoint_chain", self.setpoint_chain),
             ("cycle_tracking", self.cycle_tracking),
             ("maximum_setpoint_entity", self.maximum_setpoint_entity),
+            ("stale_sensors", self.stale_sensors),
         )
 
         return [name for name, enabled in switches if enabled]

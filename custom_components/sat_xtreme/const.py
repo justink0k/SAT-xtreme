@@ -108,6 +108,10 @@ CONF_XTREME_HOT_WATER_SWITCH = "xtreme_hot_water_switch"
 CONF_XTREME_SETPOINT_CHAIN = "xtreme_setpoint_chain"
 CONF_XTREME_CYCLE_TRACKING = "xtreme_cycle_tracking"
 CONF_XTREME_MAXIMUM_SETPOINT_ENTITY = "xtreme_maximum_setpoint_entity"
+CONF_XTREME_STALE_SENSORS = "xtreme_stale_sensors"
+CONF_XTREME_INSIDE_MAX_AGE = "xtreme_inside_max_age"
+CONF_XTREME_BACKUP_INSIDE_SENSOR = "xtreme_backup_inside_sensor"
+CONF_XTREME_OUTSIDE_MAX_AGE = "xtreme_outside_max_age"
 
 BOILER_PRESET_CUSTOM = "custom"
 
@@ -198,6 +202,10 @@ OPTIONS_DEFAULTS = {
     CONF_XTREME_SETPOINT_CHAIN: False,
     CONF_XTREME_CYCLE_TRACKING: False,
     CONF_XTREME_MAXIMUM_SETPOINT_ENTITY: False,
+    CONF_XTREME_STALE_SENSORS: False,
+    CONF_XTREME_INSIDE_MAX_AGE: 90,
+    CONF_XTREME_BACKUP_INSIDE_SENSOR: None,
+    CONF_XTREME_OUTSIDE_MAX_AGE: 180,
 }
 
 # Overshoot protection

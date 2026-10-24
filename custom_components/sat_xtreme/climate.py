@@ -48,6 +48,7 @@ from .summer_simmer import SummerSimmer
 from .xtreme.calibration import XtremeCalibration
 from .xtreme.opv import LearnedOpv
 from .xtreme.profile import BOILER_PRESETS, HEATER_COMMAND_REPEAT_SECONDS
+from .xtreme.stale import StaleSensorGuard
 from .util import create_pid_controller, create_heating_curve_controller, create_pwm_controller, create_minimum_setpoint_controller
 
 ATTR_ROOMS = "rooms"
@@ -198,6 +199,19 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             storage_key=f"sat_xtreme_opv_{config_entry.entry_id}",
         )
 
+        # Xtreme profile: what to do when the inside or outside temperature is no longer updated
+        profile = coordinator.xtreme_profile
+        self.stale_sensors = StaleSensorGuard(
+            entry_id=config_entry.entry_id,
+            name=config_entry.data.get(CONF_NAME),
+            enabled=profile.stale_sensors,
+            inside_sensor=self.inside_sensor_entity_id,
+            backup_sensor=profile.backup_inside_sensor,
+            outside_sensors=list(self.outside_sensor_entities or []),
+            inside_max_age_minutes=profile.inside_max_age,
+            outside_max_age_minutes=profile.outside_max_age,
+        )
+
         # Xtreme profile: the calibration of the OPV
         self.xtreme_calibration = XtremeCalibration(
             climate=self,
@@ -271,6 +285,20 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
                 self.hass, [self.inside_sensor_entity_id], self._async_inside_sensor_changed
             )
         )
+
+        # Xtreme profile: check the age of the sensors every minute, also when they report nothing
+        if self.stale_sensors.enabled:
+            self.async_on_remove(async_track_time_interval(self.hass, self._async_check_stale_sensors, timedelta(minutes=1)))
+            self.async_on_remove(lambda: self.stale_sensors.remove_issues(self.hass))
+
+            if self.stale_sensors.backup_sensor is not None:
+                self.async_on_remove(
+                    async_track_state_change_event(
+                        self.hass, [self.stale_sensors.backup_sensor], self._async_inside_sensor_changed
+                    )
+                )
+
+            await self._async_check_stale_sensors()
 
         self.async_on_remove(
             async_track_state_change_event(
@@ -454,7 +482,13 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
     @property
     def current_temperature(self) -> Optional[float]:
         """Return the sensor temperature."""
-        if (current_temperature := self._get_entity_state_float(self.inside_sensor_entity_id)) is None:
+        # Xtreme profile: the stale sensor check picks the main or backup sensor, or none
+        if self.stale_sensors.enabled:
+            current_temperature = self.stale_sensors.inside_temperature(self.hass)
+        else:
+            current_temperature = self._get_entity_state_float(self.inside_sensor_entity_id)
+
+        if current_temperature is None:
             return None
 
         if self._thermal_comfort:
@@ -486,6 +520,10 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
     @property
     def current_outside_temperature(self):
         """Return the current outside temperature"""
+        # Xtreme profile: a stale outside temperature is replaced by the last known value
+        if self.stale_sensors.enabled:
+            return self.stale_sensors.outside_temperature(self.hass)
+
         self.outside_sensor_entities.sort(key=lambda x: "sensor" not in x)
         for entity_id in self.outside_sensor_entities:
             state = self.hass.states.get(entity_id)
@@ -550,6 +588,15 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         """Get the requested setpoint based on the heating curve and PID output."""
         if self.heating_curve.value is None:
             return MINIMUM_SETPOINT
+
+        # Xtreme profile: without a usable inside sensor, heat on the heating curve only, never above the
+        # setpoint that was requested when the sensor was lost
+        if self.stale_sensors.safe_mode:
+            value = max(self.heating_curve.value, MINIMUM_SETPOINT)
+            if (cap := self.stale_sensors.setpoint_cap) is not None:
+                value = min(value, cap)
+
+            return round(value, 1)
 
         pid_output = self.pid.output
 
@@ -678,6 +725,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
     async def _async_inside_sensor_changed(self, event: Event[EventStateChangedData]) -> None:
         """Handle changes to the inside temperature sensor."""
+        await self._async_check_stale_sensors()
+
         new_state = event.data.get("new_state")
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
@@ -690,6 +739,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
     async def _async_outside_entity_changed(self, event: Event[EventStateChangedData]) -> None:
         """Handle changes to the outside entity."""
+        await self._async_check_stale_sensors()
+
         if event.data.get("new_state") is None:
             return
 
@@ -812,14 +863,33 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
             return
 
+    async def _async_check_stale_sensors(self, _time: Optional[datetime] = None) -> None:
+        """Xtreme profile: switch between the main sensor, the backup sensor and the safe mode."""
+        if not self.stale_sensors.check(self.hass, lambda: self.requested_setpoint):
+            return
+
+        self.async_write_ha_state()
+        self._async_control_pid()
+        self.schedule_control_heating_loop()
+
     def _async_control_pid(self, reset: bool = False) -> None:
         """Control the PID controller."""
         # We can't continue if we don't have a valid outside temperature
         if self.current_outside_temperature is None:
             return
 
+        # Xtreme profile: the stale sensor check replaces the reset below. Without a usable inside sensor the
+        # PID controller is left as it is and only the heating curve follows the outside temperature.
+        if self.stale_sensors.safe_mode:
+            if self.target_temperature is not None:
+                self.areas.heating_curves.update(self.current_outside_temperature)
+                self.heating_curve.update(self.target_temperature, self.current_outside_temperature)
+
+            self.async_write_ha_state()
+            return
+
         # Reset the PID controller if the sensor data is too old
-        if self._sensor_max_value_age != 0 and monotonic() - self.pid.last_updated > self._sensor_max_value_age:
+        if not self.stale_sensors.enabled and self._sensor_max_value_age != 0 and monotonic() - self.pid.last_updated > self._sensor_max_value_age:
             self.pid.reset()
             self.areas.pids.reset()
 
