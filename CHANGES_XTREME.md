@@ -864,3 +864,26 @@ No change in the integration.
 
 **Files.** `requirements_docs.txt`, `.github/workflows/docs.yml`, `docs/development.md`,
 `custom_components/sat_xtreme/manifest.json`.
+
+## Unreleased: setpoint chain sensor (diagnostics)
+
+A new option, off by default: *Xtreme profile (fork) → Diagnostics → Show the setpoint chain*. Read only; with
+the option off, nothing changes.
+
+- **The sensor *Xtreme fork: Setpoint Chain*** shows the setpoint SAT calculates (heating curve plus PID). Its
+  attributes show the filtered setpoint, the control setpoint SAT sent to the gateway last (after PWM, setpoint
+  priming and the maximum setpoint) with its time, the heating demand SAT sent, the control setpoint the
+  gateway reports for the boiler (`TSet` on the OpenTherm Gateway), the difference between the two, and the
+  PWM phase.
+- The coordinator now remembers the last control setpoint it sent and when; it is only read by this sensor.
+- The Xtreme profile page has a fourth section, *Diagnostics*.
+- **Source of the idea:** the "requested setpoint" sensor of the closed upstream pull request
+  [Alexwijn/SAT#124](https://github.com/Alexwijn/SAT/pull/124) (GPL-3.0). No code was taken from it; the fork's
+  sensor also shows the sent and received setpoint.
+
+**Files.** `custom_components/sat_xtreme/xtreme/sensor.py`, `custom_components/sat_xtreme/xtreme/profile.py`,
+`custom_components/sat_xtreme/coordinator.py`, `custom_components/sat_xtreme/climate.py` (the property
+`calculated_setpoint`), `custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/const.py`,
+`custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
+`tests/test_xtreme_setpoint_chain.py` (new), `tests/xtreme_helpers.py`, `tests/test_xtreme_presets_and_handover.py`,
+`docs/setpoint-chain.md` (new), `docs/settings-xtreme-profile.md`, `docs/entities.md`, `mkdocs.yml`.

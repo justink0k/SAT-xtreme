@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from abc import abstractmethod
+from datetime import datetime
 from time import monotonic
 from typing import TYPE_CHECKING, Mapping, Any, Optional, Callable
 
@@ -9,6 +10,7 @@ from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback, HassJob
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util import dt as dt_util
 
 from .boiler import BoilerTemperatureTracker, BoilerState, STABILIZATION_MARGIN
 from .const import *
@@ -111,6 +113,10 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         self._heater_state_commanded: Optional[DeviceState] = None
         self._hot_water_last_seen: Optional[float] = None
         self._heater_state_commanded_at: Optional[float] = None
+
+        # Xtreme fork: the last control setpoint SAT sent, only for the setpoint chain sensor
+        self._control_setpoint_sent: Optional[float] = None
+        self._control_setpoint_sent_at: Optional[datetime] = None
 
         self._manufacturer: Optional[Manufacturer] = None
         self._simulation: bool = bool(self._options.get(CONF_SIMULATION))
@@ -243,6 +249,16 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
     def heater_state_commanded(self) -> Optional[DeviceState]:
         """Return the last heater state that was sent to the device, if any."""
         return self._heater_state_commanded
+
+    @property
+    def control_setpoint_sent(self) -> Optional[float]:
+        """Return the last control setpoint that SAT sent to the device, if any."""
+        return self._control_setpoint_sent
+
+    @property
+    def control_setpoint_sent_at(self) -> Optional[datetime]:
+        """Return when the last control setpoint was sent to the device."""
+        return self._control_setpoint_sent_at
 
     @property
     def heater_state_commanded_seconds_ago(self) -> Optional[float]:
@@ -587,6 +603,9 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
     async def async_set_control_setpoint(self, value: float) -> None:
         """Control the boiler setpoint temperature for the device."""
         if self.supports_setpoint_management:
+            self._control_setpoint_sent = value
+            self._control_setpoint_sent_at = dt_util.utcnow()
+
             _LOGGER.info("Set control boiler setpoint to %d°C", value)
 
     async def async_set_control_hot_water_setpoint(self, value: float) -> None:

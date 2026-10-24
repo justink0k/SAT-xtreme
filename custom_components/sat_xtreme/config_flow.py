@@ -26,6 +26,7 @@ from .xtreme.profile import BOILER_PRESETS, apply_boiler_preset
 XTREME_SECTION_THERMOSTAT = "thermostat"
 XTREME_SECTION_BOILER = "boiler"
 XTREME_SECTION_LEARNING = "learning"
+XTREME_SECTION_DIAGNOSTICS = "diagnostics"
 from .coordinator import SatDataUpdateCoordinator
 from .helpers import calculate_default_maximum_setpoint, snake_case
 from .manufacturer import ManufacturerFactory, MANUFACTURERS
@@ -865,12 +866,17 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
             vol.Required(CONF_XTREME_CALIBRATION, default=options[CONF_XTREME_CALIBRATION]): bool,
         })
 
+        diagnostics = vol.Schema({
+            vol.Required(CONF_XTREME_SETPOINT_CHAIN, default=options[CONF_XTREME_SETPOINT_CHAIN]): bool,
+        })
+
         return self.async_show_form(
             step_id="xtreme_profile",
             data_schema=vol.Schema({
                 vol.Required(XTREME_SECTION_THERMOSTAT): section(thermostat, {"collapsed": False}),
                 vol.Required(XTREME_SECTION_BOILER): section(boiler, {"collapsed": False}),
                 vol.Required(XTREME_SECTION_LEARNING): section(learning, {"collapsed": False}),
+                vol.Required(XTREME_SECTION_DIAGNOSTICS): section(diagnostics, {"collapsed": False}),
             })
         )
 

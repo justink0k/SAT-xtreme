@@ -314,6 +314,16 @@
               "xtreme_learned_opv": "SAT learns the OPV during normal heating. 'Learn only' shows the learned value in a sensor while SAT keeps using your own OPV. 'Learn and apply' lets SAT use the learned value.",
               "xtreme_calibration": "Adds a start and stop button and a status sensor for a careful calibration of the OPV. It first tests for about 10 minutes whether the boiler follows the modulation limit. If it does, each of the 5 rounds measures at minimum power (about 2 hours in total). If not, each round lowers the setpoint step by step (usually 5 to 6 hours; longer in mild weather, because the calibration pauses while the room is more than 1 °C above the target; at most 10 hours). It pauses for hot water and can be stopped at any time. The result becomes the starting value of the self-learning OPV."
             }
+          },
+          "diagnostics": {
+            "name": "Diagnostics",
+            "description": "Extra sensors to see what SAT does. They only read; they change nothing in the control.",
+            "data": {
+              "xtreme_setpoint_chain": "Show the setpoint chain"
+            },
+            "data_description": {
+              "xtreme_setpoint_chain": "Adds the sensor \"Xtreme fork: Setpoint Chain\". Its value is the setpoint SAT calculates (heating curve plus PID); its attributes show the setpoint SAT sends to the gateway and the setpoint the gateway reports for the boiler, so you can see where a difference comes from."
+            }
           }
         }
       },

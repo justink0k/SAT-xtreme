@@ -78,5 +78,6 @@ All names start with **Xtreme fork:**.
 | *Calibration* | [Slow calibration](calibration.md) | Phase, progress and report of the calibration. |
 | *Start Calibration*, *Stop Calibration* | [Slow calibration](calibration.md) (buttons) | Start or stop the calibration. |
 | *Hot Water Keep Warm* | [Keep-warm switch](hot_water_keep_warm.md) (switch) | On: normal (`HW=A`); off: no keep-warm (`HW=0`). |
+| *Setpoint Chain* | [Setpoint chain](setpoint-chain.md) | The calculated setpoint, with the sent and received setpoint as attributes. |
 
 The unique IDs of the fork's entities contain `-xtreme-`, so they never clash with entities of the official SAT.

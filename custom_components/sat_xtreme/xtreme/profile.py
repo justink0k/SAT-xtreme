@@ -27,6 +27,7 @@ from ..const import (
     CONF_XTREME_BOILER_PRESET,
     CONF_XTREME_HANDOVER_ON_OFF,
     CONF_XTREME_HOT_WATER_SWITCH,
+    CONF_XTREME_SETPOINT_CHAIN,
     BOILER_PRESET_CUSTOM,
 )
 
@@ -146,6 +147,10 @@ class XtremeProfile:
     # blocked on boilers that treat the DHW enable bit as "keep warm" (tested: Intergas Xtreme 30).
     hot_water_switch: bool = False
 
+    # Diagnostics: a sensor that shows the setpoint SAT calculates, the one it sends to the gateway and the
+    # one the gateway reports for the boiler. Read only, it changes nothing in the control.
+    setpoint_chain: bool = False
+
     @property
     def anti_cycling_wait(self) -> int:
         """Seconds to wait after the last flame before a new on phase may start."""
@@ -178,6 +183,7 @@ class XtremeProfile:
             boiler_preset=str(values.get(CONF_XTREME_BOILER_PRESET)),
             handover_on_off=bool(values.get(CONF_XTREME_HANDOVER_ON_OFF)),
             hot_water_switch=bool(values.get(CONF_XTREME_HOT_WATER_SWITCH)),
+            setpoint_chain=bool(values.get(CONF_XTREME_SETPOINT_CHAIN)),
         )
 
         if profile.enabled:
@@ -198,6 +204,7 @@ class XtremeProfile:
             (f"boiler_preset ({self.boiler_preset})", self.boiler_preset != BOILER_PRESET_CUSTOM),
             ("handover_on_off", self.handover_on_off),
             ("hot_water_switch", self.hot_water_switch),
+            ("setpoint_chain", self.setpoint_chain),
         )
 
         return [name for name, enabled in switches if enabled]

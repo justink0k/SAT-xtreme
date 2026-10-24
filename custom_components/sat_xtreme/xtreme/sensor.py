@@ -40,6 +40,9 @@ def async_setup_xtreme_sensors(coordinator, config_entry: ConfigEntry, climate, 
     if profile.calibration:
         entities.append(SatCalibrationSensor(coordinator, config_entry, climate))
 
+    if profile.setpoint_chain:
+        entities.append(SatSetpointChainSensor(coordinator, config_entry, climate))
+
     if entities:
         async_add_entities(entities)
 
@@ -174,6 +177,37 @@ class SatPidOutputSensor(SatXtremeSensor):
             "automatic_gains": pid.automatic_gains,
             "gain_factor": pid.gain_factor,
             "maximum_setpoint_rise": self._coordinator.xtreme_profile.maximum_setpoint_rise,
+        }
+
+
+class SatSetpointChainSensor(SatXtremeSensor):
+    """The setpoint SAT calculates, the one it sends to the gateway and the one the gateway reports for the boiler."""
+
+    _key = "setpoint-chain"
+    _label = "Setpoint Chain"
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    @property
+    def native_value(self) -> float | None:
+        return self._climate.requested_setpoint
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        sent = self._coordinator.control_setpoint_sent
+        received = self._coordinator.setpoint
+        sent_at = self._coordinator.control_setpoint_sent_at
+        heater_state = self._coordinator.heater_state_commanded
+
+        return {
+            "filtered_setpoint": self._climate.calculated_setpoint,
+            "sent_setpoint": sent,
+            "sent_at": sent_at.isoformat() if sent_at is not None else None,
+            "heating_demand_sent": heater_state.value if heater_state is not None else None,
+            "received_setpoint": received,
+            "difference": round(received - sent, 1) if sent is not None and received is not None else None,
+            "pwm_status": self._climate.pwm.status.value,
         }
 
 

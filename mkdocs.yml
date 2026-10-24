@@ -85,6 +85,7 @@ nav:
       - Hot water keep-warm: hot_water_keep_warm.md
       - Boiler presets: boiler_presets.md
       - Dashboard: dashboard.md
+      - Setpoint chain: setpoint-chain.md
   - Reference:
       - Entities: entities.md
       - Actions: actions.md

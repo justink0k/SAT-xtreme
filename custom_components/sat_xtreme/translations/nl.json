@@ -303,6 +303,16 @@
               "xtreme_learned_opv": "SAT leert de OPV tijdens gewoon stoken. 'Alleen leren' toont de geleerde waarde in een sensor terwijl SAT je eigen OPV blijft gebruiken. 'Leren en gebruiken' laat SAT de geleerde waarde gebruiken.",
               "xtreme_calibration": "Voegt een start- en stopknop en een statussensor toe voor een zorgvuldige kalibratie van de OPV. Eerst test hij ongeveer 10 minuten of de ketel de modulatiegrens volgt. Zo ja, dan meet elke van de 5 rondes op minimaal vermogen (samen ongeveer 2 uur). Zo nee, dan verlaagt elke ronde het setpoint stap voor stap (meestal 5 tot 6 uur; langer bij zacht weer, omdat de kalibratie pauzeert zolang de kamer meer dan 1 °C boven de doeltemperatuur is; uiterlijk 10 uur). Pauzeert bij warm water en is altijd te stoppen. De uitkomst wordt de beginwaarde van de zelflerende OPV."
             }
+          },
+          "diagnostics": {
+            "name": "Diagnose",
+            "description": "Extra sensoren om te zien wat SAT doet. Ze lezen alleen; ze veranderen niets aan de regeling.",
+            "data": {
+              "xtreme_setpoint_chain": "Toon de setpointketen"
+            },
+            "data_description": {
+              "xtreme_setpoint_chain": "Voegt de sensor \"Xtreme fork: Setpoint Chain\" toe. De waarde is het setpoint dat SAT berekent (stooklijn plus PID); de attributen tonen het setpoint dat SAT naar de gateway stuurt en het setpoint dat de gateway voor de ketel meldt, zodat je ziet waar een verschil vandaan komt."
+            }
           }
         }
       },

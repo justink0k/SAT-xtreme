@@ -541,6 +541,11 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         return self._setpoint
 
     @property
+    def calculated_setpoint(self) -> float | None:
+        """Xtreme fork: the requested setpoint after the low-pass filter, as PWM uses it."""
+        return self._calculated_setpoint
+
+    @property
     def requested_setpoint(self) -> float:
         """Get the requested setpoint based on the heating curve and PID output."""
         if self.heating_curve.value is None:

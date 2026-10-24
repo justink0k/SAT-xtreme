@@ -2,7 +2,7 @@
 
 *Configure → Xtreme profile (fork)*
 
-All features of the fork, in three sections. Every option is **off** by default; with everything off, SAT
+All features of the fork, in four sections. Every option is **off** by default; with everything off, SAT
 behaves like the official version. Turn on one option at a time and watch the effect for a few days (see
 [First steps](first-steps.md)).
 
@@ -48,6 +48,14 @@ Find the [overshoot protection value](overshoot-protection.md#the-overshoot-prot
 |---|---|---|
 | Self-learning OPV (learned OPV) | Off | *Off*, *Learn only* or *Learn and apply*; see [Learned OPV](learned-opv.md) |
 | Calibration buttons (slow calibration) | off | Adds the start and stop buttons and the status sensor; see [Slow calibration](calibration.md) |
+
+## Diagnostics
+
+Extra sensors to see what SAT does. They only read; they change nothing in the control.
+
+| Option | Default | Details |
+|---|---|---|
+| Show the setpoint chain | off | Adds the sensor *Setpoint Chain*; see [Setpoint chain](setpoint-chain.md) |
 
 ## Where the options are stored
 
