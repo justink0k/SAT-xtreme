@@ -84,6 +84,7 @@ nav:
       - Hand over to the thermostat: handover.md
       - Hot water keep-warm: hot_water_keep_warm.md
       - Boiler presets: boiler_presets.md
+      - Maximum setpoint entity: maximum-setpoint.md
       - Dashboard: dashboard.md
       - Setpoint chain: setpoint-chain.md
       - Burner cycles: burner-cycles.md

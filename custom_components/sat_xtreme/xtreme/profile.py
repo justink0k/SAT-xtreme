@@ -29,6 +29,7 @@ from ..const import (
     CONF_XTREME_HOT_WATER_SWITCH,
     CONF_XTREME_SETPOINT_CHAIN,
     CONF_XTREME_CYCLE_TRACKING,
+    CONF_XTREME_MAXIMUM_SETPOINT_ENTITY,
     BOILER_PRESET_CUSTOM,
 )
 
@@ -156,6 +157,10 @@ class XtremeProfile:
     # survives a restart). Read only, it changes nothing in the control.
     cycle_tracking: bool = False
 
+    # A number entity for the maximum setpoint, for dashboards and automations. It stores the value as the
+    # maximum setpoint option and applies it right away, between the OPV and a ceiling per heating system.
+    maximum_setpoint_entity: bool = False
+
     @property
     def anti_cycling_wait(self) -> int:
         """Seconds to wait after the last flame before a new on phase may start."""
@@ -190,6 +195,7 @@ class XtremeProfile:
             hot_water_switch=bool(values.get(CONF_XTREME_HOT_WATER_SWITCH)),
             setpoint_chain=bool(values.get(CONF_XTREME_SETPOINT_CHAIN)),
             cycle_tracking=bool(values.get(CONF_XTREME_CYCLE_TRACKING)),
+            maximum_setpoint_entity=bool(values.get(CONF_XTREME_MAXIMUM_SETPOINT_ENTITY)),
         )
 
         if profile.enabled:
@@ -212,6 +218,7 @@ class XtremeProfile:
             ("hot_water_switch", self.hot_water_switch),
             ("setpoint_chain", self.setpoint_chain),
             ("cycle_tracking", self.cycle_tracking),
+            ("maximum_setpoint_entity", self.maximum_setpoint_entity),
         )
 
         return [name for name, enabled in switches if enabled]

@@ -79,6 +79,7 @@ All names start with **Xtreme fork:**.
 | *Start Calibration*, *Stop Calibration* | [Slow calibration](calibration.md) (buttons) | Start or stop the calibration. |
 | *Hot Water Keep Warm* | [Keep-warm switch](hot_water_keep_warm.md) (switch) | On: normal (`HW=A`); off: no keep-warm (`HW=0`). |
 | *Setpoint Chain* | [Setpoint chain](setpoint-chain.md) | The calculated setpoint, with the sent and received setpoint as attributes. |
+| *Maximum Setpoint* | [Maximum setpoint entity](maximum-setpoint.md) (number) | The maximum setpoint; a change is stored as the option and used right away. |
 | *Last Cycle* | [Burner cycles](burner-cycles.md) | Burn time of the last burner cycle, with its data. |
 | *Cycles Last Hour*, *Cycles Last 24h* | [Burner cycles](burner-cycles.md) | Number of burner cycles in the window. |
 | *Average Burn Time Last Hour*, *Average Burn Time Last 24h* | [Burner cycles](burner-cycles.md) | Average burn time in the window. |

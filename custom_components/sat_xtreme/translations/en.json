@@ -288,7 +288,8 @@
               "xtreme_anti_cycling_margin": "Extra margin on the anti-cycling time",
               "xtreme_minimum_burn_time": "Minimum burn time per PWM block",
               "xtreme_minimum_duty_cycle": "Do not heat below this duty cycle",
-              "xtreme_hot_water_switch": "Hot water keep-warm switch"
+              "xtreme_hot_water_switch": "Hot water keep-warm switch",
+              "xtreme_maximum_setpoint_entity": "Maximum setpoint as an entity"
             },
             "data_description": {
               "xtreme_boiler_preset": "Fills in the heating output and anti-cycling time of a known boiler. It never turns an option on or off. When you change one of these values yourself, the preset goes back to Custom.",
@@ -300,7 +301,8 @@
               "xtreme_anti_cycling_margin": "Seconds added to the anti-cycling time, so SAT never asks for heat just before the boiler may start.",
               "xtreme_minimum_burn_time": "The shortest burn of a PWM block. Longer burns mean fewer starts and longer pauses. Default 6 minutes.",
               "xtreme_minimum_duty_cycle": "When the house needs less heat than this share of the time, SAT does not heat at all until the demand rises. Default 7.5 %.",
-              "xtreme_hot_water_switch": "Adds the switch 'Xtreme fork: Hot Water Keep Warm'. On: normal operation (HW=A): the DHW enable bit follows the thermostat on the bus. Off (HW=0): the DHW enable bit is cleared, so a boiler that follows it stops keeping hot water warm: fewer short burner starts, but hot water takes longer to arrive at the tap. Whether the boiler follows the bit depends on the boiler: on Intergas only when the tap comfort is set to Eco and parameter P074 (number of Eco days) is 0; with On or a self-learning Eco the switch has no effect. Use it by hand or in an automation, for example off at night. The gateway keeps the last setting, also when Home Assistant is down. Test first that hot water still works at the tap with the switch off: some boilers block hot water completely. Turning this option off gives keep-warm back to the boiler. OpenTherm Gateway over MQTT only."
+              "xtreme_hot_water_switch": "Adds the switch 'Xtreme fork: Hot Water Keep Warm'. On: normal operation (HW=A): the DHW enable bit follows the thermostat on the bus. Off (HW=0): the DHW enable bit is cleared, so a boiler that follows it stops keeping hot water warm: fewer short burner starts, but hot water takes longer to arrive at the tap. Whether the boiler follows the bit depends on the boiler: on Intergas only when the tap comfort is set to Eco and parameter P074 (number of Eco days) is 0; with On or a self-learning Eco the switch has no effect. Use it by hand or in an automation, for example off at night. The gateway keeps the last setting, also when Home Assistant is down. Test first that hot water still works at the tap with the switch off: some boilers block hot water completely. Turning this option off gives keep-warm back to the boiler. OpenTherm Gateway over MQTT only.",
+              "xtreme_maximum_setpoint_entity": "Adds the number entity \"Maximum Setpoint\", so you can change the maximum setpoint from a dashboard or an automation. A change is stored as the Maximum Setpoint option and used right away. It can be set between the OPV that SAT uses (at least 30 °C) and 75 °C for radiators, 50 °C for underfloor heating or 55 °C for a heat pump, and never above the limit the boiler reports. It cannot be changed while the calibration runs."
             }
           },
           "learning": {

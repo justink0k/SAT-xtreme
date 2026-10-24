@@ -857,6 +857,7 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
                 selector.NumberSelectorConfig(min=2.5, max=30, step=0.5, unit_of_measurement="%")
             ),
             vol.Required(CONF_XTREME_HOT_WATER_SWITCH, default=options[CONF_XTREME_HOT_WATER_SWITCH]): bool,
+            vol.Required(CONF_XTREME_MAXIMUM_SETPOINT_ENTITY, default=options[CONF_XTREME_MAXIMUM_SETPOINT_ENTITY]): bool,
         })
 
         learning = vol.Schema({

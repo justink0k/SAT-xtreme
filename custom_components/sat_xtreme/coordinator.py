@@ -118,6 +118,9 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         self._control_setpoint_sent: Optional[float] = None
         self._control_setpoint_sent_at: Optional[datetime] = None
 
+        # Xtreme fork: a maximum setpoint set with the number entity, until the next reload reads it from the options
+        self._maximum_setpoint_override: Optional[float] = None
+
         self._manufacturer: Optional[Manufacturer] = None
         self._simulation: bool = bool(self._options.get(CONF_SIMULATION))
         self._heating_system: str = str(config_data.get(CONF_HEATING_SYSTEM, HEATING_SYSTEM_UNKNOWN))
@@ -452,8 +455,25 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
     @property
     def maximum_setpoint(self) -> float:
         """Return the maximum setpoint temperature that the device can support."""
+        if self._maximum_setpoint_override is not None:
+            return self._maximum_setpoint_override
+
         default_maximum_setpoint = calculate_default_maximum_setpoint(self._heating_system)
         return float(self._options.get(CONF_MAXIMUM_SETPOINT, default_maximum_setpoint))
+
+    @property
+    def boiler_maximum_setpoint_bound(self) -> Optional[float]:
+        """Xtreme fork: the upper bound of the maximum setpoint that the boiler reports (OpenTherm message 49), if known."""
+        return None
+
+    @property
+    def heating_system(self) -> str:
+        return self._heating_system
+
+    async def async_set_maximum_setpoint(self, value: float) -> None:
+        """Xtreme fork: use a new maximum setpoint right away and send it to the device."""
+        self._maximum_setpoint_override = float(value)
+        await self.async_set_control_max_setpoint(self._maximum_setpoint_override)
 
     @property
     def supports_setpoint_management(self):

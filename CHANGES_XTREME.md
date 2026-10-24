@@ -916,3 +916,28 @@ not use it.
 `tests/test_xtreme_cycles.py` (new), `tests/test_xtreme_setpoint_chain.py`, `tests/xtreme_helpers.py`,
 `docs/burner-cycles.md` (new), `docs/settings-xtreme-profile.md`, `docs/entities.md`, `docs/actions.md`,
 `mkdocs.yml`.
+
+## Unreleased: maximum setpoint entity
+
+A new option, off by default: *Xtreme profile (fork) → Boiler → Maximum setpoint as an entity*. With the option
+off, nothing changes.
+
+- **The number entity *Xtreme fork: Maximum Setpoint*** changes the maximum setpoint from a dashboard or an
+  automation. A change is stored as the option *Maximum Setpoint* and used right away without a reload: the
+  coordinator uses the new value and sends it to the gateway (`SH=` on the OpenTherm Gateway).
+- **Limits:** at least the OPV in use (the learned OPV when applied, otherwise the configured one) and 30 °C; at
+  most 75 °C for radiators, 50 °C for underfloor heating and 55 °C for a heat pump (the default maximum of
+  SAT for an unknown heating system), and never above the upper bound the boiler reports in OpenTherm message
+  49. Changes are refused while the slow calibration runs.
+- The OpenTherm Gateway over MQTT now also reads `MaxTSetUBMaxTSetLB_value_hb` (message 49) when the gateway
+  publishes it; nothing else uses it.
+- **Source of the idea:** the maximum setpoint number of the closed upstream pull request
+  [Alexwijn/SAT#124](https://github.com/Alexwijn/SAT/pull/124) (GPL-3.0). No code was taken from it; the fork's
+  entity stores the value as the option and has other limits.
+
+**Files.** `custom_components/sat_xtreme/xtreme/number.py` (new), `custom_components/sat_xtreme/number.py`,
+`custom_components/sat_xtreme/coordinator.py`, `custom_components/sat_xtreme/mqtt/opentherm.py`,
+`custom_components/sat_xtreme/xtreme/profile.py`, `custom_components/sat_xtreme/config_flow.py`,
+`custom_components/sat_xtreme/const.py`, `custom_components/sat_xtreme/translations/en.json`,
+`custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_maximum_setpoint.py` (new),
+`docs/maximum-setpoint.md` (new), `docs/settings-xtreme-profile.md`, `docs/entities.md`, `mkdocs.yml`.

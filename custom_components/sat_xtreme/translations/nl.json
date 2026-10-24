@@ -277,7 +277,8 @@
               "xtreme_anti_cycling_margin": "Extra marge op de anti-pendeltijd",
               "xtreme_minimum_burn_time": "Minimale brandtijd per PWM-blok",
               "xtreme_minimum_duty_cycle": "Niet stoken onder deze duty cycle",
-              "xtreme_hot_water_switch": "Schakelaar voor warm water warmhouden"
+              "xtreme_hot_water_switch": "Schakelaar voor warm water warmhouden",
+              "xtreme_maximum_setpoint_entity": "Maximum setpoint als entiteit"
             },
             "data_description": {
               "xtreme_boiler_preset": "Vult het vermogen en de anti-pendeltijd in van een bekende ketel. Zet nooit een optie aan of uit. Wijzig je zelf een van deze waarden, dan gaat de preset terug naar Aangepast.",
@@ -289,7 +290,8 @@
               "xtreme_anti_cycling_margin": "Seconden bovenop de anti-pendeltijd, zodat SAT nooit warmte vraagt net voordat de ketel weer mag starten.",
               "xtreme_minimum_burn_time": "De kortste brand van een PWM-blok. Langer branden betekent minder starts en langere pauzes. Standaard 6 minuten.",
               "xtreme_minimum_duty_cycle": "Heeft het huis minder warmte nodig dan dit deel van de tijd, dan stookt SAT helemaal niet tot de vraag stijgt. Standaard 7,5 %.",
-              "xtreme_hot_water_switch": "Voegt de schakelaar 'Xtreme fork: Hot Water Keep Warm' toe. Aan: normaal bedrijf (HW=A): de warmwater-bit volgt de thermostaat op de bus. Uit (HW=0): de warmwater-bit gaat uit, zodat een ketel die deze bit volgt stopt met warmhouden: minder korte branderstarts, maar warm water komt later uit de kraan. Of de ketel de bit volgt, hangt af van de ketel: bij Intergas alleen als het tapcomfort op Eco staat en parameter P074 (aantal Eco-dagen) op 0; met On of een zelflerend Eco heeft de schakelaar geen effect. Gebruik hem met de hand of in een automatisering, bijvoorbeeld 's nachts uit. De gateway onthoudt de laatste stand, ook als Home Assistant uitvalt. Test eerst of er met de schakelaar uit nog warm water uit de kraan komt: sommige ketels blokkeren warm water dan helemaal. Zet je deze optie uit, dan krijgt de ketel het warmhouden terug. Alleen voor de OpenTherm Gateway via MQTT."
+              "xtreme_hot_water_switch": "Voegt de schakelaar 'Xtreme fork: Hot Water Keep Warm' toe. Aan: normaal bedrijf (HW=A): de warmwater-bit volgt de thermostaat op de bus. Uit (HW=0): de warmwater-bit gaat uit, zodat een ketel die deze bit volgt stopt met warmhouden: minder korte branderstarts, maar warm water komt later uit de kraan. Of de ketel de bit volgt, hangt af van de ketel: bij Intergas alleen als het tapcomfort op Eco staat en parameter P074 (aantal Eco-dagen) op 0; met On of een zelflerend Eco heeft de schakelaar geen effect. Gebruik hem met de hand of in een automatisering, bijvoorbeeld 's nachts uit. De gateway onthoudt de laatste stand, ook als Home Assistant uitvalt. Test eerst of er met de schakelaar uit nog warm water uit de kraan komt: sommige ketels blokkeren warm water dan helemaal. Zet je deze optie uit, dan krijgt de ketel het warmhouden terug. Alleen voor de OpenTherm Gateway via MQTT.",
+              "xtreme_maximum_setpoint_entity": "Voegt de number-entiteit \"Maximum Setpoint\" toe, zodat je het maximum setpoint vanuit een dashboard of automatisering kunt aanpassen. Een wijziging wordt opgeslagen als de optie Maximum Setpoint en direct gebruikt. Hij is in te stellen tussen de OPV die SAT gebruikt (minstens 30 °C) en 75 °C bij radiatoren, 50 °C bij vloerverwarming of 55 °C bij een warmtepomp, en nooit boven de grens die de ketel meldt. Tijdens de calibratie kan hij niet worden gewijzigd."
             }
           },
           "learning": {

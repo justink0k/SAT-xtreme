@@ -31,6 +31,7 @@ Values for your boiler, from its rating plate and installation manual, or from a
 | Minimum burn time per PWM block | 360 s | 240 – 600 s | The shortest burn of a block. |
 | Do not heat below this duty cycle | 7.5 % | 2.5 – 30 % | Below this, SAT does not heat until the demand rises. |
 | Hot water keep-warm switch | off | | [Hot water keep-warm](hot_water_keep_warm.md); OpenTherm Gateway over MQTT only |
+| Maximum setpoint as an entity | off | | [Maximum setpoint entity](maximum-setpoint.md) |
 
 !!! warning "Fill in your own boiler values"
     The defaults are the values of the tested Intergas Xtreme 30. Before you turn on *The boiler ignores the

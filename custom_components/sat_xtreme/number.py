@@ -5,6 +5,7 @@ from homeassistant.core import HomeAssistant
 from .const import *
 from .coordinator import SatDataUpdateCoordinator
 from .entity import SatEntity
+from .xtreme.number import async_setup_xtreme_numbers
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities):
@@ -12,6 +13,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
 
     if coordinator.supports_hot_water_setpoint_management:
         async_add_entities([SatHotWaterSetpointEntity(coordinator, config_entry)])
+
+    # Xtreme profile numbers, only for the active switches
+    if (climate := hass.data[DOMAIN][config_entry.entry_id].get(CLIMATE)) is not None:
+        async_setup_xtreme_numbers(coordinator, config_entry, climate, async_add_entities)
 
 
 class SatHotWaterSetpointEntity(SatEntity, NumberEntity):
