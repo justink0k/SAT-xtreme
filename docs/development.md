@@ -48,10 +48,13 @@ of the integration.
 
 ```bash
 .venv/bin/pip install -r requirements_docs.txt
-.venv/bin/mkdocs serve
+.venv/bin/zensical serve
 ```
 
-Then open `http://127.0.0.1:8000`. A push to `xtreme` that changes `docs/` or `mkdocs.yml` publishes the manual
+Then open `http://127.0.0.1:8000`. The manual is built with [Zensical](https://zensical.org), the successor of
+Material for MkDocs, which reads `mkdocs.yml`. Zensical is not pinned, so its look can change with a new
+version; when a new version breaks the build, the workflow stops before publishing and the manual online stays
+as it was. A push to `xtreme` that changes `docs/` or `mkdocs.yml` publishes the manual
 to GitHub Pages through the workflow `.github/workflows/docs.yml`. The test `tests/test_xtreme_manual.py`
 checks that every option of the fork and every fork entity is described in the manual.
 

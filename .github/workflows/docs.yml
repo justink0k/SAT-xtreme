@@ -13,6 +13,7 @@ on:
     paths:
       - "docs/**"
       - "mkdocs.yml"
+      - "requirements_docs.txt"
   workflow_dispatch:
 
 permissions:
@@ -30,10 +31,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Install MkDocs
+      - name: Install Zensical
         run: pip install -r requirements_docs.txt
       - name: Build the manual
-        run: mkdocs build --strict
+        run: zensical build --strict
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:

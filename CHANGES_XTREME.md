@@ -850,3 +850,17 @@ Documentation only; no change in behaviour.
   has its own domain, so the official SAT is set up again with the wizard.
 
 **Files.** `CHANGES_XTREME.md`, `custom_components/sat_xtreme/manifest.json`.
+
+## Version 32: the manual is built with Zensical (`4.2.1-xtreme.32`, 2026-10-24)
+
+No change in the integration.
+
+- **Zensical** builds the manual instead of MkDocs with Material for MkDocs, which is in maintenance mode.
+  Zensical is made by the same team and reads the same `mkdocs.yml`; the pages, their text and the checks of
+  links and anchors are the same. The manual gets the new look of Zensical.
+- Zensical is **not pinned**, so the manual follows new versions. When a new version breaks the build, the
+  workflow stops before publishing and the manual online stays as it was.
+- The build check on pull requests also runs when `requirements_docs.txt` changes.
+
+**Files.** `requirements_docs.txt`, `.github/workflows/docs.yml`, `docs/development.md`,
+`custom_components/sat_xtreme/manifest.json`.
