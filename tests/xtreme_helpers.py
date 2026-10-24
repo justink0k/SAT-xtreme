@@ -3,6 +3,7 @@ from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.template import DOMAIN as TEMPLATE_DOMAIN
 
 from custom_components.sat_xtreme.const import *
+from tests.fake_coordinator import MODE_FAKE
 
 MINIMUM_SETPOINT_VALUE = 46
 

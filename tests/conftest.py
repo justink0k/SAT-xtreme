@@ -7,13 +7,27 @@ from pytest_homeassistant_custom_component.common import assert_setup_component,
 
 from custom_components.sat_xtreme.const import DOMAIN, CLIMATE, COORDINATOR
 from custom_components.sat_xtreme.climate import SatClimate
-from custom_components.sat_xtreme.fake import SatFakeCoordinator
+from custom_components.sat_xtreme.coordinator import SatDataUpdateCoordinatorFactory
+from tests.fake_coordinator import MODE_FAKE, SatFakeCoordinator
 from tests.const import DEFAULT_USER_DATA
 
 
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     yield
+
+
+@pytest.fixture(autouse=True)
+def fake_coordinator(monkeypatch):
+    """Let the coordinator factory create the test coordinator for the mode "fake" (not part of the integration)."""
+    original = SatDataUpdateCoordinatorFactory.resolve
+
+    def resolve(hass, mode, device, data, options=None):
+        if mode == MODE_FAKE:
+            return SatFakeCoordinator(hass=hass, config_data=data, options=options)
+        return original(hass=hass, mode=mode, device=device, data=data, options=options)
+
+    monkeypatch.setattr(SatDataUpdateCoordinatorFactory, "resolve", staticmethod(resolve))
 
 
 @pytest.fixture

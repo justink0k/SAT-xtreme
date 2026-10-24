@@ -9,7 +9,6 @@ CLIMATE = "climate"
 COORDINATOR = "coordinator"
 CONFIG_STORE = "config_store"
 
-MODE_FAKE = "fake"
 MODE_MQTT_EMS = "mqtt_ems"
 MODE_MQTT_OPENTHERM = "mqtt_opentherm"
 MODE_SWITCH = "switch"

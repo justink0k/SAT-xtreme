@@ -15,7 +15,6 @@ You can run most of it again later with *Reconfigure* on the integration.
 | Serial Gateway | An [OpenTherm Gateway](gateways.md#opentherm-gateway-serial) reached over a socket, for example `socket://otgw.local:25238` |
 | ESPHome | An [ESPHome OpenTherm](esphome.md) device |
 | PID Thermostat (PWM On/Off) | A [switch](gateways.md#switch-or-relay) that turns the heating on and off |
-| Simulated Gateway | Testing only; visible when *Advanced mode* is on in your user profile |
 
 An OpenTherm Gateway is also discovered automatically (over DHCP or MQTT); then the wizard starts with the
 gateway already filled in.

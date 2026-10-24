@@ -79,9 +79,7 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             "switch"
         ]
 
-        if self.show_advanced_options:
-            menu_options.append("simulator")
-
+        # The simulator is for development only; it is started with the source "simulator" (see tests)
         return self.async_show_menu(step_id="user", menu_options=menu_options)
 
     def _movable_legacy_entries(self) -> list[ConfigEntry]:
@@ -618,10 +616,8 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
         self._options = dict(config_entry.options)
 
     async def async_step_init(self, _user_input: dict[str, Any] | None = None):
-        menu_options = ["general", "presets", "system_configuration"]
-
-        if self.show_advanced_options:
-            menu_options.append("advanced")
+        # The Advanced page is always shown (show_advanced_options is deprecated in Home Assistant)
+        menu_options = ["general", "presets", "system_configuration", "advanced"]
 
         menu_options.append("xtreme_profile")
         menu_options.append("pid_settings")

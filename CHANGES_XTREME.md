@@ -811,3 +811,25 @@ No change in behaviour.
 `docs/gateways.md`, `docs/prime-setpoint.md` and the other pages of `docs/` (feature names), `mkdocs.yml`,
 `custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
 `custom_components/sat_xtreme/manifest.json`.
+
+## Version 30: review fixes (`4.2.1-xtreme.30`, 2026-10-24)
+
+Three points that the Home Assistant review of custom integrations often raises.
+
+- **The Advanced page is always shown.** `show_advanced_options` is deprecated in Home Assistant and logged a
+  warning. *Configure → Advanced Options* no longer needs *Advanced mode* in the user profile; nothing on the
+  page changes.
+- **The simulator is no longer in the setup wizard.** It was only offered with *Advanced mode*. It stays for
+  development and the tests, and is started from Python with the source `simulator`.
+- **No fixed area.** The SAT device no longer suggests the area "Living Room"; Home Assistant leaves the area
+  empty, or keeps the area you chose before.
+- **No test code in the integration.** The coordinator without a boiler (mode `fake`) moved from
+  `custom_components/sat_xtreme/fake/` to `tests/fake_coordinator.py`; the tests add it to the coordinator
+  factory themselves.
+
+**Files.** `custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/entity.py`,
+`custom_components/sat_xtreme/const.py`, `custom_components/sat_xtreme/coordinator.py`,
+`custom_components/sat_xtreme/fake/__init__.py` (moved to `tests/fake_coordinator.py`),
+`custom_components/sat_xtreme/manifest.json`, `tests/conftest.py`, `tests/const.py`, `tests/xtreme_helpers.py`
+and the tests that import the test coordinator, `tests/test_xtreme_review_fixes.py` (new), `docs/settings.md`,
+`docs/settings-advanced.md`, `docs/setup-wizard.md`, `docs/gateways.md`, `docs/development.md`.

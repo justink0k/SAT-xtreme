@@ -63,10 +63,6 @@ class SatData(dict):
 class SatDataUpdateCoordinatorFactory:
     @staticmethod
     def resolve(hass: HomeAssistant, mode: str, device: str, data: Mapping[str, Any], options: Mapping[str, Any] | None = None) -> SatDataUpdateCoordinator:
-        if mode == MODE_FAKE:
-            from .fake import SatFakeCoordinator
-            return SatFakeCoordinator(hass=hass, config_data=data, options=options)
-
         if mode == MODE_SIMULATOR:
             from .simulator import SatSimulatorCoordinator
             return SatSimulatorCoordinator(hass=hass, config_data=data, options=options)

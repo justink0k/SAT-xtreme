@@ -1,11 +1,11 @@
 # Advanced
 
-*Configure → Advanced Options*. Only visible when *Advanced mode* is on in your user profile.
+*Configure → Advanced Options*. Since 4.2.1-xtreme.30 this page is always shown; before, it needed *Advanced mode* in your user profile.
 
 ## Simulation
 
 Default off. SAT calculates everything but does not send commands to the boiler (OpenTherm over MQTT or
-serial), and logs the warning `Simulation mode!` when SAT starts. Useful to watch what SAT would do. Not to be confused with the *Simulated Gateway* of the wizard.
+serial), and logs the warning `Simulation mode!` when SAT starts. Useful to watch what SAT would do. Not to be confused with the [simulator](gateways.md#simulator) for development.
 
 ## Thermal Comfort
 

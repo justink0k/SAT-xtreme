@@ -9,7 +9,7 @@ import custom_components.sat_xtreme.sensor as sat_sensor
 from custom_components.sat_xtreme.climate import SatClimate
 from custom_components.sat_xtreme.config_flow import SatFlowHandler
 from custom_components.sat_xtreme.const import *
-from custom_components.sat_xtreme.fake import SatFakeCoordinator
+from tests.fake_coordinator import MODE_FAKE, SatFakeCoordinator
 from custom_components.sat_xtreme.pid import PID
 from custom_components.sat_xtreme.xtreme.sensor import FORK_LABEL, SatPidOutputSensor
 from tests.xtreme_helpers import parameters

@@ -1,5 +1,5 @@
+from tests.fake_coordinator import MODE_FAKE
 from custom_components.sat_xtreme.const import (
-    MODE_FAKE,
     CONF_DEVICE,
     CONF_NAME,
     CONF_INSIDE_SENSOR_ENTITY_ID,

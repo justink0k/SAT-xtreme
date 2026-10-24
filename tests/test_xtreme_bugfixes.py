@@ -11,7 +11,7 @@ from custom_components.sat_xtreme.boiler import BoilerState
 from custom_components.sat_xtreme.climate import SatClimate
 from custom_components.sat_xtreme.const import *
 from custom_components.sat_xtreme.coordinator import DeviceState
-from custom_components.sat_xtreme.fake import SatFakeCoordinator
+from tests.fake_coordinator import SatFakeCoordinator
 from custom_components.sat_xtreme.flame import Flame, FlameState
 from custom_components.sat_xtreme.overshoot_protection import OvershootProtection
 from custom_components.sat_xtreme.pwm import PWM, CycleConfig

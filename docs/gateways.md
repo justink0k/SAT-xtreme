@@ -81,5 +81,6 @@ electric heating: 100).
 
 ## Simulator
 
-The *Simulated Gateway* simulates a boiler for testing and development. It is only offered when *Advanced
-mode* is on in your user profile. Do not use it to heat a house.
+The simulator simulates a boiler for the tests and for development. Since 4.2.1-xtreme.30 it is no longer
+offered in the setup wizard; see [Development](development.md#the-simulator) for how to start it. Do not use it
+to heat a house.

@@ -1,13 +1,16 @@
-from __future__ import annotations, annotations
+"""A coordinator without a boiler, for the tests (mode "fake"); not part of the integration."""
+from __future__ import annotations
 
 import logging
 from typing import Mapping, Any
 
 from homeassistant.core import HomeAssistant
 
-from ..coordinator import DeviceState, SatDataUpdateCoordinator
+from custom_components.sat_xtreme.coordinator import DeviceState, SatDataUpdateCoordinator
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
+
+MODE_FAKE = "fake"
 
 
 class SatFakeConfig:

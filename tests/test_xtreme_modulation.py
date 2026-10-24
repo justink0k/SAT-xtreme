@@ -9,7 +9,7 @@ import custom_components.sat_xtreme.sensor as sat_sensor
 from custom_components.sat_xtreme.climate import SatClimate
 from custom_components.sat_xtreme.const import *
 from custom_components.sat_xtreme.coordinator import DeviceState
-from custom_components.sat_xtreme.fake import SatFakeCoordinator
+from tests.fake_coordinator import SatFakeCoordinator
 from tests.xtreme_helpers import parameters
 
 

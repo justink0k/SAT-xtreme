@@ -32,6 +32,18 @@ python -m venv .venv
 .venv/bin/pytest
 ```
 
+## The simulator
+
+The simulator (`custom_components/sat_xtreme/simulator/`) is a boiler without hardware. It is not in the setup wizard; start its flow from
+Python, for example in a test:
+
+```python
+await hass.config_entries.flow.async_init("sat_xtreme", context={"source": "simulator"})
+```
+
+The tests also use a coordinator without a boiler, `tests/fake_coordinator.py` (mode `fake`), which is not part
+of the integration.
+
 ## Building this manual
 
 ```bash
