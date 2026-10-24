@@ -10,31 +10,36 @@ Feature names: older entries call the features "step 1" to "step 5". Since versi
 **setpoint priming** (step 1), **ignore modulation limit** (step 2), **boiler timing** (step 3), **learned OPV**
 (step 4) and **slow calibration** (step 5).
 
+Folder and domain: entries before version 26 use the old folder `custom_components/sat` and the domain `sat`.
+Since version 26 the integration lives in `custom_components/sat_xtreme` with the domain `sat_xtreme`.
+
 ## Switches
 
-All switches live in one place: *Settings → Devices & services → SAT → Configure → Xtreme profile*.
+The switches live under *Settings → Devices & services → SAT-xtreme → Configure → Xtreme profile (fork)* and
+*PID settings (fork)*.
 They are stored as regular SAT options, so they survive updates and restarts. Every switch is **off**
 by default; with all switches off the fork behaves like upstream SAT `4.2.1` plus the fixes listed
 under "Base".
 
-The constants and decision logic of the profile are in `custom_components/sat/xtreme/profile.py`.
+The constants and decision logic of the profile are in `custom_components/sat_xtreme/xtreme/profile.py`.
 All decisions are logged at debug level with the prefix `Xtreme profile:`. To see them, add this to
 `configuration.yaml`:
 
 ```yaml
 logger:
   logs:
-    custom_components.sat: debug
+    custom_components.sat_xtreme: debug
 ```
 
 ## Going back to the official SAT
 
-1. Turn off all switches under *Xtreme profile* (optional, but it makes the switch-over clean).
-2. In HACS, remove the custom repository `https://github.com/justink0k/SAT-xtreme`.
-3. Install the official *Smart Autotune Thermostat* from HACS and restart Home Assistant.
+1. If you use the hot water keep-warm switch, turn it **on** first, so the gateway does not keep keep-warm off.
+2. Install the official *Smart Autotune Thermostat* from HACS and set it up again with the wizard. There is no
+   automatic move back, because SAT-xtreme has its own domain (`sat_xtreme`).
+3. Remove SAT-xtreme under *Settings → Devices & services* and in HACS, and restart Home Assistant.
 
-The configuration is compatible: the domain (`sat`) and the configuration format are unchanged. The
-extra *Xtreme profile* options are ignored by the official version.
+See [Going back to the official SAT](https://justink0k.github.io/SAT-xtreme/installation/#going-back-to-the-official-sat)
+in the manual.
 
 ---
 
@@ -833,3 +838,15 @@ Three points that the Home Assistant review of custom integrations often raises.
 `custom_components/sat_xtreme/manifest.json`, `tests/conftest.py`, `tests/const.py`, `tests/xtreme_helpers.py`
 and the tests that import the test coordinator, `tests/test_xtreme_review_fixes.py` (new), `docs/settings.md`,
 `docs/settings-advanced.md`, `docs/setup-wizard.md`, `docs/gateways.md`, `docs/development.md`.
+
+## Version 31: an up-to-date introduction of this file (`4.2.1-xtreme.31`, 2026-10-24)
+
+Documentation only; no change in behaviour.
+
+- The introduction of this file now names the folder `custom_components/sat_xtreme`, the menu *SAT-xtreme →
+  Configure* and the logger `custom_components.sat_xtreme`. A note says that entries before version 26 use the
+  old folder and domain `sat`; those entries are left as they were.
+- **Going back to the official SAT** now has the right steps: there is no automatic move back since SAT-xtreme
+  has its own domain, so the official SAT is set up again with the wizard.
+
+**Files.** `CHANGES_XTREME.md`, `custom_components/sat_xtreme/manifest.json`.
