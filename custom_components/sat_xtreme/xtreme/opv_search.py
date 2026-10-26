@@ -48,6 +48,16 @@ MINIMUM_STABLE_SECONDS = 12 * 3600
 # Longer gaps between two updates (for example a restart) are not counted
 MAXIMUM_GAP_SECONDS = 300
 
+# The search needs the outside temperature: a gap of up to an hour is bridged with the last known value; a
+# period with more than 10 % of its heating time without one is discarded. No period lasts longer than 7 days.
+OUTSIDE_GAP_SECONDS = 3600
+MAXIMUM_OUTSIDE_MISSING = 0.10
+MAXIMUM_PERIOD_SECONDS = 7 * 24 * 3600
+
+BLOCKED_NO_OUTSIDE = "no_outside_temperature"
+BLOCKED_TOO_FEW_STARTS = "too_few_starts"
+BLOCKED_TOO_FEW_STABLE_HOURS = "too_few_stable_hours"
+
 PHASE_WAITING = "waiting"
 PHASE_BASELINE = "baseline"
 PHASE_DOWN = "down"
@@ -80,6 +90,13 @@ class Period:
         self.error_square_sum = 0.0
         self.gas_start = gas
         self.gas_last = gas
+        self.heating_seconds = 0.0
+        self.outside_missing_seconds = 0.0
+
+    @property
+    def outside_invalid(self) -> bool:
+        """Too much of the heating time without an outside temperature to compare this period."""
+        return self.heating_seconds > 0 and self.outside_missing_seconds / self.heating_seconds > MAXIMUM_OUTSIDE_MISSING
 
     @property
     def score(self) -> Optional[float]:
@@ -110,6 +127,7 @@ class Period:
                 and self.starts >= MINIMUM_STARTS
                 and self.stable_seconds >= MINIMUM_STABLE_SECONDS
                 and self.score is not None
+                and not self.outside_invalid
         )
 
     def result(self) -> dict[str, Any]:
@@ -160,6 +178,8 @@ class OpvSearch:
         self._target: Optional[float] = None
         self._target_since: Optional[float] = None
         self._last_decision: Optional[str] = None
+        self._last_outside: Optional[tuple[float, float]] = None
+        self.blocked: Optional[str] = None
         self.changed: bool = False
 
     @property
@@ -184,6 +204,7 @@ class OpvSearch:
 
         return {
             "search_phase": self.phase,
+            "search_blocked": self.blocked,
             "search_value": value_with(self.offset if self._applied else (would_try if would_try is not None else self.offset)),
             "search_offset": self.offset,
             "baseline_score": _round((self._baseline or {}).get("score")),
@@ -252,7 +273,23 @@ class OpvSearch:
         elif self.phase in (PHASE_DOWN, PHASE_UP) and self._too_cold():
             self._fail(now, sample.gas, "too cold during the trial")
         elif self._period is not None and self._period.complete(now):
+            self.blocked = None
             self._end_period(now, sample.gas)
+        elif self._period is not None and now - self._period.start >= PERIOD_SECONDS and self._period.outside_invalid:
+            missing = self._period.outside_missing_seconds / 3600
+            self._discard(now, sample.gas, BLOCKED_NO_OUTSIDE, f"period discarded: no outside temperature for {missing:.0f} h")
+        elif self._period is not None and now - self._period.start >= MAXIMUM_PERIOD_SECONDS:
+            if self._period.starts < MINIMUM_STARTS:
+                self._discard(now, sample.gas, BLOCKED_TOO_FEW_STARTS, f"period discarded after 7 days: {self._period.starts} starts")
+            else:
+                stable = self._period.stable_seconds / 3600
+                self._discard(now, sample.gas, BLOCKED_TOO_FEW_STABLE_HOURS, f"period discarded after 7 days: {stable:.0f} stable hours")
+
+    def _discard(self, now: float, gas: Optional[float], blocked: str, reason: str) -> None:
+        """Start the period of the same phase again, keeping the step, and say why."""
+        self.blocked = blocked
+        self._start_period(self.phase, now, gas)
+        self._decide(reason)
 
     def _accumulate(self, sample: SearchSample) -> None:
         now = sample.time
@@ -263,6 +300,20 @@ class OpvSearch:
         if sample.target != self._target:
             self._target = sample.target
             self._target_since = now
+
+        # The outside temperature, with a short gap bridged by the last known value
+        outside = sample.outside
+        if outside is not None:
+            self._last_outside = (now, outside)
+            if self.blocked == BLOCKED_NO_OUTSIDE:
+                self.blocked = None
+                self.changed = True
+        elif self._last_outside is not None and now - self._last_outside[0] <= OUTSIDE_GAP_SECONDS:
+            outside = self._last_outside[1]
+        elif self.blocked != BLOCKED_NO_OUTSIDE and self.phase not in (PHASE_WAITING, PHASE_REST):
+            self.blocked = BLOCKED_NO_OUTSIDE
+            self.changed = True
+            _LOGGER.warning("Xtreme profile: the OPV search has no outside temperature; it cannot compare periods without one.")
 
         period = self._period
         flame_started = sample.flame and self._previous_flame is False
@@ -282,8 +333,11 @@ class OpvSearch:
         if not sample.heating or dt <= 0:
             return
 
-        if sample.target is not None and sample.outside is not None:
-            period.degree_hours += max(0.0, sample.target - sample.outside) * dt / 3600
+        period.heating_seconds += dt
+        if sample.target is not None and outside is not None:
+            period.degree_hours += max(0.0, sample.target - outside) * dt / 3600
+        elif outside is None:
+            period.outside_missing_seconds += dt
 
         stable = self._target_since is not None and now - self._target_since >= STABLE_TARGET_SECONDS
         if stable and sample.target is not None and sample.current is not None:
@@ -420,6 +474,8 @@ class OpvSearch:
             "trial": self._trial,
             "period": self._period.to_dict() if self._period else None,
             "last_decision": self._last_decision,
+            "blocked": self.blocked,
+            "last_outside": list(self._last_outside) if self._last_outside else None,
         }
 
     def load(self, data: Optional[dict[str, Any]]) -> None:
@@ -436,3 +492,5 @@ class OpvSearch:
         self._trial = data.get("trial")
         self._period = Period.from_dict(data["period"]) if data.get("period") else None
         self._last_decision = data.get("last_decision")
+        self.blocked = data.get("blocked")
+        self._last_outside = tuple(data["last_outside"]) if data.get("last_outside") else None

@@ -15,9 +15,11 @@ A shut-off at or above the setpoint says nothing about the OPV: in PWM mode the 
 itself, so that shut-off flow is the setpoint plus the boiler's hysteresis. Counting it would raise the
 OPV, then the setpoint, then the shut-off flow, until the maximum.
 
-"Minimum modulation" is learned per boiler: a low percentile of the modulation the boiler reports during
-heating burns (without the start of each burn and without hot water), plus a margin, and never below the
-minimum the boiler reports itself. Until there is enough data, the fixed limit of 2 % is used.
+"Minimum modulation" is learned per boiler: every heating burn gives one value, the lowest modulation it
+reported (after the first minute, and only when two readings in a row agree). The limit is a low percentile of
+those values plus a margin, and never below the minimum the boiler reports itself. Every burn counts once,
+short or long; the start peak needs no special handling, because it is high. Until there are enough burns, the
+fixed limit of 2 % is used.
 """
 from __future__ import annotations
 
@@ -55,14 +57,13 @@ OPV_MAXIMUM_STEP = 1.0
 # The fixed modulation limit, used until enough modulation data has been collected
 SAMPLE_MAXIMUM_MODULATION = 2.0
 
-# The adaptive modulation limit: a low percentile of the reported modulation during heating burns plus a margin
+# The adaptive modulation limit: a low percentile of the lowest modulation of each heating burn plus a margin
 MODULATION_PERCENTILE = 0.10
 MODULATION_MARGIN = 5.0
 MODULATION_WINDOW_SECONDS = 7 * 24 * 3600
-MODULATION_WARMUP_SECONDS = 300.0
-MODULATION_SAMPLE_INTERVAL = 60.0
-MODULATION_MINIMUM_SAMPLES = 30
-MODULATION_MAXIMUM_SAMPLES = 5000
+MODULATION_IGNITION_SECONDS = 60.0
+MODULATION_MINIMUM_BURNS = 30
+MODULATION_MAXIMUM_BURNS = 2000
 # The learned limit never goes above this, unless the boiler reports a higher minimum itself
 MODULATION_CEILING = 30.0
 
@@ -147,7 +148,10 @@ class LearnedOpv:
         self._previous_flame_active: bool = False
 
         # Modulation reported during heating burns, as (time, modulation), for the adaptive limit
-        self._modulation: Deque[Tuple[float, float]] = deque(maxlen=MODULATION_MAXIMUM_SAMPLES)
+        self._modulation_burns: Deque[Tuple[float, float]] = deque(maxlen=MODULATION_MAXIMUM_BURNS)
+        self._burn_modulation_previous: Optional[float] = None
+        self._burn_modulation_lowest: Optional[float] = None
+        self._burn_heating_only: bool = True
         self._boiler_minimum_modulation: Optional[float] = None
 
         # Flow minus setpoint at the recent self shut-offs, and the flow and setpoint of the current burn
@@ -193,9 +197,9 @@ class LearnedOpv:
     def modulation_limit(self) -> float:
         """The highest modulation that counts as burning at the minimum."""
         cutoff = _wall_time() - MODULATION_WINDOW_SECONDS
-        values = sorted(value for time, value in self._modulation if time >= cutoff)
+        values = sorted(value for time, value in self._modulation_burns if time >= cutoff)
 
-        if len(values) < MODULATION_MINIMUM_SAMPLES:
+        if len(values) < MODULATION_MINIMUM_BURNS:
             limit = SAMPLE_MAXIMUM_MODULATION
         else:
             limit = min(_percentile(values, MODULATION_PERCENTILE) + MODULATION_MARGIN, MODULATION_CEILING)
@@ -214,9 +218,9 @@ class LearnedOpv:
         return round(median(self._shut_off_offsets), 1)
 
     @property
-    def modulation_sample_count(self) -> int:
+    def modulation_burn_count(self) -> int:
         cutoff = _wall_time() - MODULATION_WINDOW_SECONDS
-        return sum(1 for time, _ in self._modulation if time >= cutoff)
+        return sum(1 for time, _ in self._modulation_burns if time >= cutoff)
 
     @property
     def sample_count(self) -> int:
@@ -241,7 +245,7 @@ class LearnedOpv:
             "last_sample_value": last.value if last else None,
             "minimum": self._minimum,
             "modulation_limit": self.modulation_limit,
-            "modulation_samples": self.modulation_sample_count,
+            "modulation_burns": self.modulation_burn_count,
             "shut_off_offset": self.shut_off_offset,
             "shut_off_offset_samples": len(self._shut_off_offsets),
             "last_burn_result": self._last_burn_result,
@@ -262,7 +266,8 @@ class LearnedOpv:
         self._sample_count = int(data.get("sample_count", 0))
         self._last_update = data.get("last_update")
         self._samples = deque((OpvSample(**sample) for sample in data.get("samples", [])), maxlen=RECENT_SAMPLES)
-        self._modulation = deque(((float(time), float(value)) for time, value in data.get("modulation", [])), maxlen=MODULATION_MAXIMUM_SAMPLES)
+        # Version 36 keeps one value per burn; the values per minute of versions 34 and 35 ("modulation") are dropped
+        self._modulation_burns = deque(((float(time), float(value)) for time, value in data.get("modulation_burns", [])), maxlen=MODULATION_MAXIMUM_BURNS)
         self._shut_off_offsets = deque((float(value) for value in data.get("shut_off_offsets", [])), maxlen=SHUT_OFF_SAMPLES)
         self.search.load(data.get("search"))
 
@@ -303,11 +308,20 @@ class LearnedOpv:
             self._burn_flow = None
             self._burn_setpoint = None
 
+            # One value per heating burn for the adaptive modulation limit
+            if self._burn_heating_only and self._burn_modulation_lowest is not None:
+                self._modulation_burns.append((_wall_time(), self._burn_modulation_lowest))
+                if self._store is not None:
+                    self._store.async_delay_save(self._data_to_save, 60)
+
             self._last_burn_result = self._last_burn_result if self._burn_sampled else self._burn_reason
 
         if flame_active and not self._previous_flame_active:
             self._burn_reason = None
             self._burn_sampled = False
+            self._burn_modulation_previous = None
+            self._burn_modulation_lowest = None
+            self._burn_heating_only = True
 
         self._previous_flame_active = flame_active
 
@@ -315,9 +329,12 @@ class LearnedOpv:
             self._burn_flow = boiler.flow_temperature
             self._burn_setpoint = boiler.setpoint
 
-        # Collect the modulation of heating burns for the adaptive limit
-        if flame_active and heating_demand and hot_water_quiet and on_seconds is not None and on_seconds >= MODULATION_WARMUP_SECONDS:
-            self._collect_modulation(boiler.relative_modulation_level)
+        # The lowest modulation of this burn, from two readings in a row, after the ignition
+        if flame_active:
+            if not hot_water_quiet:
+                self._burn_heating_only = False
+            elif heating_demand and on_seconds is not None and on_seconds >= MODULATION_IGNITION_SECONDS:
+                self._track_burn_modulation(boiler.relative_modulation_level)
 
         minimum_modulation = boiler.relative_modulation_level is not None and boiler.relative_modulation_level <= self.modulation_limit
         long_enough = on_seconds is not None and on_seconds >= SAMPLE_MINIMUM_FLAME_SECONDS
@@ -368,21 +385,18 @@ class LearnedOpv:
         self._last_burn_result = SAMPLE_PLATEAU
         self._on_plateau(plateau)
 
-    def _collect_modulation(self, modulation: Optional[float]) -> None:
+    def _track_burn_modulation(self, modulation: Optional[float]) -> None:
         if modulation is None:
             return
 
-        now = _wall_time()
-        if self._modulation and now - self._modulation[-1][0] < MODULATION_SAMPLE_INTERVAL:
-            return
+        modulation = float(modulation)
+        if self._burn_modulation_previous is not None:
+            # A value only counts when two readings in a row reach it, so one odd reading does not
+            agreed = max(self._burn_modulation_previous, modulation)
+            if self._burn_modulation_lowest is None or agreed < self._burn_modulation_lowest:
+                self._burn_modulation_lowest = agreed
 
-        self._modulation.append((now, float(modulation)))
-
-        while self._modulation and self._modulation[0][0] < now - MODULATION_WINDOW_SECONDS:
-            self._modulation.popleft()
-
-        if self._store is not None:
-            self._store.async_delay_save(self._data_to_save, 60)
+        self._burn_modulation_previous = modulation
 
     def update_search(self, sample: SearchSample) -> None:
         """Feed one control loop to the search for the best OPV and save its state now and then."""
@@ -448,7 +462,7 @@ class LearnedOpv:
             "sample_count": self._sample_count,
             "last_update": self._last_update,
             "samples": [asdict(sample) for sample in self._samples],
-            "modulation": [[round(time), value] for time, value in self._modulation],
+            "modulation_burns": [[round(time), value] for time, value in self._modulation_burns],
             "shut_off_offsets": list(self._shut_off_offsets),
             "search": self.search.to_dict(),
         }

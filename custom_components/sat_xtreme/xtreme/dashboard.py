@@ -233,7 +233,7 @@ def build_dashboard(entities: dict[str, str], opv_search: bool = False) -> dict[
                 attribute("learned_opv", "source", "Started from"),
                 attribute("learned_opv", "minimum", "Lowest OPV", "°C"),
                 attribute("learned_opv", "modulation_limit", "Minimum modulation", "%"),
-                attribute("learned_opv", "modulation_samples", "Minimum modulation based on (values)"),
+                attribute("learned_opv", "modulation_burns", "Minimum modulation based on (burns)"),
                 attribute("learned_opv", "shut_off_offset", "Usual shut-off (from the setpoint)", "°C"),
                 attribute("learned_opv", "last_burn_result", "Last burn"),
             ]},
@@ -244,6 +244,7 @@ def build_dashboard(entities: dict[str, str], opv_search: bool = False) -> dict[
     if "learned_opv" in e and opv_search:
         cards.append({"type": "entities", "title": "OPV search", "entities": [
             attribute("learned_opv", "search_phase", "Phase"),
+            attribute("learned_opv", "search_blocked", "Blocked by"),
             attribute("learned_opv", "search_value", "Value tried", "°C"),
             attribute("learned_opv", "search_offset", "Step", "°C"),
             attribute("learned_opv", "next_decision", "Next decision", format="datetime"),

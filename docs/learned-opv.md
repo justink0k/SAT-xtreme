@@ -41,11 +41,14 @@ shut-offs on, a shut-off only counts when the flow stayed more than 2 °C below 
 Boilers report their lowest modulation differently: some report 0 %, others 10 to 20 % at their minimum
 power. SAT learns it per boiler:
 
-- During heating burns it notes the reported modulation once a minute, skipping the first 5 minutes of every
-  burn (the start, often 85 to 100 %) and hot water.
-- The limit is the 10th percentile of the last 7 days plus 5 percentage points, at most 30 %, and never below
-  the minimum modulation the boiler reports itself (OpenTherm message 15).
-- Until there are 30 values, the fixed limit of 2 % is used.
+- Every heating burn gives one value: the lowest modulation it reported after the first minute, counting only
+  a value that two readings in a row reach (so one odd reading, for example 0 % when the flame goes out, does
+  not count). Burns with hot water and burns shorter than a minute give no value.
+- The start of a burn (often 85 to 100 % for minutes) needs no special handling: it is high, so it is never the
+  lowest value of a burn. Every burn counts once, so a few long burns do not outweigh many short ones.
+- The limit is the 10th percentile of the burns of the last 7 days plus 5 percentage points, at most 30 %, and
+  never below the minimum modulation the boiler reports itself (OpenTherm message 15).
+- Until there are 30 burns, the fixed limit of 2 % is used.
 
 These rules are the same for every boiler; the limit they give is learned from your boiler. The modulation
 data is stored and survives restarts.
@@ -90,7 +93,17 @@ fewer starts. The search tries both and keeps what works best.
   than 0.5 °C below the target, or when the spread of the room temperature around the target grows by more
   than 50 % and by at least 0.1 °C.
 - **A period** lasts 48 hours and counts only with at least 20 starts and 12 stable hours; otherwise it is
-  extended.
+  extended, up to 7 days. A period that is still incomplete after 7 days is discarded and started again;
+  `search_blocked` says why (`too_few_starts` or `too_few_stable_hours`).
+- **The outside temperature is required.** A gap of up to an hour is bridged with the last known value. When
+  more than 10 % of the heating time of a period has no outside temperature, the period is discarded and
+  `search_blocked` is `no_outside_temperature`; the search goes on once the outside temperature is back.
+
+!!! warning "Experimental"
+    Measured on one house, the starts per degree hour varied about 50 % from day to day at the same OPV,
+    mostly through the weather: on cold days the boiler burns longer and starts less often. A step of 1 °C is
+    then hard to judge within 48 hours. Use the search with *Learn only* to follow it; a revised version with
+    alternating periods and a measure per burn is being worked on.
 
 ### The steps
 
@@ -121,10 +134,10 @@ margin, the source (configured, calibration, plateau or shut-off), the number of
 samples with their time and type. Also:
 
 - `minimum`: the *Lowest learned OPV*;
-- `modulation_limit` and `modulation_samples`: the minimum modulation in use and how many values it is based on;
+- `modulation_limit` and `modulation_burns`: the minimum modulation in use and how many burns it is based on;
 - `shut_off_offset` and `shut_off_offset_samples`: where the boiler normally switches itself off, as flow minus
   setpoint (empty until there are 5 shut-offs), and how many shut-offs it is based on;
-- `search_phase` (`waiting`, `baseline`, `down`, `up` or `rest`), `search_value` (the OPV the search uses, or
+- `search_phase` (`waiting`, `baseline`, `down`, `up` or `rest`), `search_blocked` (why no decision comes), `search_value` (the OPV the search uses, or
   would try with *Learn only*), `search_offset`, `baseline_score` and `trial_score`, `baseline_spread` and
   `trial_spread`, `baseline_mean_error` and `trial_mean_error`, `stable_hours` and `starts` of the current
   period, `next_decision` (a date and time), `last_decision` and `search_gas_per_degree_hour`;

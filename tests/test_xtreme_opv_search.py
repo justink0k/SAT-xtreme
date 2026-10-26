@@ -10,7 +10,7 @@ from custom_components.sat_xtreme.climate import SatClimate
 from custom_components.sat_xtreme.const import *
 from custom_components.sat_xtreme.xtreme.opv import LearnedOpv
 from custom_components.sat_xtreme.xtreme.opv_search import (
-    NO_PLATEAU_SECONDS, PHASE_BASELINE, PHASE_DOWN, PHASE_REST, PHASE_UP, PHASE_WAITING, OpvSearch, SearchSample,
+    BLOCKED_NO_OUTSIDE, BLOCKED_TOO_FEW_STARTS, NO_PLATEAU_SECONDS, PHASE_BASELINE, PHASE_DOWN, PHASE_REST, PHASE_UP, PHASE_WAITING, OpvSearch, SearchSample,
 )
 from tests.xtreme_helpers import parameters
 
@@ -32,7 +32,7 @@ class House:
         self.starts, self.swing, self.cold = starts, swing, cold
         self.t = T0
 
-    def run(self, search: OpvSearch, hours: float, outside: float = 10.0) -> None:
+    def run(self, search: OpvSearch, hours: float, outside=10.0) -> None:
         for _ in range(int(hours * 60)):
             offset = search.offset
             interval = HOUR / self.starts(offset)
@@ -40,7 +40,8 @@ class House:
             target = day_night(self.t)
             # A sine with amplitude a has a standard deviation of a / sqrt(2)
             current = target + self.swing(offset) * sqrt(2) * sin(2 * pi * (self.t - T0) / (2 * HOUR)) - self.cold(offset)
-            search.update(SearchSample(self.t, True, flame, False, target, current, outside))
+            value = outside(self.t) if callable(outside) else outside
+            search.update(SearchSample(self.t, True, flame, False, target, current, value))
             self.t += 60
 
 
@@ -274,3 +275,70 @@ def test_next_decision_is_a_date_and_time():
 
     from homeassistant.util import dt as dt_util
     assert dt_util.parse_datetime(value).timestamp() == pytest.approx(T0 + NO_PLATEAU_SECONDS, abs=1)
+
+
+
+def test_without_outside_temperature_no_decision_is_made():
+    search, house = _search(), House()
+    house.run(search, 72)
+
+    house.run(search, 60, outside=None)
+
+    assert search.phase == PHASE_BASELINE
+    assert search._baseline is None
+    assert search.blocked == BLOCKED_NO_OUTSIDE
+    assert search.attributes(lambda offset: offset)["search_blocked"] == BLOCKED_NO_OUTSIDE
+    assert "no outside temperature" in search.attributes(lambda offset: offset)["last_decision"]
+
+
+def test_a_short_gap_in_the_outside_temperature_is_bridged():
+    search, house = _search(), House()
+    house.run(search, 72)
+    start = house.t
+
+    # 30 minutes without outside temperature halfway the baseline
+    house.run(search, 49, outside=lambda t: None if start + 24 * HOUR <= t < start + 24.5 * HOUR else 10.0)
+
+    assert search.phase == PHASE_DOWN
+    assert search.blocked is None
+
+
+def test_a_long_gap_discards_the_period_and_the_search_goes_on_afterwards():
+    search, house = _search(), House()
+    house.run(search, 72)
+    start = house.t
+
+    # Two days without outside temperature
+    house.run(search, 49, outside=lambda t: None if start + 2 * HOUR <= t < start + 50 * HOUR else 10.0)
+    assert search.phase == PHASE_BASELINE and search._baseline is None
+
+    house.run(search, 50)
+    assert search.blocked is None
+    assert search.phase == PHASE_DOWN
+
+
+def test_a_period_ends_after_seven_days_with_too_few_starts():
+    search = _search()
+    house = House(starts=lambda offset: 0.1)
+
+    house.run(search, 72 + 7 * 24 + 1)
+
+    assert search.phase == PHASE_BASELINE
+    assert search.blocked == BLOCKED_TOO_FEW_STARTS
+    assert "7 days" in search.attributes(lambda offset: offset)["last_decision"]
+
+
+def test_an_older_stored_period_is_still_read():
+    search, house = _search(), House()
+    house.run(search, 72 + 10)
+    data = search.to_dict()
+    for key in ("heating_seconds", "outside_missing_seconds"):
+        del data["period"][key]
+    data.pop("blocked")
+    data.pop("last_outside")
+
+    restored = _search()
+    restored.load(data)
+
+    assert restored._period.outside_missing_seconds == 0
+    house.run(restored, 1)

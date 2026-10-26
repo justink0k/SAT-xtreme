@@ -240,7 +240,7 @@ def _attributes(config, entity_id: str) -> set[str]:
 def test_learned_opv_card_shows_the_new_attributes():
     config = dashboard.build_dashboard({"learned_opv": "sensor.opv"})
 
-    assert {"minimum", "modulation_limit", "modulation_samples", "shut_off_offset", "last_burn_result"} <= _attributes(config, "sensor.opv")
+    assert {"minimum", "modulation_limit", "modulation_burns", "shut_off_offset", "last_burn_result"} <= _attributes(config, "sensor.opv")
     assert "OPV search" not in _titles(config)
 
 

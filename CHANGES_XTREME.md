@@ -1055,3 +1055,26 @@ a dashboard changed by hand gets the repair that offers the update.
 **Files.** `custom_components/sat_xtreme/xtreme/dashboard.py`, `custom_components/sat_xtreme/xtreme/opv_search.py`,
 `custom_components/sat_xtreme/manifest.json`, `tests/test_xtreme_dashboard_builder.py`,
 `tests/test_xtreme_opv_search.py`, `docs/dashboard.md`, `docs/learned-opv.md`.
+
+## Unreleased: review of the learned OPV and the OPV search
+
+From a review of version 35. Only matters with the learned OPV on.
+
+- **Minimum modulation per burn.** Every heating burn gives one value, the lowest modulation after the first
+  minute that two readings in a row reach, instead of one value per minute after the first 5 minutes. Short
+  burns now count, and every burn weighs the same. The values per minute of versions 34 and 35 are dropped
+  when the learned OPV is loaded; the limit is 2 % again until there are 30 burns. The estimate, the samples,
+  the usual shut-off point and the state of the search are kept. The attribute `modulation_samples` is now
+  `modulation_burns`.
+- **The OPV search needs the outside temperature.** A gap of up to an hour is bridged with the last known value;
+  a period with more than 10 % of its heating time without one is discarded. The new attribute `search_blocked`
+  says why no decision comes (`no_outside_temperature`, `too_few_starts`, `too_few_stable_hours`), also on the
+  dashboard.
+- **A period lasts at most 7 days;** an incomplete period is then discarded and started again.
+- **The manual marks the search as experimental:** on the tested house the starts per degree hour varied about
+  50 % from day to day at the same OPV, mostly through the weather.
+
+**Files.** `custom_components/sat_xtreme/xtreme/opv.py`, `custom_components/sat_xtreme/xtreme/opv_search.py`,
+`custom_components/sat_xtreme/xtreme/dashboard.py`, `tests/test_xtreme_learned_opv.py`,
+`tests/test_xtreme_opv_search.py`, `tests/test_xtreme_dashboard_builder.py`, `docs/learned-opv.md`,
+`docs/dashboard.md`.

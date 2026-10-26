@@ -11,7 +11,7 @@ from custom_components.sat_xtreme.const import *
 from tests.fake_coordinator import SatFakeCoordinator
 from custom_components.sat_xtreme.flame import FlameState
 from custom_components.sat_xtreme.xtreme.opv import (
-    MODULATION_CEILING, MODULATION_MINIMUM_SAMPLES, REJECT_AT_SETPOINT, SHUT_OFF_MINIMUM_SAMPLES, REJECT_MODULATION, SAMPLE_MAXIMUM_MODULATION, LearnedOpv, SAMPLE_PLATEAU,
+    MODULATION_CEILING, MODULATION_MINIMUM_BURNS, REJECT_AT_SETPOINT, SHUT_OFF_MINIMUM_SAMPLES, REJECT_MODULATION, SAMPLE_MAXIMUM_MODULATION, LearnedOpv, SAMPLE_PLATEAU,
     SAMPLE_SHUT_OFF,
 )
 from tests.xtreme_helpers import Clock, parameters, MINIMUM_SETPOINT_VALUE
@@ -254,10 +254,10 @@ def test_modulation_limit_follows_the_boiler(clock: Clock, wall: Clock):
     opv = _opv()
 
     # Burns at 10 to 30 %, with a long start peak at 90 % that must not count
-    for _ in range(10):
-        _heating_burn(opv, clock, wall, [90.0] * 5 + [10.0, 12.0, 15.0, 20.0, 30.0])
+    for _ in range(MODULATION_MINIMUM_BURNS):
+        _heating_burn(opv, clock, wall, [90.0] * 5 + [10.0, 10.0, 15.0, 20.0, 30.0])
 
-    assert opv.modulation_sample_count >= MODULATION_MINIMUM_SAMPLES
+    assert opv.modulation_burn_count == MODULATION_MINIMUM_BURNS
     assert opv.modulation_limit == pytest.approx(15.0, abs=0.5)
     assert opv.attributes["modulation_limit"] == opv.modulation_limit
 
@@ -273,18 +273,18 @@ def test_hot_water_is_not_used_for_the_modulation_limit(clock: Clock, wall: Cloc
             wall.now += 60
             on_seconds += 60
 
-    assert opv.modulation_sample_count == 0
+    assert opv.modulation_burn_count == 0
 
 
 def test_old_modulation_data_expires(clock: Clock, wall: Clock):
     opv = _opv()
 
-    for _ in range(10):
+    for _ in range(MODULATION_MINIMUM_BURNS):
         _heating_burn(opv, clock, wall, [0.0] * 5 + [10.0] * 5)
     assert opv.modulation_limit > SAMPLE_MAXIMUM_MODULATION
 
     wall.now += 8 * 24 * 3600
-    assert opv.modulation_sample_count == 0
+    assert opv.modulation_burn_count == 0
     assert opv.modulation_limit == SAMPLE_MAXIMUM_MODULATION
 
 
@@ -299,7 +299,7 @@ def test_never_below_the_minimum_the_boiler_reports(clock: Clock, wall: Clock):
 def test_plateau_at_the_learned_modulation_is_a_sample(clock: Clock, wall: Clock):
     opv = _opv()
 
-    for _ in range(10):
+    for _ in range(MODULATION_MINIMUM_BURNS):
         _heating_burn(opv, clock, wall, [90.0] * 5 + [12.0] * 5)
 
     before = opv.sample_count
@@ -329,7 +329,7 @@ async def test_modulation_data_is_stored(hass: HomeAssistant, clock: Clock, wall
     restored = _opv()
     await restored.async_initialize(hass)
 
-    assert restored.modulation_sample_count == opv.modulation_sample_count
+    assert restored.modulation_burn_count == opv.modulation_burn_count
     assert restored.modulation_limit == opv.modulation_limit
 
 
@@ -349,7 +349,7 @@ def test_modulation_limit_has_a_ceiling(clock: Clock, wall: Clock):
     opv = _opv()
 
     # A boiler that hardly ever burns at its minimum
-    for _ in range(10):
+    for _ in range(MODULATION_MINIMUM_BURNS):
         _heating_burn(opv, clock, wall, [90.0] * 5 + [40.0, 45.0, 50.0, 60.0, 70.0])
 
     assert opv.modulation_limit == MODULATION_CEILING
@@ -424,3 +424,97 @@ async def test_shut_off_offsets_are_stored(hass: HomeAssistant, clock: Clock):
     await restored.async_initialize(hass)
 
     assert restored.shut_off_offset == 1.0
+
+
+def _burn_of(opv: LearnedOpv, clock: Clock, wall: Clock, modulations: list[float], step: float = 30, hot_water: bool = False) -> None:
+    """A heating burn with one reading every `step` seconds, starting at the ignition."""
+    on_seconds = 0.0
+    for modulation in modulations:
+        opv.observe(boiler=_boiler(40.0, modulation=modulation, hot_water=hot_water), flame=_flame(on_seconds), heating_demand=True,
+                    seconds_since_hot_water=0 if hot_water else None)
+        clock.now += step
+        wall.now += step
+        on_seconds += step
+    opv.observe(boiler=_boiler(40.0, flame=False, modulation=0.0), flame=_flame(None), heating_demand=True, seconds_since_hot_water=None)
+    clock.now += 600
+    wall.now += 600
+
+
+def test_short_burns_teach_the_limit(clock: Clock, wall: Clock):
+    # Burns of 4 minutes, with a start peak of 1.5 minutes
+    opv = _opv()
+
+    for _ in range(MODULATION_MINIMUM_BURNS):
+        _burn_of(opv, clock, wall, [95.0, 90.0, 85.0, 30.0, 14.0, 12.0, 12.0, 13.0])
+
+    assert opv.modulation_burn_count == MODULATION_MINIMUM_BURNS
+    assert opv.modulation_limit == pytest.approx(17.0, abs=0.1)
+
+
+def test_every_burn_counts_once(clock: Clock, wall: Clock):
+    # 25 short burns that reach 12 %, and 10 long burns of an hour that stay at 25 %
+    opv = _opv()
+
+    for _ in range(25):
+        _burn_of(opv, clock, wall, [90.0, 40.0, 12.0, 12.0, 14.0])
+    for _ in range(10):
+        _burn_of(opv, clock, wall, [90.0] * 4 + [25.0] * 116)
+
+    assert opv.modulation_burn_count == 35
+    assert opv.modulation_limit == pytest.approx(17.0, abs=0.1)
+
+
+def test_one_odd_reading_does_not_count(clock: Clock, wall: Clock):
+    opv = _opv()
+
+    for _ in range(MODULATION_MINIMUM_BURNS):
+        _burn_of(opv, clock, wall, [90.0, 20.0, 0.0, 20.0, 21.0])
+
+    assert opv.modulation_limit == pytest.approx(25.0, abs=0.1)
+
+
+def test_burns_shorter_than_a_minute_and_hot_water_burns_do_not_count(clock: Clock, wall: Clock):
+    opv = _opv()
+
+    _burn_of(opv, clock, wall, [12.0, 12.0])
+    _burn_of(opv, clock, wall, [90.0, 12.0, 12.0, 12.0], hot_water=True)
+
+    assert opv.modulation_burn_count == 0
+
+
+def test_a_boiler_that_reports_zero_at_its_minimum(clock: Clock, wall: Clock):
+    opv = _opv()
+
+    for _ in range(MODULATION_MINIMUM_BURNS):
+        _burn_of(opv, clock, wall, [80.0, 20.0, 0.0, 0.0, 0.0])
+
+    assert opv.modulation_limit == 5.0
+
+
+def test_a_boiler_with_and_without_message_15(clock: Clock, wall: Clock):
+    for reported, expected in ((None, 17.0), (20.0, 20.0)):
+        opv = _opv()
+        for _ in range(MODULATION_MINIMUM_BURNS):
+            _burn_of(opv, clock, wall, [90.0, 12.0, 12.0, 12.0])
+        opv.observe(boiler=_boiler(40.0, flame=False), flame=_flame(None), heating_demand=True, seconds_since_hot_water=None,
+                    boiler_minimum_modulation=reported)
+
+        assert opv.modulation_limit == expected
+
+
+async def test_values_per_minute_of_older_versions_are_dropped(hass: HomeAssistant, clock: Clock, wall: Clock):
+    from homeassistant.helpers.storage import Store
+
+    await Store(hass, 1, "test_old_opv").async_save({
+        "estimate": 44.0, "source": "plateau", "sample_count": 3, "samples": [],
+        "modulation": [[wall.now - 60 * i, 12.0] for i in range(100)],
+        "shut_off_offsets": [1.0] * 5,
+    })
+
+    opv = LearnedOpv(mode="learn", configured_value=46.0, maximum_setpoint=60.0, storage_key="test_old_opv")
+    await opv.async_initialize(hass)
+
+    assert opv.modulation_burn_count == 0
+    assert opv.modulation_limit == SAMPLE_MAXIMUM_MODULATION
+    assert opv.estimate == 44.0
+    assert opv.shut_off_offset == 1.0
