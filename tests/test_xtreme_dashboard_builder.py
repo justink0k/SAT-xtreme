@@ -244,13 +244,13 @@ def test_learned_opv_card_shows_the_new_attributes():
     assert "OPV search" not in _titles(config)
 
 
-def test_opv_search_card_only_when_the_search_is_on():
+def test_opv_model_cards_only_when_the_model_is_on():
     config = dashboard.build_dashboard({"learned_opv": "sensor.opv"}, opv_search=True)
 
-    assert "OPV search" in _titles(config)
-    assert {"search_phase", "search_value", "next_decision", "baseline_score", "trial_score", "baseline_spread", "trial_spread"} <= _attributes(config, "sensor.opv")
+    assert {"OPV model", "Predicted burn time"} <= _titles(config)
+    assert {"model_status", "model_choice", "model_error", "balance_temperature", "next_change"} <= _attributes(config, "sensor.opv")
 
-    rows = [row for row in config["views"][0]["cards"][-1]["entities"] if row.get("attribute") == "next_decision"]
+    rows = [row for card in config["views"][0]["cards"] for row in card.get("entities", []) if row.get("attribute") == "next_change"]
     assert rows[0]["format"] == "datetime"
 
 
@@ -270,7 +270,7 @@ def test_cards_for_the_options_of_version_33():
 def test_no_cards_for_options_that_are_off():
     config = dashboard.build_dashboard({"climate": "climate.home"})
 
-    assert not {"Setpoint chain", "Burner cycles", "Sensors", "OPV search"} & _titles(config)
+    assert not {"Setpoint chain", "Burner cycles", "Sensors", "OPV model"} & _titles(config)
 
 
 def test_the_search_is_on_only_with_the_learned_opv():

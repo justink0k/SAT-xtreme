@@ -300,7 +300,7 @@
             "data": {
               "xtreme_learned_opv": "Zelflerende OPV (learned OPV)",
               "xtreme_opv_minimum": "Laagste geleerde OPV",
-              "xtreme_opv_search": "Zoek de beste OPV",
+              "xtreme_opv_search": "Kies de OPV met een model",
               "xtreme_opv_search_gas_sensor": "Gasmeter (alleen tonen)",
               "xtreme_calibration": "Kalibratieknoppen (slow calibration)"
             },
@@ -308,8 +308,8 @@
               "xtreme_learned_opv": "SAT leert de OPV tijdens gewoon stoken. 'Alleen leren' toont de geleerde waarde in een sensor terwijl SAT je eigen OPV blijft gebruiken. 'Leren en gebruiken' laat SAT de geleerde waarde gebruiken.",
               "xtreme_calibration": "Voegt een start- en stopknop en een statussensor toe voor een zorgvuldige kalibratie van de OPV. Eerst test hij ongeveer 10 minuten of de ketel de modulatiegrens volgt. Zo ja, dan meet elke van de 5 rondes op minimaal vermogen (samen ongeveer 2 uur). Zo nee, dan verlaagt elke ronde het setpoint stap voor stap (meestal 5 tot 6 uur; langer bij zacht weer, omdat de kalibratie pauzeert zolang de kamer meer dan 1 °C boven de doeltemperatuur is; uiterlijk 10 uur). Pauzeert bij warm water en is altijd te stoppen. De uitkomst wordt de beginwaarde van de zelflerende OPV.",
               "xtreme_opv_minimum": "De geleerde OPV komt nooit onder deze aanvoertemperatuur. Een lagere waarde laat de aanvoer lager worden (meer condensatie, maar kortere branden en meer starts); een hogere waarde geeft langere branden. Alleen gebruikt met de zelflerende OPV.",
-              "xtreme_opv_search": "Als er 3 dagen geen plateau is gemeten, probeert SAT de OPV 48 uur lang 1 °C lager of hoger en vergelijkt het aantal cv-starts per graaduur en het comfort (alleen in uren met een ongewijzigde doeltemperatuur). Een stap omlaag blijft als die niet meer dan 15 % slechter is; een stap omhoog alleen als die minstens 15 % beter is. SAT gaat direct terug als het te koud of onrustiger wordt. Verandert het setpoint alleen met Leren en toepassen; met Alleen leren toont hij de stap die hij zou zetten.",
-              "xtreme_opv_search_gas_sensor": "Optioneel. Het gasverbruik per graaduur van de lopende periode wordt als attribuut getoond, voor je eigen vergelijking. Het telt niet mee in de beslissing, omdat warm water ook wordt meegeteld."
+              "xtreme_opv_search": "SAT leert de typische opwarmcurve van een brand in je huis en voorspelt hoe lang een brand duurt bij elke OPV. Hij kiest de laagste OPV waarbij een brand minstens de minimum brandduur van boiler timing duurt, verandert hem hooguit 1 °C per dag en gaat terug als het comfort slechter wordt. Hij kiest alleen als het model past (de ketel slaat bij de meeste branden zelf af, de meeste stooktijd is PWM) en de echte branden goed voorspelt. Verandert het setpoint alleen met Leren en toepassen; met Alleen leren toont hij zijn voorspelling en keuze.",
+              "xtreme_opv_search_gas_sensor": "Optioneel. Het gasverbruik per graaduur van de afgelopen 7 dagen wordt als attribuut getoond, voor je eigen vergelijking. Het telt niet mee in de keuze."
             }
           },
           "sensors": {
@@ -399,6 +399,20 @@
     "create_xtreme_dashboard": {
       "name": "Xtreme-dashboard aanmaken (fork)",
       "description": "SAT-xtreme: maak het dashboard SAT Xtreme aan of bouw het opnieuw op met de entiteiten die er nu zijn."
+    },
+    "try_opv_offset": {
+      "name": "Probeer een andere OPV (fork)",
+      "description": "SAT-xtreme: gebruik de OPV een paar uur een paar graden lager of hoger, om de voorspelde brandduur van het OPV-model te controleren. Gaat daarna vanzelf terug. Werkt met Alleen leren en met Leren en toepassen.",
+      "fields": {
+        "offset": {
+          "name": "Verschuiving",
+          "description": "Hoeveel graden lager (negatief) of hoger (positief)."
+        },
+        "hours": {
+          "name": "Uren",
+          "description": "Hoe lang de proef duurt."
+        }
+      }
     }
   },
   "issues": {

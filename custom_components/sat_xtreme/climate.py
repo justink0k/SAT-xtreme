@@ -48,7 +48,7 @@ from .relative_modulation import RelativeModulation, RelativeModulationState
 from .summer_simmer import SummerSimmer
 from .xtreme.calibration import XtremeCalibration
 from .xtreme.opv import LearnedOpv
-from .xtreme.opv_search import SearchSample
+from .xtreme.opv_model import ModelSample
 from .xtreme.profile import BOILER_PRESETS, HEATER_COMMAND_REPEAT_SECONDS
 from .xtreme.stale import StaleSensorGuard
 from .util import create_pid_controller, create_heating_curve_controller, create_pwm_controller, create_minimum_setpoint_controller
@@ -200,7 +200,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             maximum_setpoint=coordinator.maximum_setpoint,
             storage_key=f"sat_xtreme_opv_{config_entry.entry_id}",
             minimum=coordinator.xtreme_profile.opv_minimum,
-            search=coordinator.xtreme_profile.opv_search,
+            model=coordinator.xtreme_profile.opv_search,
+            heat_pump=coordinator.heating_system == HEATING_SYSTEM_HEAT_PUMP,
+            minimum_burn_seconds=coordinator.xtreme_profile.minimum_burn_time,
         )
 
         # Xtreme profile: what to do when the inside or outside temperature is no longer updated
@@ -700,8 +702,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             if self._minimum_setpoint_version == 2:
                 return max(self.pwm.setpoint, self._coordinator.minimum_setpoint)
 
-        # Default to coordinator's minimum setpoint
-        return self._coordinator.minimum_setpoint
+        # Default to coordinator's minimum setpoint (Xtreme profile: plus a running OPV test step)
+        return self.learned_opv.with_test(self._coordinator.minimum_setpoint)
 
     def _calculate_control_setpoint(self) -> float:
         """Calculate the control setpoint based on the heating curve and PID output."""
@@ -1091,13 +1093,18 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             boiler_minimum_modulation=self._coordinator.minimum_relative_modulation_value,
         )
 
-        # Xtreme profile: the search for the best OPV, when the house gives no plateau to learn from
-        if self.learned_opv.search.enabled:
-            self.learned_opv.update_search(SearchSample(
+        # Xtreme profile: the model of the burn, when the house gives no plateau to learn from
+        if self.learned_opv.model.enabled:
+            self.learned_opv.update_model(ModelSample(
                 time=dt_util.utcnow().timestamp(),
                 heating=self.hvac_mode == HVACMode.HEAT,
                 flame=bool(self._coordinator.flame_active),
                 hot_water=bool(self._coordinator.hot_water_active),
+                seconds_since_hot_water=self._coordinator.seconds_since_hot_water,
+                heating_demand=self._coordinator.heater_state_commanded == DeviceState.ON,
+                flow=self._coordinator.boiler_temperature,
+                setpoint=self._coordinator.setpoint,
+                pwm=self.pulse_width_modulation_enabled,
                 target=self.target_temperature,
                 current=self.current_temperature,
                 outside=self.current_outside_temperature,

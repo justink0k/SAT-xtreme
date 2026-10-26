@@ -75,57 +75,66 @@ sample cannot change much.
 
 The learned value is stored and survives restarts and updates.
 
-## Search for the best OPV
+## Choose the OPV from a model
 
-*Learning and calibration → Search for the best OPV.* Default off.
+*Learning and calibration → Choose the OPV from a model.* Default off.
 
 In a well insulated house the boiler often gives more heat at its minimum power than the house takes in mild
-weather. The flow then rises in every burn until the boiler switches off, and there is no plateau to learn
-from. The OPV is then a choice: a lower OPV gives shorter burns at a lower flow, a higher OPV longer burns and
-fewer starts. The search tries both and keeps what works best.
+weather. The flow then rises in every burn until the boiler switches itself off a little above the OPV, and there
+is no plateau to learn from. The OPV then decides how long a burn lasts. The heat the house needs per day does not
+depend on the OPV, so longer burns mean fewer starts, and a lower OPV means a lower flow.
 
-### How it decides
+### The model
 
-- **Score:** heating starts per degree hour (an hour with 1 °C between the target and the outside
-  temperature). Lower is better. Only heating starts count, not hot water.
-- **Comfort,** only measured in stable hours: the target has been unchanged for at least 3 hours and the
-  thermostat is heating, so a night setback does not count. A step fails when the room is on average more
-  than 0.5 °C below the target, or when the spread of the room temperature around the target grows by more
-  than 50 % and by at least 0.1 °C.
-- **A period** lasts 48 hours and counts only with at least 20 starts and 12 stable hours; otherwise it is
-  extended, up to 7 days. A period that is still incomplete after 7 days is discarded and started again;
-  `search_blocked` says why (`too_few_starts` or `too_few_stable_hours`).
-- **The outside temperature is required.** A gap of up to an hour is bridged with the last known value. When
-  more than 10 % of the heating time of a period has no outside temperature, the period is discarded and
-  `search_blocked` is `no_outside_temperature`; the search goes on once the outside temperature is back.
+- For every heating burn, SAT notes when the flow first reached every whole degree after the ignition. Burns with
+  hot water and burns shorter than a minute are not used. The start peak of the boiler is simply part of it.
+- The **heating curve** is, per degree, the median time over the burns of the last 7 days. A degree counts when at
+  least 80 % of the burns that started below it reached it.
+- Above the highest measured degree the curve is extended for at most 3 °C. When the rise slows down, the flow
+  approaches a **balance temperature**: the temperature at which the boiler at minimum power and the house are in
+  balance, the real OPV. It is shown as an estimate.
+- The **predicted burn time** at an OPV is the time the curve needs to reach the OPV plus the point where your
+  boiler normally switches itself off.
+- After every burn the boiler ends itself, SAT compares the predicted burn time with the real one.
 
-!!! warning "Experimental"
-    Measured on one house, the starts per degree hour varied about 50 % from day to day at the same OPV,
-    mostly through the weather: on cold days the boiler burns longer and starts less often. A step of 1 °C is
-    then hard to judge within 48 hours. Use the search with *Learn only* to follow it; a revised version with
-    alternating periods and a measure per burn is being worked on.
+### The choice
 
-### The steps
+SAT chooses the **lowest OPV at which a burn lasts at least the minimum burn time** of
+[boiler timing](boiler-timing.md) (*Minimum burn time per PWM block*, 360 s by default), within the *Lowest learned
+OPV*, 55 °C and the maximum setpoint. Gas use is not part of the choice: what a start costs is not known for every
+boiler, and a low flow with burns of a sensible length is a choice that can be explained.
 
-1. After 3 days without a plateau sample, SAT measures a baseline of 48 hours at the current OPV.
-2. It tries 1 °C lower. When the score is not more than 15 % worse and the comfort stays good, it keeps the
-   lower value (a lower flow is a bonus) and tries another step down.
-3. Otherwise it goes back and tries 1 °C higher. That step is only kept when the score is at least 15 %
-   better and the comfort stays good.
-4. When no step helps, it keeps the best value and rests for 7 days before it searches again.
+It only chooses when all of these hold:
 
-When the room gets too cold during a trial, SAT goes back right away. The search stays between the *Lowest
-learned OPV*, 55 °C and the maximum setpoint. A plateau sample always wins: it ends the search, which starts
-again after 3 days without a plateau. The state of the search survives restarts.
+- the model has at least 30 burns;
+- at least 60 % of the heating burns end with the boiler switching itself off (otherwise the OPV does not decide
+  the burn time);
+- at least 50 % of the heating time is in PWM (otherwise the boiler mostly burns continuously, and the normal
+  learning measures the OPV);
+- the gateway reports the flow temperature, and the heating system is not a heat pump;
+- the median error of the predictions over the last 24 hours is at most 20 %.
 
-With *Learn only*, the setpoint does not change: SAT only measures the baseline and shows the step it would
-take. With *Learn and apply*, the step is added to the learned value.
+With *Learn and apply* it changes the OPV at most 1 °C per day. For 48 hours after a change it watches the comfort,
+only in stable hours (target unchanged for at least 3 hours, heating on): when the room is on average more than
+0.5 °C too cold, or the spread around the target grows by more than 50 % and at least 0.1 °C, it goes back and
+blocks that value for 7 days. A plateau sample always wins: the learned value is used again. With *Learn only*
+nothing changes: SAT shows its prediction and the OPV it would choose.
+
+### Checking the model
+
+The action [`sat_xtreme.try_opv_offset`](actions.md#sat_xtremetry_opv_offset) uses the OPV a few degrees lower or
+higher for some hours, also with *Learn only*, and goes back by itself. SAT shows the predicted and the real burn
+time of that test. When they agree, the model can be trusted. One day with the OPV 1 °C lower is a good test.
 
 ### Gas meter
 
-You can choose a gas meter. Its use per degree hour in the current period is shown as an attribute for your
-own comparison, but it is not used to decide: in a combi boiler it includes hot water, which changes more
-from day to day than a step of 1 °C.
+You can choose a gas meter. Its use per degree hour over the last 7 days is shown as an attribute for your own
+comparison; it is not used to choose. In a combi boiler it includes hot water.
+
+!!! note "Tested on one house"
+    The model has only been tested with an Intergas Xtreme 30. The status and the comparison of predicted and real
+    burn times show whether it works for your boiler; reports are welcome on the
+    [issue tracker](https://github.com/justink0k/SAT-xtreme/issues).
 
 ## Sensor
 
@@ -137,9 +146,11 @@ samples with their time and type. Also:
 - `modulation_limit` and `modulation_burns`: the minimum modulation in use and how many burns it is based on;
 - `shut_off_offset` and `shut_off_offset_samples`: where the boiler normally switches itself off, as flow minus
   setpoint (empty until there are 5 shut-offs), and how many shut-offs it is based on;
-- `search_phase` (`waiting`, `baseline`, `down`, `up` or `rest`), `search_blocked` (why no decision comes), `search_value` (the OPV the search uses, or
-  would try with *Learn only*), `search_offset`, `baseline_score` and `trial_score`, `baseline_spread` and
-  `trial_spread`, `baseline_mean_error` and `trial_mean_error`, `stable_hours` and `starts` of the current
-  period, `next_decision` (a date and time), `last_decision` and `search_gas_per_degree_hour`;
+- `model_status` (`collecting`, `active`, `poor_fit`, or why it does not apply: `not_applicable_continuous`,
+  `not_applicable_no_self_shut_off`, `not_applicable_no_flow_temperature`, `not_applicable_heat_pump`),
+  `model_burns`, `model_error`, `model_choice` (the OPV it would choose), `model_value` (the OPV it uses),
+  `predicted_burn_seconds` (at the OPV −1, 0 and +1 °C; `never` when the flow would not reach the shut-off point),
+  `minimum_burn_seconds`, `balance_temperature`, `curve_top`, `self_shut_off_share`, `pwm_share`, `next_change`,
+  `last_decision`, `test` and `last_test`, and `gas_per_degree_hour`;
 - `last_burn_result`: what the last burn gave: `plateau` or `shut_off`, or why it gave no sample:
   `modulation_too_high`, `burn_too_short`, `hot_water`, `no_plateau` or `at_setpoint`.

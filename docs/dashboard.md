@@ -19,7 +19,7 @@ Cards that only appear with their option on:
 |---|---|
 | *Setpoint chain*: calculated, sent and reported setpoint | [Setpoint chain](setpoint-chain.md) |
 | *Burner cycles*: the last cycle and the counters | [Burner cycles](burner-cycles.md) |
-| *OPV search*: phase, what blocks it, value tried, scores, comfort and the next decision | [Search for the best OPV](learned-opv.md#search-for-the-best-opv) |
+| *OPV model* and *Predicted burn time*: status, the OPV it would choose and uses, predicted burn times and the last test | [Choose the OPV from a model](learned-opv.md#choose-the-opv-from-a-model) |
 | *Sensors*: which inside sensor is used and how old the values are | [Stale sensors](stale-sensors.md) |
 | *Maximum setpoint* in the card *Now*, to change it right there | [Maximum setpoint entity](maximum-setpoint.md) |
 

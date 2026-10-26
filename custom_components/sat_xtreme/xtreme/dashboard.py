@@ -240,25 +240,30 @@ def build_dashboard(entities: dict[str, str], opv_search: bool = False) -> dict[
             {"type": "history-graph", "title": "Learned OPV (7 days)", "hours_to_show": 168, "entities": rows(("learned_opv", "Learned OPV"))},
         ]})
 
-    # Search for the best OPV
+    # The model of the burn that chooses the OPV
     if "learned_opv" in e and opv_search:
-        cards.append({"type": "entities", "title": "OPV search", "entities": [
-            attribute("learned_opv", "search_phase", "Phase"),
-            attribute("learned_opv", "search_blocked", "Blocked by"),
-            attribute("learned_opv", "search_value", "Value tried", "°C"),
-            attribute("learned_opv", "search_offset", "Step", "°C"),
-            attribute("learned_opv", "next_decision", "Next decision", format="datetime"),
+        cards.append({"type": "entities", "title": "OPV model", "entities": [
+            attribute("learned_opv", "model_status", "Status"),
+            attribute("learned_opv", "model_burns", "Burns in the model"),
+            attribute("learned_opv", "model_error", "Error of the prediction (24 hours)"),
+            attribute("learned_opv", "model_choice", "OPV it would choose", "°C"),
+            attribute("learned_opv", "model_value", "OPV it uses", "°C"),
+            attribute("learned_opv", "minimum_burn_seconds", "Minimum burn time", "s"),
+            attribute("learned_opv", "balance_temperature", "Balance temperature (estimate)", "°C"),
+            attribute("learned_opv", "self_shut_off_share", "Burns the boiler ends itself"),
+            attribute("learned_opv", "pwm_share", "Heating time in PWM"),
+            attribute("learned_opv", "next_change", "Next change allowed", format="datetime"),
             attribute("learned_opv", "last_decision", "Last decision"),
-            attribute("learned_opv", "baseline_score", "Starts per degree hour, baseline"),
-            attribute("learned_opv", "trial_score", "Starts per degree hour, trial"),
-            attribute("learned_opv", "baseline_spread", "Spread, baseline", "°C"),
-            attribute("learned_opv", "trial_spread", "Spread, trial", "°C"),
-            attribute("learned_opv", "baseline_mean_error", "Mean deviation, baseline", "°C"),
-            attribute("learned_opv", "trial_mean_error", "Mean deviation, trial", "°C"),
-            attribute("learned_opv", "stable_hours", "Stable hours in this period", "h"),
-            attribute("learned_opv", "starts", "Starts in this period"),
-            attribute("learned_opv", "search_gas_per_degree_hour", "Gas per degree hour"),
+            attribute("learned_opv", "gas_per_degree_hour", "Gas per degree hour (7 days)"),
         ]})
+        cards.append({"type": "markdown", "title": "Predicted burn time", "content": (
+            f"{{% set p = state_attr('{e['learned_opv']}', 'predicted_burn_seconds') or {{}} %}}\n"
+            f"{{% set t = state_attr('{e['learned_opv']}', 'test') or state_attr('{e['learned_opv']}', 'last_test') %}}\n"
+            "| OPV | Burn time |\n|---|---|\n"
+            "{% for key in ['-1', '+0', '+1'] %}| {{ key }} °C | {{ (p[key] / 60) | round(1) if p[key] is number else '–' }} min |\n{% endfor %}"
+            "\n{% if t %}**Test {{ t.offset }} °C** until {{ t.until }}: predicted {{ (t.predicted_seconds / 60) | round(1) if t.predicted_seconds is number else '–' }} min, "
+            "real {{ (t.actual_seconds / 60) | round(1) if t.actual_seconds is number else '–' }} min ({{ t.burns }} burns){% endif %}"
+        )})
 
     # Stale sensors
     if "stale_sensor" in e:

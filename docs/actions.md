@@ -66,6 +66,27 @@ target:
   entity_id: climate.sat
 ```
 
+## sat_xtreme.try_opv_offset
+
+Fork only, with *Choose the OPV from a model* on. Uses the OPV `offset` degrees lower (negative) or higher
+(positive) for `hours` hours, also with *Learn only*, and goes back by itself. The attributes `test` and
+`last_test` of *Learned OPV* show the predicted and the real burn time. See
+[Checking the model](learned-opv.md#checking-the-model).
+
+| Field | Range |
+|---|---|
+| `offset` | −3 to +3 °C |
+| `hours` | 1 to 72 |
+
+```yaml
+action: sat_xtreme.try_opv_offset
+target:
+  entity_id: climate.sat
+data:
+  offset: -1
+  hours: 24
+```
+
 !!! note "Fixed in the fork"
     In the official SAT 4.2.1, `sat.reset_integral` and `sat.pulse_width_modulation` silently did nothing when
     the entity ID was given as text, as in most automations. The fork accepts both a single entity ID and a

@@ -1066,15 +1066,39 @@ From a review of version 35. Only matters with the learned OPV on.
   when the learned OPV is loaded; the limit is 2 % again until there are 30 burns. The estimate, the samples,
   the usual shut-off point and the state of the search are kept. The attribute `modulation_samples` is now
   `modulation_burns`.
-- **The OPV search needs the outside temperature.** A gap of up to an hour is bridged with the last known value;
-  a period with more than 10 % of its heating time without one is discarded. The new attribute `search_blocked`
-  says why no decision comes (`no_outside_temperature`, `too_few_starts`, `too_few_stable_hours`), also on the
-  dashboard.
-- **A period lasts at most 7 days;** an incomplete period is then discarded and started again.
-- **The manual marks the search as experimental:** on the tested house the starts per degree hour varied about
-  50 % from day to day at the same OPV, mostly through the weather.
+- The OPV search of versions 34 and 35 is replaced by a model of the burn; see the next entry.
 
-**Files.** `custom_components/sat_xtreme/xtreme/opv.py`, `custom_components/sat_xtreme/xtreme/opv_search.py`,
-`custom_components/sat_xtreme/xtreme/dashboard.py`, `tests/test_xtreme_learned_opv.py`,
-`tests/test_xtreme_opv_search.py`, `tests/test_xtreme_dashboard_builder.py`, `docs/learned-opv.md`,
+**Files.** `custom_components/sat_xtreme/xtreme/opv.py`, `custom_components/sat_xtreme/xtreme/dashboard.py`,
+`tests/test_xtreme_learned_opv.py`, `tests/test_xtreme_dashboard_builder.py`, `docs/learned-opv.md`,
 `docs/dashboard.md`.
+
+## Unreleased: choose the OPV from a model of the burn
+
+The option *Search for the best OPV* of versions 34 and 35 becomes *Choose the OPV from a model* (same stored
+option, off by default). On the tested house the starts per degree hour varied about 50 % from day to day at the
+same OPV, so trying a step and comparing periods could not decide within weeks. The model predicts instead.
+
+- **The model:** per heating burn, the time from ignition to every whole degree of flow; per degree the median over
+  the last 7 days; above the measured curve extended for at most 3 °C towards a balance temperature (shown as an
+  estimate of the real OPV). The predicted burn time at an OPV is the time to the OPV plus the usual shut-off point.
+  After every burn the prediction is compared with the real burn time.
+- **The choice:** the lowest OPV with a predicted burn time of at least the *Minimum burn time per PWM block* of
+  boiler timing, within the lowest learned OPV, 55 °C and the maximum setpoint; at most 1 °C per day, only with
+  *Learn and apply*; back and 7 days blocked when the comfort gets worse in the 48 hours after a change.
+- **Only when it applies:** at least 30 burns, at least 60 % of the heating burns ended by the boiler itself, at
+  least 50 % of the heating time in PWM, a flow temperature, no heat pump, and a median prediction error of at most
+  20 % over the last 24 hours. The attribute `model_status` says which.
+- **New action `sat_xtreme.try_opv_offset`:** the OPV −3 to +3 °C for 1 to 72 hours, also with *Learn only*, to
+  compare predicted and real burn times.
+- **Dashboard:** the card *OPV search* becomes *OPV model*, with a card *Predicted burn time*.
+- **Migration:** the stored state of the search is not read; a running search step ends. The model starts collecting
+  burns (about 30, a day or two).
+
+**Files.** `custom_components/sat_xtreme/xtreme/opv_model.py` (new), `custom_components/sat_xtreme/xtreme/opv_search.py`
+(removed), `custom_components/sat_xtreme/xtreme/opv.py`, `custom_components/sat_xtreme/climate.py`,
+`custom_components/sat_xtreme/services.py`, `custom_components/sat_xtreme/services.yaml`,
+`custom_components/sat_xtreme/const.py`, `custom_components/sat_xtreme/xtreme/dashboard.py`,
+`custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
+`tests/test_xtreme_opv_model.py` (new), `tests/test_xtreme_opv_search.py` (removed),
+`tests/test_xtreme_dashboard_builder.py`, `docs/learned-opv.md`, `docs/actions.md`, `docs/dashboard.md`,
+`docs/settings-xtreme-profile.md`.

@@ -31,3 +31,28 @@ create_xtreme_dashboard:
     entity:
       domain: climate
       integration: "sat_xtreme"
+
+try_opv_offset:
+  target:
+    entity:
+      domain: climate
+      integration: "sat_xtreme"
+  fields:
+    offset:
+      required: true
+      example: -1
+      selector:
+        number:
+          min: -3
+          max: 3
+          step: 1
+          unit_of_measurement: "°C"
+    hours:
+      required: true
+      example: 24
+      selector:
+        number:
+          min: 1
+          max: 72
+          step: 1
+          unit_of_measurement: "h"

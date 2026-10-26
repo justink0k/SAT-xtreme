@@ -34,7 +34,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
-from .opv_search import OpvSearch, SearchSample
+from .opv_model import ModelSample, OpvModel
 
 if TYPE_CHECKING:
     from ..boiler import BoilerState
@@ -118,18 +118,20 @@ class LearnedOpv:
     _STORAGE_VERSION = 1
 
     def __init__(self, mode: str, configured_value: float, maximum_setpoint: float, storage_key: str, minimum: float = OPV_MINIMUM,
-                 search: bool = False):
+                 model: bool = False, heat_pump: bool = False, minimum_burn_seconds: float = 360):
         self._mode: str = mode if mode in OPV_MODES else OPV_MODE_OFF
         self._maximum_setpoint: float = maximum_setpoint
         self._minimum: float = float(minimum)
 
-        # The search for the best OPV in steps; its offset only counts when the learned OPV is applied
-        self.search = OpvSearch(
-            enabled=search and self._mode != OPV_MODE_OFF,
+        # The model of the burn that chooses the OPV; its value only counts when the learned OPV is applied
+        self.model = OpvModel(
+            enabled=model and self._mode != OPV_MODE_OFF,
             applied=self._mode == OPV_MODE_APPLY,
-            allowed=lambda offset: self._value_with(offset) != self._value_with(self.search.offset),
+            heat_pump=heat_pump,
+            minimum_burn_seconds=minimum_burn_seconds,
+            limits=lambda: (self._minimum, min(OPV_MAXIMUM, self._maximum_setpoint)),
         )
-        self._search_saved_at: Optional[float] = None
+        self._model_saved_at: Optional[float] = None
         self._storage_key: str = storage_key
         self._store: Optional[Store] = None
 
@@ -182,12 +184,22 @@ class LearnedOpv:
 
     @property
     def value(self) -> float:
-        """The OPV to use: the estimate plus a safety margin and the step of the search, within the limits."""
-        return self._value_with(self.search.applied_offset)
+        """The OPV to use: the value of the model when it has chosen one, otherwise the estimate plus a safety
+        margin, plus a running test step, within the limits."""
+        base = self.model.applied_value if self.applied and self.model.enabled and self.model.applied_value is not None else self.base_value
+        return self.limit(base + self.model.test_offset)
 
-    def _value_with(self, offset: float) -> float:
-        value = min(max(self._estimate + OPV_MARGIN + offset, self._minimum), OPV_MAXIMUM, self._maximum_setpoint)
-        return round(value, 1)
+    @property
+    def base_value(self) -> float:
+        """The learned OPV without the model: the estimate plus a safety margin, within the limits."""
+        return self.limit(self._estimate + OPV_MARGIN)
+
+    def limit(self, value: float) -> float:
+        return round(min(max(value, self._minimum), OPV_MAXIMUM, self._maximum_setpoint), 1)
+
+    def with_test(self, value: float) -> float:
+        """Add a running test step to an OPV that does not come from the learned value (with "learn")."""
+        return self.limit(value + self.model.test_offset) if self.model.test_offset else value
 
     @property
     def minimum(self) -> float:
@@ -249,7 +261,7 @@ class LearnedOpv:
             "shut_off_offset": self.shut_off_offset,
             "shut_off_offset_samples": len(self._shut_off_offsets),
             "last_burn_result": self._last_burn_result,
-            **self.search.attributes(self._value_with),
+            **self.model.attributes(self.value),
             "recent_samples": [asdict(sample) for sample in self._samples],
         }
 
@@ -269,7 +281,8 @@ class LearnedOpv:
         # Version 36 keeps one value per burn; the values per minute of versions 34 and 35 ("modulation") are dropped
         self._modulation_burns = deque(((float(time), float(value)) for time, value in data.get("modulation_burns", [])), maxlen=MODULATION_MAXIMUM_BURNS)
         self._shut_off_offsets = deque((float(value) for value in data.get("shut_off_offsets", [])), maxlen=SHUT_OFF_SAMPLES)
-        self.search.load(data.get("search"))
+        # The search of versions 34 and 35 ("search") is replaced by the model and not read
+        self.model.load(data.get("model"))
 
         _LOGGER.debug("Xtreme profile: loaded learned OPV %.1f°C (estimate %.2f°C, %d samples).", self.value, self._estimate, self._sample_count)
 
@@ -398,23 +411,23 @@ class LearnedOpv:
 
         self._burn_modulation_previous = modulation
 
-    def update_search(self, sample: SearchSample) -> None:
-        """Feed one control loop to the search for the best OPV and save its state now and then."""
-        if not self.search.enabled:
+    def update_model(self, sample: ModelSample) -> None:
+        """Feed one control loop to the model of the burn and save its state now and then."""
+        if not self.model.enabled:
             return
 
-        self.search.update(sample)
+        self.model.update(sample, self.base_value)
 
-        saved_long_ago = self._search_saved_at is None or sample.time - self._search_saved_at >= 600
-        if self._store is not None and (self.search.changed or saved_long_ago):
-            self.search.changed = False
-            self._search_saved_at = sample.time
+        saved_long_ago = self._model_saved_at is None or sample.time - self._model_saved_at >= 600
+        if self._store is not None and (self.model.changed or saved_long_ago):
+            self.model.changed = False
+            self._model_saved_at = sample.time
             self._store.async_delay_save(self._data_to_save, 10)
 
     def _on_plateau(self, flow: float) -> None:
         step = max(-OPV_MAXIMUM_STEP, min(OPV_MAXIMUM_STEP, OPV_ALPHA * (flow - self._estimate)))
         self._estimate += step
-        self.search.on_plateau(_wall_time())
+        self.model.on_plateau()
         self._record(SAMPLE_PLATEAU, flow)
 
         _LOGGER.info("Xtreme profile: OPV plateau sample %.1f°C, estimate now %.2f°C (OPV %.1f°C).", flow, self._estimate, self.value)
@@ -464,5 +477,5 @@ class LearnedOpv:
             "samples": [asdict(sample) for sample in self._samples],
             "modulation_burns": [[round(time), value] for time, value in self._modulation_burns],
             "shut_off_offsets": list(self._shut_off_offsets),
-            "search": self.search.to_dict(),
+            "model": self.model.to_dict(),
         }

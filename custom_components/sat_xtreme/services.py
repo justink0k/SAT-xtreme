@@ -4,7 +4,7 @@ import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
-from .const import DOMAIN, SERVICE_RESET_INTEGRAL, SERVICE_PULSE_WIDTH_MODULATION, SERVICE_START_XTREME_CALIBRATION, SERVICE_STOP_XTREME_CALIBRATION, SERVICE_CREATE_XTREME_DASHBOARD
+from .const import DOMAIN, SERVICE_RESET_INTEGRAL, SERVICE_PULSE_WIDTH_MODULATION, SERVICE_START_XTREME_CALIBRATION, SERVICE_STOP_XTREME_CALIBRATION, SERVICE_CREATE_XTREME_DASHBOARD, SERVICE_TRY_OPV_OFFSET
 from .util import get_climate_entities
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
@@ -91,4 +91,26 @@ async def async_register_services(hass: HomeAssistant) -> None:
         service=SERVICE_CREATE_XTREME_DASHBOARD,
         service_func=create_xtreme_dashboard,
         schema=vol.Schema({vol.Required("entity_id"): cv.entity_ids})
+    )
+
+    async def try_opv_offset(call: ServiceCall):
+        """Service to try the OPV a few degrees lower or higher for some hours, to check the model of the burn."""
+        for climate in get_climate_entities(hass, call.data.get("entity_id", [])):
+            if not climate.learned_opv.model.enabled:
+                _LOGGER.warning("The OPV model is not enabled in the options of %s.", climate.entity_id)
+                continue
+
+            _LOGGER.info("Try OPV offset action called for %s: %+.0f °C for %.0f hours", climate.entity_id, call.data["offset"], call.data["hours"])
+            climate.learned_opv.model.start_test(call.data["offset"], call.data["hours"], climate.minimum_setpoint_value)
+            climate.async_write_ha_state()
+
+    hass.services.async_register(
+        DOMAIN,
+        service=SERVICE_TRY_OPV_OFFSET,
+        service_func=try_opv_offset,
+        schema=vol.Schema({
+            vol.Required("entity_id"): cv.entity_ids,
+            vol.Required("offset"): vol.All(vol.Coerce(int), vol.Range(min=-3, max=3)),
+            vol.Required("hours"): vol.All(vol.Coerce(float), vol.Range(min=1, max=72)),
+        })
     )
