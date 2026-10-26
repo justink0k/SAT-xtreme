@@ -977,7 +977,13 @@ With the option off, nothing changes and the *Temperature sensor maximum value a
 `docs/stale-sensors.md` (new), `docs/settings-xtreme-profile.md`, `docs/settings-system.md`, `docs/entities.md`,
 `docs/repairs.md`, `mkdocs.yml`, `custom_components/sat_xtreme/manifest.json`.
 
-## Unreleased: the learned OPV learns in practice
+## Version 34: the learned OPV in practice (`4.2.1-xtreme.34`, 2026-10-26)
+
+The self-learning OPV now learns per boiler, no longer runs away to the maximum, and can search for the best
+OPV when there is nothing to measure. Everything only matters with the learned OPV on; the search is a new
+option, off by default.
+
+### The learned OPV learns in practice
 
 The self-learning OPV (*learned OPV*) found no samples on boilers that report 10 % or more at their minimum
 power, and would have pushed itself up once it did. Both only matter with the learned OPV on (*Learn only* or
@@ -1006,7 +1012,7 @@ power, and would have pushed itself up once it did. Both only matter with the le
 `custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_learned_opv.py`, `tests/xtreme_helpers.py`,
 `docs/learned-opv.md`, `docs/settings-xtreme-profile.md`.
 
-## Unreleased: search for the best OPV
+### Search for the best OPV
 
 A new option, off by default: *Learning and calibration → Search for the best OPV*, with an optional gas meter
 that is only shown. It changes the setpoint only with the learned OPV on *Learn and apply*; with *Learn only* it
@@ -1030,4 +1036,4 @@ measures and shows the step it would take.
 `custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/const.py`,
 `custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
 `tests/test_xtreme_opv_search.py` (new), `tests/xtreme_helpers.py`, `docs/learned-opv.md`,
-`docs/settings-xtreme-profile.md`.
+`docs/settings-xtreme-profile.md`, `custom_components/sat_xtreme/manifest.json`.
