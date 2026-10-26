@@ -197,6 +197,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             configured_value=coordinator.minimum_setpoint,
             maximum_setpoint=coordinator.maximum_setpoint,
             storage_key=f"sat_xtreme_opv_{config_entry.entry_id}",
+            minimum=coordinator.xtreme_profile.opv_minimum,
         )
 
         # Xtreme profile: what to do when the inside or outside temperature is no longer updated
@@ -1084,6 +1085,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             flame=self._coordinator.flame,
             heating_demand=self._coordinator.heater_state_commanded == DeviceState.ON,
             seconds_since_hot_water=self._coordinator.seconds_since_hot_water,
+            boiler_minimum_modulation=self._coordinator.minimum_relative_modulation_value,
         )
 
         # Xtreme profile: the calibration sends the setpoint and heater state itself

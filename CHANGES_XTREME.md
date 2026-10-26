@@ -976,3 +976,27 @@ With the option off, nothing changes and the *Temperature sensor maximum value a
 `tests/test_xtreme_stale_sensors.py` (new), `tests/xtreme_helpers.py`, `tests/test_xtreme_presets_and_handover.py`,
 `docs/stale-sensors.md` (new), `docs/settings-xtreme-profile.md`, `docs/settings-system.md`, `docs/entities.md`,
 `docs/repairs.md`, `mkdocs.yml`, `custom_components/sat_xtreme/manifest.json`.
+
+## Unreleased: the learned OPV learns in practice
+
+The self-learning OPV (*learned OPV*) found no samples on boilers that report 10 % or more at their minimum
+power, and would have pushed itself up once it did. Both only matter with the learned OPV on (*Learn only* or
+*Learn and apply*).
+
+- **Minimum modulation per boiler.** Instead of a fixed 2 %, the limit is the 10th percentile of the modulation
+  reported during heating burns in the last 7 days (without the first 5 minutes of a burn and without hot
+  water) plus 5 percentage points, and never below the minimum modulation the boiler reports (message 15).
+  Until there are 30 values, 2 % is used. The values are stored with the learned OPV.
+- **Fix: no runaway through the self shut-off.** A self shut-off only counts when the flow stayed more than
+  0.5 °C below the setpoint. In PWM the setpoint is the OPV itself, so a shut-off at the setpoint plus the
+  boiler's hysteresis raised the OPV, then the setpoint, then the next shut-off, up to the maximum.
+- **New option *Lowest learned OPV*** (default 40 °C, the old fixed value; 30 to 55 °C).
+- **New attributes** on *Learned OPV*: `minimum`, `modulation_limit`, `modulation_samples` and
+  `last_burn_result` (the sample of the last burn, or why it gave none).
+- The manual notes that these rules have only been tested on an Intergas Xtreme 30 and asks for reports.
+
+**Files.** `custom_components/sat_xtreme/xtreme/opv.py`, `custom_components/sat_xtreme/climate.py`,
+`custom_components/sat_xtreme/xtreme/profile.py`, `custom_components/sat_xtreme/config_flow.py`,
+`custom_components/sat_xtreme/const.py`, `custom_components/sat_xtreme/translations/en.json`,
+`custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_learned_opv.py`, `tests/xtreme_helpers.py`,
+`docs/learned-opv.md`, `docs/settings-xtreme-profile.md`.

@@ -48,6 +48,7 @@ Find the [overshoot protection value](overshoot-protection.md#the-overshoot-prot
 | Option | Default | Details |
 |---|---|---|
 | Self-learning OPV (learned OPV) | Off | *Off*, *Learn only* or *Learn and apply*; see [Learned OPV](learned-opv.md) |
+| Lowest learned OPV | 40 °C | 30 – 55 °C; the learned OPV never goes below it |
 | Calibration buttons (slow calibration) | off | Adds the start and stop buttons and the status sensor; see [Slow calibration](calibration.md) |
 
 ## Sensors

@@ -34,6 +34,7 @@ from ..const import (
     CONF_XTREME_INSIDE_MAX_AGE,
     CONF_XTREME_BACKUP_INSIDE_SENSOR,
     CONF_XTREME_OUTSIDE_MAX_AGE,
+    CONF_XTREME_OPV_MINIMUM,
     BOILER_PRESET_CUSTOM,
 )
 
@@ -132,6 +133,7 @@ class XtremeProfile:
 
     # Step 4: learn the OPV during normal operation: "off", "learn" (only show it) or "apply" (use it)
     learned_opv: str = "off"
+    opv_minimum: float = 40.0
 
     # Step 5: a slow calibration of the OPV that does not rely on MM=, started with a button or service
     calibration: bool = False
@@ -199,6 +201,7 @@ class XtremeProfile:
             minimum_burn_time=int(values.get(CONF_XTREME_MINIMUM_BURN_TIME)),
             minimum_duty_cycle=float(values.get(CONF_XTREME_MINIMUM_DUTY_CYCLE)),
             learned_opv=str(values.get(CONF_XTREME_LEARNED_OPV)),
+            opv_minimum=float(values.get(CONF_XTREME_OPV_MINIMUM)),
             calibration=bool(values.get(CONF_XTREME_CALIBRATION)),
             pid_gain_factor=float(values.get(CONF_XTREME_PID_GAIN_FACTOR)),
             maximum_setpoint_rise=float(values.get(CONF_XTREME_MAXIMUM_SETPOINT_RISE)),
