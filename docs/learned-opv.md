@@ -127,6 +127,6 @@ samples with their time and type. Also:
 - `search_phase` (`waiting`, `baseline`, `down`, `up` or `rest`), `search_value` (the OPV the search uses, or
   would try with *Learn only*), `search_offset`, `baseline_score` and `trial_score`, `baseline_spread` and
   `trial_spread`, `baseline_mean_error` and `trial_mean_error`, `stable_hours` and `starts` of the current
-  period, `next_decision` (a Unix time), `last_decision` and `search_gas_per_degree_hour`;
+  period, `next_decision` (a date and time), `last_decision` and `search_gas_per_degree_hour`;
 - `last_burn_result`: what the last burn gave: `plateau` or `shut_off`, or why it gave no sample:
   `modulation_too_high`, `burn_too_short`, `hot_water`, `no_plateau` or `at_setpoint`.

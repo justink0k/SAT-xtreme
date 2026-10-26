@@ -19,7 +19,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry, issue_registry
 from homeassistant.helpers.storage import Store
 
-from ..const import CONF_DEVICE, CONF_MODE, CONF_NAME, DOMAIN, MODE_MQTT_OPENTHERM
+from ..const import CONF_DEVICE, CONF_MODE, CONF_NAME, CONF_XTREME_LEARNED_OPV, CONF_XTREME_OPV_SEARCH, DOMAIN, MODE_MQTT_OPENTHERM
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,6 +48,14 @@ ENTITIES: dict[str, tuple[str, Optional[str]]] = {
     "calibration_start": ("button", "xtreme-calibration-start"),
     "calibration_stop": ("button", "xtreme-calibration-stop"),
     "keep_warm": ("switch", "xtreme-hot-water-keep-warm"),
+    "setpoint_chain": ("sensor", "xtreme-setpoint-chain"),
+    "last_cycle": ("sensor", "xtreme-last-cycle"),
+    "cycles_hour": ("sensor", "xtreme-cycles-last-hour"),
+    "cycles_day": ("sensor", "xtreme-cycles-last-24h"),
+    "burn_hour": ("sensor", "xtreme-average-burn-time-last-hour"),
+    "burn_day": ("sensor", "xtreme-average-burn-time-last-24h"),
+    "maximum_setpoint": ("number", "xtreme-maximum-setpoint"),
+    "stale_sensor": ("binary_sensor", "xtreme-stale-sensor"),
 }
 
 
@@ -97,15 +105,23 @@ def resolve_entities(hass: HomeAssistant, config_entry: ConfigEntry) -> dict[str
     return found
 
 
-def build_dashboard(entities: dict[str, str]) -> dict[str, Any]:
+def opv_search_enabled(config_entry: ConfigEntry) -> bool:
+    """Whether the search for the best OPV is on (it has no entity of its own, only attributes)."""
+    options = config_entry.options
+    return bool(options.get(CONF_XTREME_OPV_SEARCH)) and options.get(CONF_XTREME_LEARNED_OPV, "off") != "off"
+
+
+def build_dashboard(entities: dict[str, str], opv_search: bool = False) -> dict[str, Any]:
     """Build the dashboard configuration; cards whose entities do not exist are left out."""
     e = entities
     cards: list[dict[str, Any]] = []
 
-    def attribute(key: str, attr: str, name: str, suffix: Optional[str] = None) -> dict[str, Any]:
+    def attribute(key: str, attr: str, name: str, suffix: Optional[str] = None, format: Optional[str] = None) -> dict[str, Any]:
         row = {"type": "attribute", "entity": e[key], "attribute": attr, "name": name}
         if suffix:
             row["suffix"] = suffix
+        if format:
+            row["format"] = format
         return row
 
     def rows(*items: tuple[str, str]) -> list[dict[str, Any]]:
@@ -119,7 +135,8 @@ def build_dashboard(entities: dict[str, str]) -> dict[str, Any]:
             attribute("climate", "pulse_width_modulation_duty_cycle", "PWM on / off time (s)"),
             attribute("climate", "minimum_setpoint", "OPV in use", "°C"),
         ]
-    now += rows(("flame_status", "Flame status"), ("anti_cycling", "Anti-cycling remaining"), ("modulation", "Modulation"), ("power", "Power now"), ("keep_warm", "Hot water keep warm"))
+    now += rows(("flame_status", "Flame status"), ("anti_cycling", "Anti-cycling remaining"), ("modulation", "Modulation"), ("power", "Power now"), ("keep_warm", "Hot water keep warm"),
+                ("maximum_setpoint", "Maximum setpoint"), ("stale_sensor", "Stale sensor"))
     stack = [{"type": "thermostat", "entity": e["climate"]}] if "climate" in e else []
     if now:
         stack.append({"type": "entities", "title": "Now", "entities": now})
@@ -154,6 +171,21 @@ def build_dashboard(entities: dict[str, str]) -> dict[str, Any]:
              "entities": rows(("heating_curve", "Heating curve"), ("pid", "PID correction"), ("setpoint", "Control setpoint"))},
         ]})
 
+    # Setpoint chain
+    if "setpoint_chain" in e:
+        cards.append({"type": "vertical-stack", "cards": [
+            {"type": "entities", "title": "Setpoint chain", "entities": rows(("setpoint_chain", "Calculated setpoint")) + [
+                attribute("setpoint_chain", "filtered_setpoint", "Filtered setpoint", "°C"),
+                attribute("setpoint_chain", "sent_setpoint", "Sent to the gateway", "°C"),
+                attribute("setpoint_chain", "received_setpoint", "Reported for the boiler", "°C"),
+                attribute("setpoint_chain", "difference", "Difference (reported - sent)", "°C"),
+                attribute("setpoint_chain", "heating_demand_sent", "Heating demand sent"),
+                attribute("setpoint_chain", "sent_at", "Sent at", format="datetime"),
+            ]},
+            {"type": "history-graph", "title": "Calculated and control setpoint (6 hours)", "hours_to_show": 6,
+             "entities": rows(("setpoint_chain", "Calculated setpoint"), ("setpoint", "Control setpoint"))},
+        ]})
+
     # PWM blocks and starts
     blocks = []
     if "burn_time" in e:
@@ -171,6 +203,23 @@ def build_dashboard(entities: dict[str, str]) -> dict[str, Any]:
     if blocks:
         cards.append({"type": "vertical-stack", "cards": blocks})
 
+    # Burner cycles
+    if "last_cycle" in e:
+        cards.append({"type": "vertical-stack", "cards": [
+            {"type": "entities", "title": "Burner cycles", "entities": rows(
+                ("last_cycle", "Burn time of the last cycle"), ("cycles_hour", "Cycles last hour"), ("cycles_day", "Cycles last 24 hours"),
+                ("burn_hour", "Average burn time last hour"), ("burn_day", "Average burn time last 24 hours"),
+            ) + [
+                attribute("last_cycle", "kind", "Last cycle: kind"),
+                attribute("last_cycle", "end_reason", "Last cycle: ended by"),
+                attribute("last_cycle", "flow_max", "Last cycle: highest flow", "°C"),
+                attribute("last_cycle", "during_anti_cycling", "Last cycle: within the anti-cycling time"),
+                attribute("last_cycle", "end", "Last cycle: ended", format="datetime"),
+            ]},
+            {"type": "history-graph", "title": "Burner cycles (24 hours)", "hours_to_show": 24,
+             "entities": rows(("cycles_hour", "Cycles last hour"), ("burn_hour", "Average burn time last hour"))},
+        ]})
+
     # Learned OPV
     if "learned_opv" in e:
         cards.append({"type": "vertical-stack", "cards": [
@@ -182,8 +231,43 @@ def build_dashboard(entities: dict[str, str]) -> dict[str, Any]:
                 attribute("learned_opv", "last_sample_value", "Last sample", "°C"),
                 attribute("learned_opv", "last_update", "Last update"),
                 attribute("learned_opv", "source", "Started from"),
+                attribute("learned_opv", "minimum", "Lowest OPV", "°C"),
+                attribute("learned_opv", "modulation_limit", "Minimum modulation", "%"),
+                attribute("learned_opv", "modulation_samples", "Minimum modulation based on (values)"),
+                attribute("learned_opv", "shut_off_offset", "Usual shut-off (from the setpoint)", "°C"),
+                attribute("learned_opv", "last_burn_result", "Last burn"),
             ]},
             {"type": "history-graph", "title": "Learned OPV (7 days)", "hours_to_show": 168, "entities": rows(("learned_opv", "Learned OPV"))},
+        ]})
+
+    # Search for the best OPV
+    if "learned_opv" in e and opv_search:
+        cards.append({"type": "entities", "title": "OPV search", "entities": [
+            attribute("learned_opv", "search_phase", "Phase"),
+            attribute("learned_opv", "search_value", "Value tried", "°C"),
+            attribute("learned_opv", "search_offset", "Step", "°C"),
+            attribute("learned_opv", "next_decision", "Next decision", format="datetime"),
+            attribute("learned_opv", "last_decision", "Last decision"),
+            attribute("learned_opv", "baseline_score", "Starts per degree hour, baseline"),
+            attribute("learned_opv", "trial_score", "Starts per degree hour, trial"),
+            attribute("learned_opv", "baseline_spread", "Spread, baseline", "°C"),
+            attribute("learned_opv", "trial_spread", "Spread, trial", "°C"),
+            attribute("learned_opv", "baseline_mean_error", "Mean deviation, baseline", "°C"),
+            attribute("learned_opv", "trial_mean_error", "Mean deviation, trial", "°C"),
+            attribute("learned_opv", "stable_hours", "Stable hours in this period", "h"),
+            attribute("learned_opv", "starts", "Starts in this period"),
+            attribute("learned_opv", "search_gas_per_degree_hour", "Gas per degree hour"),
+        ]})
+
+    # Stale sensors
+    if "stale_sensor" in e:
+        cards.append({"type": "entities", "title": "Sensors", "entities": rows(("stale_sensor", "Stale sensor")) + [
+            attribute("stale_sensor", "inside_source", "Inside sensor in use"),
+            attribute("stale_sensor", "inside_age", "Age of the inside temperature", "s"),
+            attribute("stale_sensor", "backup_age", "Age of the backup sensor", "s"),
+            attribute("stale_sensor", "outside_age", "Age of the outside temperature", "s"),
+            attribute("stale_sensor", "safe_mode", "Heating on the heating curve only"),
+            attribute("stale_sensor", "setpoint_cap", "Highest setpoint in that mode", "°C"),
         ]})
 
     # Calibration
@@ -250,7 +334,7 @@ def _store(hass: HomeAssistant, config_entry: ConfigEntry) -> Store:
 
 async def async_create_dashboard(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Create the SAT-xtreme dashboard, or rebuild it when it exists. Returns False when it had to fall back."""
-    config = build_dashboard(resolve_entities(hass, config_entry))
+    config = build_dashboard(resolve_entities(hass, config_entry), opv_search_enabled(config_entry))
 
     try:
         from homeassistant.components.lovelace.const import LOVELACE_DATA
@@ -302,7 +386,7 @@ async def async_maintain_dashboard(hass: HomeAssistant, config_entry: ConfigEntr
         from homeassistant.components.lovelace.const import LOVELACE_DATA
 
         current = await hass.data[LOVELACE_DATA].dashboards[URL_PATH].async_load(False)
-        wanted = build_dashboard(resolve_entities(hass, config_entry))
+        wanted = build_dashboard(resolve_entities(hass, config_entry), opv_search_enabled(config_entry))
 
         if _fingerprint(current) == _fingerprint(wanted):
             issue_registry.async_delete_issue(hass, DOMAIN, f"update_dashboard_{entry_id}")

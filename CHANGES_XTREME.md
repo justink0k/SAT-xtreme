@@ -1037,3 +1037,21 @@ measures and shows the step it would take.
 `custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
 `tests/test_xtreme_opv_search.py` (new), `tests/xtreme_helpers.py`, `docs/learned-opv.md`,
 `docs/settings-xtreme-profile.md`, `custom_components/sat_xtreme/manifest.json`.
+
+## Version 35: the new options on the dashboard (`4.2.1-xtreme.35`, 2026-10-26)
+
+The SAT Xtreme dashboard shows the options of versions 33 and 34. An unchanged dashboard is updated by itself;
+a dashboard changed by hand gets the repair that offers the update.
+
+- **Learned OPV:** the card also shows the lowest OPV, the minimum modulation and how many values it is based
+  on, the usual shut-off point and the result of the last burn.
+- **OPV search** (new card, only with *Search for the best OPV* on): phase, value tried, step, next and last
+  decision, starts per degree hour, spread and mean deviation of baseline and trial, stable hours and starts of
+  the current period, and the gas use per degree hour.
+- **Setpoint chain, Burner cycles and Sensors** (new cards, each only with its option on), and the
+  *Maximum setpoint* in the card *Now*.
+- The attribute `next_decision` of *Learned OPV* is now a date and time instead of a Unix time.
+
+**Files.** `custom_components/sat_xtreme/xtreme/dashboard.py`, `custom_components/sat_xtreme/xtreme/opv_search.py`,
+`custom_components/sat_xtreme/manifest.json`, `tests/test_xtreme_dashboard_builder.py`,
+`tests/test_xtreme_opv_search.py`, `docs/dashboard.md`, `docs/learned-opv.md`.

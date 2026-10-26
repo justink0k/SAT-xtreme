@@ -264,3 +264,13 @@ async def test_the_option_turns_the_search_on(hass: HomeAssistant, entry: MockCo
     await climate.async_control_heating_loop()
 
     assert climate.learned_opv.attributes["search_phase"] == PHASE_WAITING
+
+
+def test_next_decision_is_a_date_and_time():
+    search, house = _search(), House()
+    house.run(search, 1)
+
+    value = search.attributes(lambda offset: offset)["next_decision"]
+
+    from homeassistant.util import dt as dt_util
+    assert dt_util.parse_datetime(value).timestamp() == pytest.approx(T0 + NO_PLATEAU_SECONDS, abs=1)

@@ -207,3 +207,80 @@ async def test_up_to_date_dashboard_is_left_alone(hass: HomeAssistant, entry: Mo
 
     rebuild.assert_not_called()
     assert await store.async_load(False) == before
+
+
+def _titles(config) -> set[str]:
+    def walk(node):
+        if isinstance(node, dict):
+            if "title" in node:
+                yield node["title"]
+            for value in node.values():
+                yield from walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                yield from walk(value)
+
+    return set(walk(config["views"][0]["cards"]))
+
+
+def _attributes(config, entity_id: str) -> set[str]:
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("type") == "attribute" and node.get("entity") == entity_id:
+                yield node["attribute"]
+            for value in node.values():
+                yield from walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                yield from walk(value)
+
+    return set(walk(config))
+
+
+def test_learned_opv_card_shows_the_new_attributes():
+    config = dashboard.build_dashboard({"learned_opv": "sensor.opv"})
+
+    assert {"minimum", "modulation_limit", "modulation_samples", "shut_off_offset", "last_burn_result"} <= _attributes(config, "sensor.opv")
+    assert "OPV search" not in _titles(config)
+
+
+def test_opv_search_card_only_when_the_search_is_on():
+    config = dashboard.build_dashboard({"learned_opv": "sensor.opv"}, opv_search=True)
+
+    assert "OPV search" in _titles(config)
+    assert {"search_phase", "search_value", "next_decision", "baseline_score", "trial_score", "baseline_spread", "trial_spread"} <= _attributes(config, "sensor.opv")
+
+    rows = [row for row in config["views"][0]["cards"][-1]["entities"] if row.get("attribute") == "next_decision"]
+    assert rows[0]["format"] == "datetime"
+
+
+def test_cards_for_the_options_of_version_33():
+    entities = {key: f"{domain}.{key}" for key, (domain, _suffix) in dashboard.ENTITIES.items()
+                if key in ("setpoint_chain", "last_cycle", "cycles_hour", "cycles_day", "burn_hour", "burn_day", "maximum_setpoint", "stale_sensor", "climate")}
+
+    config = dashboard.build_dashboard(entities)
+
+    assert {"Setpoint chain", "Burner cycles", "Sensors"} <= _titles(config)
+    assert {"sent_setpoint", "received_setpoint", "difference"} <= _attributes(config, "sensor.setpoint_chain")
+    assert {"end_reason", "during_anti_cycling"} <= _attributes(config, "sensor.last_cycle")
+    assert {"inside_source", "safe_mode"} <= _attributes(config, "binary_sensor.stale_sensor")
+    assert "number.maximum_setpoint" in _entity_ids(config)
+
+
+def test_no_cards_for_options_that_are_off():
+    config = dashboard.build_dashboard({"climate": "climate.home"})
+
+    assert not {"Setpoint chain", "Burner cycles", "Sensors", "OPV search"} & _titles(config)
+
+
+def test_the_search_is_on_only_with_the_learned_opv():
+    assert not dashboard.opv_search_enabled(MockConfigEntry(domain=DOMAIN, options={CONF_XTREME_OPV_SEARCH: True}))
+    assert dashboard.opv_search_enabled(MockConfigEntry(domain=DOMAIN, options={CONF_XTREME_OPV_SEARCH: True, CONF_XTREME_LEARNED_OPV: "learn"}))
+    assert not dashboard.opv_search_enabled(MockConfigEntry(domain=DOMAIN, options={CONF_XTREME_LEARNED_OPV: "apply"}))
+
+
+@pytest.mark.parametrize(*parameters(**{CONF_XTREME_SETPOINT_CHAIN: True, CONF_XTREME_CYCLE_TRACKING: True, CONF_XTREME_STALE_SENSORS: True, CONF_XTREME_MAXIMUM_SETPOINT_ENTITY: True}))
+async def test_the_new_entities_are_found_in_the_registry(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator) -> None:
+    found = dashboard.resolve_entities(hass, entry)
+
+    assert {"setpoint_chain", "last_cycle", "cycles_hour", "cycles_day", "burn_hour", "burn_day", "maximum_setpoint", "stale_sensor"} <= set(found)

@@ -13,6 +13,19 @@ start counter); with other gateways it uses SAT-xtreme's own sensors. It shows t
 burner starts per day, the learned OPV and the calibration, and leaves out cards of features you do not
 use. Only standard Home Assistant cards are used.
 
+Cards that only appear with their option on:
+
+| Card | Option |
+|---|---|
+| *Setpoint chain*: calculated, sent and reported setpoint | [Setpoint chain](setpoint-chain.md) |
+| *Burner cycles*: the last cycle and the counters | [Burner cycles](burner-cycles.md) |
+| *OPV search*: phase, value tried, scores, comfort and the next decision | [Search for the best OPV](learned-opv.md#search-for-the-best-opv) |
+| *Sensors*: which inside sensor is used and how old the values are | [Stale sensors](stale-sensors.md) |
+| *Maximum setpoint* in the card *Now*, to change it right there | [Maximum setpoint entity](maximum-setpoint.md) |
+
+The card *Learned OPV* also shows the lowest OPV, the minimum modulation, the usual shut-off point and the
+result of the last burn.
+
 The dashboard follows the features you turn on or off: after saving the options it is rebuilt
 automatically, as long as you did not change it by hand. If you did, a repair offers the rebuild instead,
 so your own changes are never lost without a click.

@@ -21,6 +21,8 @@ from dataclasses import dataclass
 from math import sqrt
 from typing import Any, Callable, Optional
 
+from homeassistant.util import dt as dt_util
+
 _LOGGER = logging.getLogger(__name__)
 
 STEP = 1.0
@@ -125,6 +127,11 @@ class Period:
         return period
 
 
+def _timestamp(value: Optional[float]) -> Optional[str]:
+    """A Unix time as a local date and time, which Home Assistant shows as a date."""
+    return dt_util.as_local(dt_util.utc_from_timestamp(value)).isoformat(timespec="seconds") if value is not None else None
+
+
 def _round(value: Optional[float], digits: int = 3) -> Optional[float]:
     return round(value, digits) if value is not None else None
 
@@ -187,7 +194,7 @@ class OpvSearch:
             "trial_mean_error": _round((self._trial or {}).get("mean_error")),
             "stable_hours": round(period.stable_seconds / 3600, 1) if period else None,
             "starts": period.starts if period else None,
-            "next_decision": self._next_decision(),
+            "next_decision": _timestamp(self._next_decision()),
             "last_decision": self._last_decision,
             "search_gas_per_degree_hour": _round(period.gas_per_degree_hour, 4) if period else None,
         }
