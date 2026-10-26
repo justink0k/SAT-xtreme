@@ -35,6 +35,8 @@ from ..const import (
     CONF_XTREME_BACKUP_INSIDE_SENSOR,
     CONF_XTREME_OUTSIDE_MAX_AGE,
     CONF_XTREME_OPV_MINIMUM,
+    CONF_XTREME_OPV_SEARCH,
+    CONF_XTREME_OPV_SEARCH_GAS_SENSOR,
     BOILER_PRESET_CUSTOM,
 )
 
@@ -135,6 +137,11 @@ class XtremeProfile:
     learned_opv: str = "off"
     opv_minimum: float = 40.0
 
+    # Search for the best OPV in steps when no plateau is measured (changes the setpoint only with "apply"),
+    # with an optional gas meter that is only shown, not used for the decision
+    opv_search: bool = False
+    opv_search_gas_sensor: Optional[str] = None
+
     # Step 5: a slow calibration of the OPV that does not rely on MM=, started with a button or service
     calibration: bool = False
 
@@ -202,6 +209,8 @@ class XtremeProfile:
             minimum_duty_cycle=float(values.get(CONF_XTREME_MINIMUM_DUTY_CYCLE)),
             learned_opv=str(values.get(CONF_XTREME_LEARNED_OPV)),
             opv_minimum=float(values.get(CONF_XTREME_OPV_MINIMUM)),
+            opv_search=bool(values.get(CONF_XTREME_OPV_SEARCH)),
+            opv_search_gas_sensor=values.get(CONF_XTREME_OPV_SEARCH_GAS_SENSOR) or None,
             calibration=bool(values.get(CONF_XTREME_CALIBRATION)),
             pid_gain_factor=float(values.get(CONF_XTREME_PID_GAIN_FACTOR)),
             maximum_setpoint_rise=float(values.get(CONF_XTREME_MAXIMUM_SETPOINT_RISE)),
@@ -239,6 +248,7 @@ class XtremeProfile:
             ("cycle_tracking", self.cycle_tracking),
             ("maximum_setpoint_entity", self.maximum_setpoint_entity),
             ("stale_sensors", self.stale_sensors),
+            ("opv_search", self.opv_search),
         )
 
         return [name for name, enabled in switches if enabled]

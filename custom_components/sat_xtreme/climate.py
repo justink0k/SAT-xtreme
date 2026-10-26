@@ -33,6 +33,7 @@ from homeassistant.helpers import entity_registry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval, async_call_later
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import dt as dt_util
 
 from .area import Areas, SENSOR_TEMPERATURE_ID
 from .const import *
@@ -47,6 +48,7 @@ from .relative_modulation import RelativeModulation, RelativeModulationState
 from .summer_simmer import SummerSimmer
 from .xtreme.calibration import XtremeCalibration
 from .xtreme.opv import LearnedOpv
+from .xtreme.opv_search import SearchSample
 from .xtreme.profile import BOILER_PRESETS, HEATER_COMMAND_REPEAT_SECONDS
 from .xtreme.stale import StaleSensorGuard
 from .util import create_pid_controller, create_heating_curve_controller, create_pwm_controller, create_minimum_setpoint_controller
@@ -198,6 +200,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             maximum_setpoint=coordinator.maximum_setpoint,
             storage_key=f"sat_xtreme_opv_{config_entry.entry_id}",
             minimum=coordinator.xtreme_profile.opv_minimum,
+            search=coordinator.xtreme_profile.opv_search,
         )
 
         # Xtreme profile: what to do when the inside or outside temperature is no longer updated
@@ -1087,6 +1090,19 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             seconds_since_hot_water=self._coordinator.seconds_since_hot_water,
             boiler_minimum_modulation=self._coordinator.minimum_relative_modulation_value,
         )
+
+        # Xtreme profile: the search for the best OPV, when the house gives no plateau to learn from
+        if self.learned_opv.search.enabled:
+            self.learned_opv.update_search(SearchSample(
+                time=dt_util.utcnow().timestamp(),
+                heating=self.hvac_mode == HVACMode.HEAT,
+                flame=bool(self._coordinator.flame_active),
+                hot_water=bool(self._coordinator.hot_water_active),
+                target=self.target_temperature,
+                current=self.current_temperature,
+                outside=self.current_outside_temperature,
+                gas=self._get_entity_state_float(self._coordinator.xtreme_profile.opv_search_gas_sensor),
+            ))
 
         # Xtreme profile: the calibration sends the setpoint and heater state itself
         if self.xtreme_calibration.active:

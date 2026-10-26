@@ -113,6 +113,8 @@ CONF_XTREME_INSIDE_MAX_AGE = "xtreme_inside_max_age"
 CONF_XTREME_BACKUP_INSIDE_SENSOR = "xtreme_backup_inside_sensor"
 CONF_XTREME_OUTSIDE_MAX_AGE = "xtreme_outside_max_age"
 CONF_XTREME_OPV_MINIMUM = "xtreme_opv_minimum"
+CONF_XTREME_OPV_SEARCH = "xtreme_opv_search"
+CONF_XTREME_OPV_SEARCH_GAS_SENSOR = "xtreme_opv_search_gas_sensor"
 
 BOILER_PRESET_CUSTOM = "custom"
 
@@ -208,6 +210,8 @@ OPTIONS_DEFAULTS = {
     CONF_XTREME_BACKUP_INSIDE_SENSOR: None,
     CONF_XTREME_OUTSIDE_MAX_AGE: 180,
     CONF_XTREME_OPV_MINIMUM: 40,
+    CONF_XTREME_OPV_SEARCH: False,
+    CONF_XTREME_OPV_SEARCH_GAS_SENSOR: None,
 }
 
 # Overshoot protection

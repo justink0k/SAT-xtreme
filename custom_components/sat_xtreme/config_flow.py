@@ -823,6 +823,7 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
 
             # An emptied entity field is left out of the input: store that it was removed
             submitted.setdefault(CONF_XTREME_BACKUP_INSIDE_SENSOR, None)
+            submitted.setdefault(CONF_XTREME_OPV_SEARCH_GAS_SENSOR, None)
             return await self.update_options(apply_boiler_preset(await self.get_options(), submitted))
 
         options = await self.get_options()
@@ -870,6 +871,10 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
             ),
             vol.Required(CONF_XTREME_OPV_MINIMUM, default=options[CONF_XTREME_OPV_MINIMUM]): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=30, max=55, step=1, unit_of_measurement="°C")
+            ),
+            vol.Required(CONF_XTREME_OPV_SEARCH, default=options[CONF_XTREME_OPV_SEARCH]): bool,
+            vol.Optional(CONF_XTREME_OPV_SEARCH_GAS_SENSOR, description={"suggested_value": options[CONF_XTREME_OPV_SEARCH_GAS_SENSOR]}): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=sensor.DOMAIN, device_class=[sensor.SensorDeviceClass.GAS])
             ),
             vol.Required(CONF_XTREME_CALIBRATION, default=options[CONF_XTREME_CALIBRATION]): bool,
         })

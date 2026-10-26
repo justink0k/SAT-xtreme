@@ -311,12 +311,16 @@
             "data": {
               "xtreme_learned_opv": "Self-learning OPV (learned OPV)",
               "xtreme_opv_minimum": "Lowest learned OPV",
+              "xtreme_opv_search": "Search for the best OPV",
+              "xtreme_opv_search_gas_sensor": "Gas meter (shown only)",
               "xtreme_calibration": "Calibration buttons (slow calibration)"
             },
             "data_description": {
               "xtreme_learned_opv": "SAT learns the OPV during normal heating. 'Learn only' shows the learned value in a sensor while SAT keeps using your own OPV. 'Learn and apply' lets SAT use the learned value.",
               "xtreme_calibration": "Adds a start and stop button and a status sensor for a careful calibration of the OPV. It first tests for about 10 minutes whether the boiler follows the modulation limit. If it does, each of the 5 rounds measures at minimum power (about 2 hours in total). If not, each round lowers the setpoint step by step (usually 5 to 6 hours; longer in mild weather, because the calibration pauses while the room is more than 1 °C above the target; at most 10 hours). It pauses for hot water and can be stopped at any time. The result becomes the starting value of the self-learning OPV.",
-              "xtreme_opv_minimum": "The learned OPV never goes below this flow temperature. A lower value lets the flow go lower (more condensation, but shorter burns and more starts); a higher value gives longer burns. Only used with the self-learning OPV."
+              "xtreme_opv_minimum": "The learned OPV never goes below this flow temperature. A lower value lets the flow go lower (more condensation, but shorter burns and more starts); a higher value gives longer burns. Only used with the self-learning OPV.",
+              "xtreme_opv_search": "When no plateau has been measured for 3 days, SAT tries the OPV 1 °C lower or higher for 48 hours and compares the heating starts per degree hour and the comfort (only in hours with an unchanged target). A step down is kept when it is not more than 15 % worse; a step up only when it is at least 15 % better. It goes back right away when the room gets too cold or the temperature less steady. Changes the setpoint only with Learn and apply; with Learn only it shows the step it would take.",
+              "xtreme_opv_search_gas_sensor": "Optional. The gas use per degree hour of the current period is shown as an attribute, for your own comparison. It is not used to decide, because hot water is counted too."
             }
           },
           "sensors": {

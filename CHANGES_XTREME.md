@@ -1005,3 +1005,29 @@ power, and would have pushed itself up once it did. Both only matter with the le
 `custom_components/sat_xtreme/const.py`, `custom_components/sat_xtreme/translations/en.json`,
 `custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_learned_opv.py`, `tests/xtreme_helpers.py`,
 `docs/learned-opv.md`, `docs/settings-xtreme-profile.md`.
+
+## Unreleased: search for the best OPV
+
+A new option, off by default: *Learning and calibration → Search for the best OPV*, with an optional gas meter
+that is only shown. It changes the setpoint only with the learned OPV on *Learn and apply*; with *Learn only* it
+measures and shows the step it would take.
+
+- **When:** after 3 days without a plateau sample, for houses where the boiler gives more heat at its minimum
+  than the house takes, so the OPV cannot be measured.
+- **Score:** heating starts per degree hour over a period of 48 hours, with at least 20 starts and 12 stable
+  hours, otherwise the period is extended.
+- **Comfort,** only in stable hours (target unchanged for at least 3 hours, heating on): not more than 0.5 °C
+  too cold on average, and a spread around the target that does not grow by more than 50 % and 0.1 °C.
+- **Steps of 1 °C:** a step down is kept when the score is not more than 15 % worse; a step up only when it is
+  at least 15 % better; otherwise back, and after a search without gain 7 days of rest. Too cold during a trial
+  ends it right away. Always between the lowest learned OPV, 55 °C and the maximum setpoint; a plateau sample
+  ends the search.
+- **Attributes** on *Learned OPV* with the phase, the value, the scores, the comfort of baseline and trial, the
+  period and the last decision; the state is stored with the learned OPV.
+
+**Files.** `custom_components/sat_xtreme/xtreme/opv_search.py` (new), `custom_components/sat_xtreme/xtreme/opv.py`,
+`custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/profile.py`,
+`custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/const.py`,
+`custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
+`tests/test_xtreme_opv_search.py` (new), `tests/xtreme_helpers.py`, `docs/learned-opv.md`,
+`docs/settings-xtreme-profile.md`.

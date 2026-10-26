@@ -32,6 +32,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
+from .opv_search import OpvSearch, SearchSample
+
 if TYPE_CHECKING:
     from ..boiler import BoilerState
     from ..flame import FlameState
@@ -114,10 +116,19 @@ class LearnedOpv:
 
     _STORAGE_VERSION = 1
 
-    def __init__(self, mode: str, configured_value: float, maximum_setpoint: float, storage_key: str, minimum: float = OPV_MINIMUM):
+    def __init__(self, mode: str, configured_value: float, maximum_setpoint: float, storage_key: str, minimum: float = OPV_MINIMUM,
+                 search: bool = False):
         self._mode: str = mode if mode in OPV_MODES else OPV_MODE_OFF
         self._maximum_setpoint: float = maximum_setpoint
         self._minimum: float = float(minimum)
+
+        # The search for the best OPV in steps; its offset only counts when the learned OPV is applied
+        self.search = OpvSearch(
+            enabled=search and self._mode != OPV_MODE_OFF,
+            applied=self._mode == OPV_MODE_APPLY,
+            allowed=lambda offset: self._value_with(offset) != self._value_with(self.search.offset),
+        )
+        self._search_saved_at: Optional[float] = None
         self._storage_key: str = storage_key
         self._store: Optional[Store] = None
 
@@ -167,8 +178,11 @@ class LearnedOpv:
 
     @property
     def value(self) -> float:
-        """The OPV to use: the estimate plus a safety margin, within the limits."""
-        value = min(max(self._estimate + OPV_MARGIN, self._minimum), OPV_MAXIMUM, self._maximum_setpoint)
+        """The OPV to use: the estimate plus a safety margin and the step of the search, within the limits."""
+        return self._value_with(self.search.applied_offset)
+
+    def _value_with(self, offset: float) -> float:
+        value = min(max(self._estimate + OPV_MARGIN + offset, self._minimum), OPV_MAXIMUM, self._maximum_setpoint)
         return round(value, 1)
 
     @property
@@ -231,6 +245,7 @@ class LearnedOpv:
             "shut_off_offset": self.shut_off_offset,
             "shut_off_offset_samples": len(self._shut_off_offsets),
             "last_burn_result": self._last_burn_result,
+            **self.search.attributes(self._value_with),
             "recent_samples": [asdict(sample) for sample in self._samples],
         }
 
@@ -249,6 +264,7 @@ class LearnedOpv:
         self._samples = deque((OpvSample(**sample) for sample in data.get("samples", [])), maxlen=RECENT_SAMPLES)
         self._modulation = deque(((float(time), float(value)) for time, value in data.get("modulation", [])), maxlen=MODULATION_MAXIMUM_SAMPLES)
         self._shut_off_offsets = deque((float(value) for value in data.get("shut_off_offsets", [])), maxlen=SHUT_OFF_SAMPLES)
+        self.search.load(data.get("search"))
 
         _LOGGER.debug("Xtreme profile: loaded learned OPV %.1f°C (estimate %.2f°C, %d samples).", self.value, self._estimate, self._sample_count)
 
@@ -368,9 +384,23 @@ class LearnedOpv:
         if self._store is not None:
             self._store.async_delay_save(self._data_to_save, 60)
 
+    def update_search(self, sample: SearchSample) -> None:
+        """Feed one control loop to the search for the best OPV and save its state now and then."""
+        if not self.search.enabled:
+            return
+
+        self.search.update(sample)
+
+        saved_long_ago = self._search_saved_at is None or sample.time - self._search_saved_at >= 600
+        if self._store is not None and (self.search.changed or saved_long_ago):
+            self.search.changed = False
+            self._search_saved_at = sample.time
+            self._store.async_delay_save(self._data_to_save, 10)
+
     def _on_plateau(self, flow: float) -> None:
         step = max(-OPV_MAXIMUM_STEP, min(OPV_MAXIMUM_STEP, OPV_ALPHA * (flow - self._estimate)))
         self._estimate += step
+        self.search.on_plateau(_wall_time())
         self._record(SAMPLE_PLATEAU, flow)
 
         _LOGGER.info("Xtreme profile: OPV plateau sample %.1f°C, estimate now %.2f°C (OPV %.1f°C).", flow, self._estimate, self.value)
@@ -420,4 +450,5 @@ class LearnedOpv:
             "samples": [asdict(sample) for sample in self._samples],
             "modulation": [[round(time), value] for time, value in self._modulation],
             "shut_off_offsets": list(self._shut_off_offsets),
+            "search": self.search.to_dict(),
         }
