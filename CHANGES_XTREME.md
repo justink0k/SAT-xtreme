@@ -986,13 +986,18 @@ power, and would have pushed itself up once it did. Both only matter with the le
 - **Minimum modulation per boiler.** Instead of a fixed 2 %, the limit is the 10th percentile of the modulation
   reported during heating burns in the last 7 days (without the first 5 minutes of a burn and without hot
   water) plus 5 percentage points, and never below the minimum modulation the boiler reports (message 15).
-  Until there are 30 values, 2 % is used. The values are stored with the learned OPV.
+  Until there are 30 values, 2 % is used. The learned limit is at most 30 %, unless the boiler reports a higher
+  minimum itself. The values are stored with the learned OPV.
 - **Fix: no runaway through the self shut-off.** A self shut-off only counts when the flow stayed more than
   0.5 °C below the setpoint. In PWM the setpoint is the OPV itself, so a shut-off at the setpoint plus the
   boiler's hysteresis raised the OPV, then the setpoint, then the next shut-off, up to the maximum.
+- **The usual shut-off point is learned per boiler,** for boilers that switch off a little before the setpoint:
+  the median of the flow minus the setpoint at the last 20 heating shut-offs. From 5 shut-offs on, a shut-off
+  only counts when the flow stayed more than 2 °C below that point. Stored with the learned OPV.
 - **New option *Lowest learned OPV*** (default 40 °C, the old fixed value; 30 to 55 °C).
-- **New attributes** on *Learned OPV*: `minimum`, `modulation_limit`, `modulation_samples` and
-  `last_burn_result` (the sample of the last burn, or why it gave none).
+- **New attributes** on *Learned OPV*: `minimum`, `modulation_limit`, `modulation_samples`,
+  `shut_off_offset`, `shut_off_offset_samples` and `last_burn_result` (the sample of the last burn, or why it
+  gave none).
 - The manual notes that these rules have only been tested on an Intergas Xtreme 30 and asks for reports.
 
 **Files.** `custom_components/sat_xtreme/xtreme/opv.py`, `custom_components/sat_xtreme/climate.py`,

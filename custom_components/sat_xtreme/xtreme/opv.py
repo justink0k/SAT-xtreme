@@ -61,6 +61,14 @@ MODULATION_WARMUP_SECONDS = 300.0
 MODULATION_SAMPLE_INTERVAL = 60.0
 MODULATION_MINIMUM_SAMPLES = 30
 MODULATION_MAXIMUM_SAMPLES = 5000
+# The learned limit never goes above this, unless the boiler reports a higher minimum itself
+MODULATION_CEILING = 30.0
+
+# Where the boiler normally switches itself off, relative to the setpoint, is learned from its recent shut-offs;
+# a shut-off only counts as an OPV sample when the flow stayed more than the margin below that point
+SHUT_OFF_MARGIN = 2.0
+SHUT_OFF_SAMPLES = 20
+SHUT_OFF_MINIMUM_SAMPLES = 5
 SAMPLE_MINIMUM_FLAME_SECONDS = 180.0
 SAMPLE_HOT_WATER_QUIET_SECONDS = 300.0
 PLATEAU_WINDOW_SECONDS = 180.0
@@ -131,6 +139,11 @@ class LearnedOpv:
         self._modulation: Deque[Tuple[float, float]] = deque(maxlen=MODULATION_MAXIMUM_SAMPLES)
         self._boiler_minimum_modulation: Optional[float] = None
 
+        # Flow minus setpoint at the recent self shut-offs, and the flow and setpoint of the current burn
+        self._shut_off_offsets: Deque[float] = deque(maxlen=SHUT_OFF_SAMPLES)
+        self._burn_flow: Optional[float] = None
+        self._burn_setpoint: Optional[float] = None
+
         # Why the current and the last burn did not give a sample
         self._burn_reason: Optional[str] = None
         self._burn_sampled: bool = False
@@ -171,12 +184,20 @@ class LearnedOpv:
         if len(values) < MODULATION_MINIMUM_SAMPLES:
             limit = SAMPLE_MAXIMUM_MODULATION
         else:
-            limit = _percentile(values, MODULATION_PERCENTILE) + MODULATION_MARGIN
+            limit = min(_percentile(values, MODULATION_PERCENTILE) + MODULATION_MARGIN, MODULATION_CEILING)
 
         if self._boiler_minimum_modulation is not None:
             limit = max(limit, self._boiler_minimum_modulation)
 
         return round(limit, 1)
+
+    @property
+    def shut_off_offset(self) -> Optional[float]:
+        """Where the boiler normally switches itself off: the median flow minus setpoint, once there are enough shut-offs."""
+        if len(self._shut_off_offsets) < SHUT_OFF_MINIMUM_SAMPLES:
+            return None
+
+        return round(median(self._shut_off_offsets), 1)
 
     @property
     def modulation_sample_count(self) -> int:
@@ -207,6 +228,8 @@ class LearnedOpv:
             "minimum": self._minimum,
             "modulation_limit": self.modulation_limit,
             "modulation_samples": self.modulation_sample_count,
+            "shut_off_offset": self.shut_off_offset,
+            "shut_off_offset_samples": len(self._shut_off_offsets),
             "last_burn_result": self._last_burn_result,
             "recent_samples": [asdict(sample) for sample in self._samples],
         }
@@ -225,6 +248,7 @@ class LearnedOpv:
         self._last_update = data.get("last_update")
         self._samples = deque((OpvSample(**sample) for sample in data.get("samples", [])), maxlen=RECENT_SAMPLES)
         self._modulation = deque(((float(time), float(value)) for time, value in data.get("modulation", [])), maxlen=MODULATION_MAXIMUM_SAMPLES)
+        self._shut_off_offsets = deque((float(value) for value in data.get("shut_off_offsets", [])), maxlen=SHUT_OFF_SAMPLES)
 
         _LOGGER.debug("Xtreme profile: loaded learned OPV %.1f°C (estimate %.2f°C, %d samples).", self.value, self._estimate, self._sample_count)
 
@@ -254,6 +278,15 @@ class LearnedOpv:
             if heating_demand and hot_water_quiet and self._last_eligible_flow is not None:
                 self._on_shut_off(self._last_eligible_flow, self._last_eligible_setpoint)
 
+            # Learn where the boiler normally switches itself off, from every heating shut-off
+            if heating_demand and hot_water_quiet and self._burn_flow is not None and self._burn_setpoint is not None:
+                self._shut_off_offsets.append(round(self._burn_flow - self._burn_setpoint, 1))
+                if self._store is not None:
+                    self._store.async_delay_save(self._data_to_save, 60)
+
+            self._burn_flow = None
+            self._burn_setpoint = None
+
             self._last_burn_result = self._last_burn_result if self._burn_sampled else self._burn_reason
 
         if flame_active and not self._previous_flame_active:
@@ -261,6 +294,10 @@ class LearnedOpv:
             self._burn_sampled = False
 
         self._previous_flame_active = flame_active
+
+        if flame_active and heating_demand:
+            self._burn_flow = boiler.flow_temperature
+            self._burn_setpoint = boiler.setpoint
 
         # Collect the modulation of heating burns for the adaptive limit
         if flame_active and heating_demand and hot_water_quiet and on_seconds is not None and on_seconds >= MODULATION_WARMUP_SECONDS:
@@ -345,6 +382,12 @@ class LearnedOpv:
             _LOGGER.debug("Xtreme profile: boiler shut off at %.1f°C, at the setpoint %s°C, no OPV update.", flow, setpoint)
             return
 
+        # Not clearly below where this boiler normally switches itself off
+        if (offset := self.shut_off_offset) is not None and flow - setpoint > offset - SHUT_OFF_MARGIN:
+            self._burn_reason = REJECT_AT_SETPOINT
+            _LOGGER.debug("Xtreme profile: boiler shut off at %.1f°C, near its usual point (%+.1f°C from the setpoint), no OPV update.", flow, offset)
+            return
+
         if flow <= self._estimate:
             _LOGGER.debug("Xtreme profile: boiler shut off at %.1f°C, not above the estimate %.2f°C, no OPV update.", flow, self._estimate)
             return
@@ -376,4 +419,5 @@ class LearnedOpv:
             "last_update": self._last_update,
             "samples": [asdict(sample) for sample in self._samples],
             "modulation": [[round(time), value] for time, value in self._modulation],
+            "shut_off_offsets": list(self._shut_off_offsets),
         }

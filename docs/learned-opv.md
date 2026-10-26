@@ -32,6 +32,10 @@ A shut-off at or above the setpoint does not count. In PWM the setpoint is the O
 only shows the setpoint plus the hysteresis of the boiler; counting it would push the OPV up step by step to
 the maximum.
 
+Some boilers switch off a little **before** the setpoint. SAT therefore learns where your boiler normally
+switches itself off: the median of the flow minus the setpoint at its last 20 heating shut-offs. From 5
+shut-offs on, a shut-off only counts when the flow stayed more than 2 °C below that usual point.
+
 ### Minimum modulation per boiler
 
 Boilers report their lowest modulation differently: some report 0 %, others 10 to 20 % at their minimum
@@ -39,8 +43,8 @@ power. SAT learns it per boiler:
 
 - During heating burns it notes the reported modulation once a minute, skipping the first 5 minutes of every
   burn (the start, often 85 to 100 %) and hot water.
-- The limit is the 10th percentile of the last 7 days plus 5 percentage points, and never below the minimum
-  modulation the boiler reports itself (OpenTherm message 15).
+- The limit is the 10th percentile of the last 7 days plus 5 percentage points, at most 30 %, and never below
+  the minimum modulation the boiler reports itself (OpenTherm message 15).
 - Until there are 30 values, the fixed limit of 2 % is used.
 
 These rules are the same for every boiler; the limit they give is learned from your boiler. The modulation
@@ -76,5 +80,7 @@ samples with their time and type. Also:
 
 - `minimum`: the *Lowest learned OPV*;
 - `modulation_limit` and `modulation_samples`: the minimum modulation in use and how many values it is based on;
+- `shut_off_offset` and `shut_off_offset_samples`: where the boiler normally switches itself off, as flow minus
+  setpoint (empty until there are 5 shut-offs), and how many shut-offs it is based on;
 - `last_burn_result`: what the last burn gave: `plateau` or `shut_off`, or why it gave no sample:
   `modulation_too_high`, `burn_too_short`, `hot_water`, `no_plateau` or `at_setpoint`.

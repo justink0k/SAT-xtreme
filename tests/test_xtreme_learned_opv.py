@@ -11,7 +11,7 @@ from custom_components.sat_xtreme.const import *
 from tests.fake_coordinator import SatFakeCoordinator
 from custom_components.sat_xtreme.flame import FlameState
 from custom_components.sat_xtreme.xtreme.opv import (
-    MODULATION_MINIMUM_SAMPLES, REJECT_AT_SETPOINT, REJECT_MODULATION, SAMPLE_MAXIMUM_MODULATION, LearnedOpv, SAMPLE_PLATEAU,
+    MODULATION_CEILING, MODULATION_MINIMUM_SAMPLES, REJECT_AT_SETPOINT, SHUT_OFF_MINIMUM_SAMPLES, REJECT_MODULATION, SAMPLE_MAXIMUM_MODULATION, LearnedOpv, SAMPLE_PLATEAU,
     SAMPLE_SHUT_OFF,
 )
 from tests.xtreme_helpers import Clock, parameters, MINIMUM_SETPOINT_VALUE
@@ -336,3 +336,91 @@ async def test_modulation_data_is_stored(hass: HomeAssistant, clock: Clock, wall
 @pytest.mark.parametrize(*parameters(**{CONF_XTREME_LEARNED_OPV: "apply", CONF_XTREME_OPV_MINIMUM: 35}))
 async def test_the_option_sets_the_lowest_opv(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate) -> None:
     assert climate.learned_opv.minimum == 35
+
+
+def _shut_off(opv: LearnedOpv, clock: Clock, flows: list[float], setpoint: float, modulation: float = 0.0) -> None:
+    """A heating burn that the boiler ends itself while the heating demand is still on."""
+    _burn(opv, clock, flows, setpoint=setpoint, modulation=modulation)
+    opv.observe(boiler=_boiler(flows[-1], flame=False, setpoint=setpoint), flame=_flame(None), heating_demand=True, seconds_since_hot_water=None)
+    clock.now += 600
+
+
+def test_modulation_limit_has_a_ceiling(clock: Clock, wall: Clock):
+    opv = _opv()
+
+    # A boiler that hardly ever burns at its minimum
+    for _ in range(10):
+        _heating_burn(opv, clock, wall, [90.0] * 5 + [40.0, 45.0, 50.0, 60.0, 70.0])
+
+    assert opv.modulation_limit == MODULATION_CEILING
+
+
+def test_a_higher_boiler_minimum_beats_the_ceiling(clock: Clock, wall: Clock):
+    opv = _opv()
+
+    opv.observe(boiler=_boiler(40.0), flame=_flame(None), heating_demand=True, seconds_since_hot_water=None, boiler_minimum_modulation=35.0)
+
+    assert opv.modulation_limit == 35.0
+
+
+def test_the_usual_shut_off_point_is_learned(clock: Clock):
+    opv = _opv()
+
+    for _ in range(SHUT_OFF_MINIMUM_SAMPLES - 1):
+        _shut_off(opv, clock, [45.0, 46.0, 47.0], setpoint=46.0, modulation=20.0)
+    assert opv.shut_off_offset is None
+
+    _shut_off(opv, clock, [45.0, 46.0, 47.0], setpoint=46.0, modulation=20.0)
+    assert opv.shut_off_offset == 1.0
+    assert opv.attributes["shut_off_offset_samples"] == SHUT_OFF_MINIMUM_SAMPLES
+
+
+def test_a_boiler_that_shuts_off_before_the_setpoint_does_not_run_away(clock: Clock):
+    # This boiler switches itself off 1 °C below the setpoint every time
+    opv = _opv(configured=46.0)
+
+    for _ in range(30):
+        setpoint = opv.value
+        _shut_off(opv, clock, [setpoint - 3.0, setpoint - 2.0, setpoint - 1.0], setpoint=setpoint)
+
+    assert opv.shut_off_offset == -1.0
+    # Only the first shut-offs, before the usual point was known, could count
+    assert opv.sample_count <= SHUT_OFF_MINIMUM_SAMPLES
+    assert opv.value <= 47.0
+
+
+def test_a_shut_off_well_below_the_usual_point_still_counts(clock: Clock):
+    opv = _opv(configured=46.0)
+
+    for _ in range(SHUT_OFF_MINIMUM_SAMPLES):
+        _shut_off(opv, clock, [45.0, 46.0, 47.0], setpoint=46.0, modulation=20.0)
+
+    # The boiler stops at minimum modulation far below the setpoint
+    _shut_off(opv, clock, [46.0, 46.5, 47.0], setpoint=52.0)
+
+    assert opv.sample_count == 1
+    assert opv.attributes["last_sample_type"] == SAMPLE_SHUT_OFF
+
+
+def test_hot_water_and_sat_shut_offs_are_not_learned(clock: Clock):
+    opv = _opv()
+
+    for _ in range(10):
+        _burn(opv, clock, [45.0, 46.0], setpoint=46.0)
+        opv.observe(boiler=_boiler(46.0, flame=False, setpoint=46.0), flame=_flame(None), heating_demand=False, seconds_since_hot_water=None)
+
+    assert opv.attributes["shut_off_offset_samples"] == 0
+
+
+async def test_shut_off_offsets_are_stored(hass: HomeAssistant, clock: Clock):
+    opv = _opv()
+    await opv.async_initialize(hass)
+
+    for _ in range(SHUT_OFF_MINIMUM_SAMPLES):
+        _shut_off(opv, clock, [45.0, 46.0, 47.0], setpoint=46.0)
+    await opv._store.async_save(opv._data_to_save())
+
+    restored = _opv()
+    await restored.async_initialize(hass)
+
+    assert restored.shut_off_offset == 1.0
