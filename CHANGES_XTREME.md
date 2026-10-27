@@ -1010,7 +1010,7 @@ power, and would have pushed itself up once it did. Both only matter with the le
 `custom_components/sat_xtreme/xtreme/profile.py`, `custom_components/sat_xtreme/config_flow.py`,
 `custom_components/sat_xtreme/const.py`, `custom_components/sat_xtreme/translations/en.json`,
 `custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_learned_opv.py`, `tests/xtreme_helpers.py`,
-`docs/learned-opv.md`, `docs/settings-xtreme-profile.md`.
+`docs/learned-opv.md`, `docs/settings-xtreme-profile.md`, `custom_components/sat_xtreme/manifest.json`.
 
 ### Search for the best OPV
 
@@ -1056,9 +1056,11 @@ a dashboard changed by hand gets the repair that offers the update.
 `custom_components/sat_xtreme/manifest.json`, `tests/test_xtreme_dashboard_builder.py`,
 `tests/test_xtreme_opv_search.py`, `docs/dashboard.md`, `docs/learned-opv.md`.
 
-## Unreleased: review of the learned OPV and the OPV search
+## Version 36: the OPV from a model of the burn (`4.2.1-xtreme.36`, 2026-10-27)
 
 From a review of version 35. Only matters with the learned OPV on.
+
+### The minimum modulation per burn
 
 - **Minimum modulation per burn.** Every heating burn gives one value, the lowest modulation after the first
   minute that two readings in a row reach, instead of one value per minute after the first 5 minutes. Short
@@ -1072,7 +1074,7 @@ From a review of version 35. Only matters with the learned OPV on.
 `tests/test_xtreme_learned_opv.py`, `tests/test_xtreme_dashboard_builder.py`, `docs/learned-opv.md`,
 `docs/dashboard.md`.
 
-## Unreleased: choose the OPV from a model of the burn
+### Choose the OPV from a model of the burn
 
 The option *Search for the best OPV* of versions 34 and 35 becomes *Choose the OPV from a model* (same stored
 option, off by default). On the tested house the starts per degree hour varied about 50 % from day to day at the
@@ -1101,4 +1103,4 @@ same OPV, so trying a step and comparing periods could not decide within weeks. 
 `custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
 `tests/test_xtreme_opv_model.py` (new), `tests/test_xtreme_opv_search.py` (removed),
 `tests/test_xtreme_dashboard_builder.py`, `docs/learned-opv.md`, `docs/actions.md`, `docs/dashboard.md`,
-`docs/settings-xtreme-profile.md`.
+`docs/settings-xtreme-profile.md`, `custom_components/sat_xtreme/manifest.json`.
