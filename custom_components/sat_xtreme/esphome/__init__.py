@@ -192,9 +192,20 @@ class SatEspHomeCoordinator(SatDataUpdateCoordinator, SatEntityCoordinator):
         await super().async_set_control_max_setpoint(value)
 
     def _get_entity_id(self, domain: str, key: str):
-        unique_id = f"{self._mac_address.upper()}-{domain}-{key}"
-        _LOGGER.debug(f"Attempting to find the unique_id of {unique_id}")
-        return self._entity_registry.async_get_entity_id(domain, esphome.DOMAIN, unique_id)
+        mac = self._mac_address.upper()
+        # Legacy ESPHome unique_id scheme: <MAC>-<domain>-<key>
+        legacy_unique_id = f"{mac}-{domain}-{key}"
+        entity_id = self._entity_registry.async_get_entity_id(
+            domain, esphome.DOMAIN, legacy_unique_id
+        )
+        if entity_id is not None:
+            return entity_id
+        # Current ESPHome scheme: <MAC>/<device_id>/<domain>/<object_id>
+        for entry in self._entities:
+            if entry.domain == domain and entry.unique_id.endswith(f"/{domain}/{key}"):
+                return entry.entity_id
+        _LOGGER.debug("Unable to resolve ESPHome entity %s/%s for device %s", domain, key, mac)
+        return None
 
     async def _send_command(self, domain: str, service: str, _key: str, payload: dict):
         """Helper method to send a command to a specified domain and service."""
