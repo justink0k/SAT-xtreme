@@ -1105,9 +1105,13 @@ same OPV, so trying a step and comparing periods could not decide within weeks. 
 `tests/test_xtreme_dashboard_builder.py`, `docs/learned-opv.md`, `docs/actions.md`, `docs/dashboard.md`,
 `docs/settings-xtreme-profile.md`, `custom_components/sat_xtreme/manifest.json`.
 
-## Version 37: a clear status for the OPV model, and the Marketplace (`4.2.1-xtreme.37`, 2026-11-08)
+## Version 37: a clear status for the OPV model, the Marketplace and an ESPHome fix (`4.2.1-xtreme.37`, 2026-11-08)
 
 No change in how SAT-xtreme heats. The first stable release since version 32: it contains versions 33 to 36.
+
+- **Fix: ESPHome entities are found again** with the unique IDs of recent ESPHome versions
+  (`<MAC>/<device_id>/<domain>/<object_id>`); the old scheme still works. Pull request
+  [#1](https://github.com/justink0k/SAT-xtreme/pull/1) by tbrasser, with tests added in the fork.
 
 - **OPV model status.** Whether the model applies is now judged from 10 burns instead of 30. The new attribute
   `model_reason` says in words why the model chooses or not; with boiler timing it says that SAT ends the PWM
@@ -1125,4 +1129,4 @@ No change in how SAT-xtreme heats. The first stable release since version 32: it
 `custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
 `custom_components/sat_xtreme/manifest.json`, `tests/test_xtreme_opv_model.py`,
 `tests/test_xtreme_dashboard_builder.py`, `README.md`, `RELEASING.md`, `docs/installation.md`,
-`docs/learned-opv.md`.
+`docs/learned-opv.md`, `custom_components/sat_xtreme/esphome/__init__.py`, `tests/test_esphome_upstream_fixes.py`.
