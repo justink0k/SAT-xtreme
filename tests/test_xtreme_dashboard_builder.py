@@ -248,7 +248,9 @@ def test_opv_model_cards_only_when_the_model_is_on():
     config = dashboard.build_dashboard({"learned_opv": "sensor.opv"}, opv_search=True)
 
     assert {"OPV model", "Predicted burn time"} <= _titles(config)
-    assert {"model_status", "model_choice", "model_error", "balance_temperature", "next_change"} <= _attributes(config, "sensor.opv")
+    assert {"model_status", "model_reason", "model_choice", "model_error", "balance_temperature", "next_change"} <= _attributes(config, "sensor.opv")
+    markdown = [card for card in config["views"][0]["cards"] if card.get("title") == "Predicted burn time"][0]["content"]
+    assert "model_reason" in markdown
 
     rows = [row for card in config["views"][0]["cards"] for row in card.get("entities", []) if row.get("attribute") == "next_change"]
     assert rows[0]["format"] == "datetime"

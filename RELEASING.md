@@ -47,7 +47,13 @@ release.
      everything new is off by default, and a link to the README;
    - not marked as pre-release (unless it really is a test version).
 
-## Checking in HACS
+SAT-xtreme is in the default catalog of the Marketplace and HACS (`hacs/default`): a release marked *Latest*
+reaches every user. Publish a change that alters how the boiler runs as a pre-release first, and mark a release
+*Latest* only after it has run for a few days.
 
-*HACS → SAT-xtreme → ⋮ → Update information* shows the new version. *⋮ → Redownload* lets you pick an
-earlier release to go back to.
+## Checking in the Marketplace or HACS
+
+- Marketplace (Home Assistant 2026.11 or newer): the new version appears under *Settings → Updates* (the catalog
+  is checked every 6 hours); the page of SAT-xtreme in *Settings → Marketplace* has *⋮ → Install another version*.
+- HACS (older versions): *HACS → SAT-xtreme → ⋮ → Update information* shows the new version. *⋮ → Redownload*
+  lets you pick an earlier release to go back to.

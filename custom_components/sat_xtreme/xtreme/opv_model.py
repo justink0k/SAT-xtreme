@@ -32,6 +32,8 @@ _LOGGER = logging.getLogger(__name__)
 
 WINDOW_SECONDS = 7 * 24 * 3600
 MINIMUM_BURNS = 30
+# Whether the model applies is judged from this many burns on; predictions need MINIMUM_BURNS
+MINIMUM_APPLICABILITY_BURNS = 10
 MINIMUM_BURN_SECONDS = 60
 MAXIMUM_BURNS = 2000
 
@@ -204,10 +206,11 @@ class OpvModel:
     """Learns the heating curve of the burns and chooses the OPV from it."""
 
     def __init__(self, enabled: bool, applied: bool, heat_pump: bool, minimum_burn_seconds: float,
-                 limits: Callable[[], tuple[float, float]]) -> None:
+                 limits: Callable[[], tuple[float, float]], boiler_timing: bool = False) -> None:
         self.enabled = enabled
         self._applied = applied
         self._heat_pump = heat_pump
+        self._boiler_timing = boiler_timing
         self._minimum_burn_seconds = float(minimum_burn_seconds)
         # The lowest and highest OPV allowed (the lowest learned OPV, and 55 °C or the maximum setpoint)
         self._limits = limits
@@ -275,17 +278,48 @@ class OpvModel:
             return STATUS_HEAT_PUMP
         if self._no_flow:
             return STATUS_NO_FLOW
-        if len(self._recent(now)) < MINIMUM_BURNS:
+        burns = len(self._recent(now))
+        if burns < MINIMUM_APPLICABILITY_BURNS:
             return STATUS_COLLECTING
         if (share := self.self_shut_off_share(now)) is not None and share < MINIMUM_SELF_SHUT_OFF_SHARE:
             return STATUS_NO_SELF_SHUT_OFF
         if (share := self.pwm_share(now)) is not None and share < MINIMUM_PWM_SHARE:
             return STATUS_CONTINUOUS
+        if burns < MINIMUM_BURNS:
+            return STATUS_COLLECTING
         if (error := self.error(now)) is None:
             return STATUS_COLLECTING
         if error > MAXIMUM_ERROR:
             return STATUS_POOR_FIT
         return STATUS_ACTIVE
+
+    def applies(self, now: float) -> bool:
+        """Whether the model applies and has enough burns to predict."""
+        return self.status(now) in (STATUS_COLLECTING, STATUS_POOR_FIT, STATUS_ACTIVE) and len(self._recent(now)) >= MINIMUM_BURNS
+
+    def reason(self, now: float) -> str:
+        """Why the model chooses or not, in words."""
+        status = self.status(now)
+        burns = len(self._recent(now))
+
+        if status == STATUS_HEAT_PUMP:
+            return "The heating system is a heat pump; the burn model is for boilers."
+        if status == STATUS_NO_FLOW:
+            return "The gateway does not report the flow temperature, which the burn model needs."
+        if status == STATUS_NO_SELF_SHUT_OFF:
+            if self._boiler_timing:
+                return ("SAT ends the PWM blocks (boiler timing keeps the minimum burn time); the boiler does not switch itself "
+                        "off, so the OPV does not decide the burn time and the burn model does not apply.")
+            return "The boiler does not switch itself off in most burns; SAT ends them, so the burn model does not apply."
+        if status == STATUS_CONTINUOUS:
+            return "The boiler burns continuously most of the time, without PWM; the normal learning measures the OPV then."
+        if status == STATUS_COLLECTING:
+            if burns < MINIMUM_BURNS:
+                return f"Collecting burns: {burns} of {MINIMUM_BURNS}."
+            return "Comparing the predictions with the real burns."
+        if status == STATUS_POOR_FIT:
+            return f"The predictions are off by more than {MAXIMUM_ERROR:.0%}; the model does not choose."
+        return "The model applies and predicts the burns well."
 
     def choice(self, now: float) -> Optional[float]:
         """The lowest OPV with a predicted burn of at least the minimum burn time, within the limits."""
@@ -311,17 +345,24 @@ class OpvModel:
 
         now = _now()
         curve = self.curve(now)
-        predictions = {}
-        for offset in (-1, 0, 1):
-            seconds = self.predict(current_opv + offset, now)
-            # "never": the flow does not reach the shut-off point, the burn lasts until PWM ends it
-            predictions[f"{offset:+d}"] = "never" if seconds == inf else _round(seconds, 0)
+        status = self.status(now)
 
+        # Predictions only when the model applies, and a choice only when it may choose
+        predictions = None
+        if self.applies(now):
+            predictions = {}
+            for offset in (-1, 0, 1):
+                seconds = self.predict(current_opv + offset, now)
+                # "never": the flow does not reach the shut-off point, the burn lasts until PWM ends it
+                predictions[f"{offset:+d}"] = "never" if seconds == inf else _round(seconds, 0)
+
+        active = status == STATUS_ACTIVE
         return {
-            "model_status": self.status(now),
+            "model_status": status,
+            "model_reason": self.reason(now),
             "model_burns": len(self._recent(now)),
-            "model_choice": self.choice(now),
-            "model_value": self.applied_value,
+            "model_choice": self.choice(now) if active else None,
+            "model_value": self.applied_value if active else None,
             "predicted_burn_seconds": predictions,
             "minimum_burn_seconds": self._minimum_burn_seconds,
             "model_error": _round(self.error(now), 3),
@@ -565,7 +606,8 @@ class OpvModel:
         hours = max(1.0, min(TEST_MAXIMUM_HOURS, hours))
 
         self.test_offset = float(offset)
-        self._test = {"offset": offset, "until": now + hours * 3600, "predicted": self.predict(opv + offset, now), "burns": []}
+        predicted = self.predict(opv + offset, now) if self.applies(now) else None
+        self._test = {"offset": offset, "until": now + hours * 3600, "predicted": predicted, "burns": []}
         self._decide(f"test with the OPV {offset:+.0f} °C for {hours:.0f} hours")
 
     def _check_test(self, now: float) -> None:

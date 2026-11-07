@@ -118,7 +118,7 @@ class LearnedOpv:
     _STORAGE_VERSION = 1
 
     def __init__(self, mode: str, configured_value: float, maximum_setpoint: float, storage_key: str, minimum: float = OPV_MINIMUM,
-                 model: bool = False, heat_pump: bool = False, minimum_burn_seconds: float = 360):
+                 model: bool = False, heat_pump: bool = False, minimum_burn_seconds: float = 360, boiler_timing: bool = False):
         self._mode: str = mode if mode in OPV_MODES else OPV_MODE_OFF
         self._maximum_setpoint: float = maximum_setpoint
         self._minimum: float = float(minimum)
@@ -130,6 +130,7 @@ class LearnedOpv:
             heat_pump=heat_pump,
             minimum_burn_seconds=minimum_burn_seconds,
             limits=lambda: (self._minimum, min(OPV_MAXIMUM, self._maximum_setpoint)),
+            boiler_timing=boiler_timing,
         )
         self._model_saved_at: Optional[float] = None
         self._storage_key: str = storage_key

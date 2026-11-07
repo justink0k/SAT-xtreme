@@ -97,6 +97,26 @@ depend on the OPV, so longer burns mean fewer starts, and a lower OPV means a lo
   boiler normally switches itself off.
 - After every burn the boiler ends itself, SAT compares the predicted burn time with the real one.
 
+### When the model applies
+
+A burn ends in one of two ways, and the model only works with the first:
+
+1. **The boiler switches itself off.** The flow rises until it is a little above the OPV, and the boiler stops by
+   itself while SAT still asks for heat. The OPV then decides how long a burn lasts.
+2. **SAT ends the block.** The boiler holds the flow at the OPV, modulating, until SAT turns the heating demand
+   off at the end of the PWM block. The OPV then decides the flow temperature during the burn, not how long it
+   lasts, and the model does not apply.
+
+An example of the second: after a pause of about a quarter of an hour the radiators have cooled down and take a
+lot of heat. The boiler reaches the OPV but does not overshoot it; it modulates high to hold it, and SAT ends the
+block after the minimum burn time. [Boiler timing](boiler-timing.md) makes this more likely: its anti-cycling time
+makes the pauses longer and its minimum burn time keeps the demand on.
+
+The model judges this itself from 10 burns on: when fewer than 60 % of the heating burns end with the boiler
+switching itself off, `model_status` is `not_applicable_no_self_shut_off` and `model_reason` says why. It then
+shows no choice and no predicted burn times. For such a boiler the
+[slow calibration](calibration.md) is the way to measure the OPV.
+
 ### The choice
 
 SAT chooses the **lowest OPV at which a burn lasts at least the minimum burn time** of
@@ -106,7 +126,7 @@ boiler, and a low flow with burns of a sensible length is a choice that can be e
 
 It only chooses when all of these hold:
 
-- the model has at least 30 burns;
+- the model has at least 30 burns (whether it applies at all is judged from 10 burns on);
 - at least 60 % of the heating burns end with the boiler switching itself off (otherwise the OPV does not decide
   the burn time);
 - at least 50 % of the heating time is in PWM (otherwise the boiler mostly burns continuously, and the normal
@@ -148,8 +168,9 @@ samples with their time and type. Also:
   setpoint (empty until there are 5 shut-offs), and how many shut-offs it is based on;
 - `model_status` (`collecting`, `active`, `poor_fit`, or why it does not apply: `not_applicable_continuous`,
   `not_applicable_no_self_shut_off`, `not_applicable_no_flow_temperature`, `not_applicable_heat_pump`),
-  `model_burns`, `model_error`, `model_choice` (the OPV it would choose), `model_value` (the OPV it uses),
-  `predicted_burn_seconds` (at the OPV −1, 0 and +1 °C; `never` when the flow would not reach the shut-off point),
+  `model_reason` (the status in words), `model_burns`, `model_error`, `model_choice` (the OPV it would choose,
+  only when active), `model_value` (the OPV it uses, only when active), `predicted_burn_seconds` (at the OPV −1, 0
+  and +1 °C, only when the model applies; `never` when the flow would not reach the shut-off point),
   `minimum_burn_seconds`, `balance_temperature`, `curve_top`, `self_shut_off_share`, `pwm_share`, `next_change`,
   `last_decision`, `test` and `last_test`, and `gas_per_degree_hour`;
 - `last_burn_result`: what the last burn gave: `plateau` or `shut_off`, or why it gave no sample:

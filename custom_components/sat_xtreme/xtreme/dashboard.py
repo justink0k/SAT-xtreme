@@ -244,6 +244,7 @@ def build_dashboard(entities: dict[str, str], opv_search: bool = False) -> dict[
     if "learned_opv" in e and opv_search:
         cards.append({"type": "entities", "title": "OPV model", "entities": [
             attribute("learned_opv", "model_status", "Status"),
+            attribute("learned_opv", "model_reason", "Reason"),
             attribute("learned_opv", "model_burns", "Burns in the model"),
             attribute("learned_opv", "model_error", "Error of the prediction (24 hours)"),
             attribute("learned_opv", "model_choice", "OPV it would choose", "°C"),
@@ -259,8 +260,9 @@ def build_dashboard(entities: dict[str, str], opv_search: bool = False) -> dict[
         cards.append({"type": "markdown", "title": "Predicted burn time", "content": (
             f"{{% set p = state_attr('{e['learned_opv']}', 'predicted_burn_seconds') or {{}} %}}\n"
             f"{{% set t = state_attr('{e['learned_opv']}', 'test') or state_attr('{e['learned_opv']}', 'last_test') %}}\n"
-            "| OPV | Burn time |\n|---|---|\n"
+            "{% if p %}| OPV | Burn time |\n|---|---|\n"
             "{% for key in ['-1', '+0', '+1'] %}| {{ key }} °C | {{ (p[key] / 60) | round(1) if p[key] is number else '–' }} min |\n{% endfor %}"
+            f"{{% else %}}{{{{ state_attr('{e['learned_opv']}', 'model_reason') }}}}{{% endif %}}"
             "\n{% if t %}**Test {{ t.offset }} °C** until {{ t.until }}: predicted {{ (t.predicted_seconds / 60) | round(1) if t.predicted_seconds is number else '–' }} min, "
             "real {{ (t.actual_seconds / 60) | round(1) if t.actual_seconds is number else '–' }} min ({{ t.burns }} burns){% endif %}"
         )})

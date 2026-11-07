@@ -325,3 +325,92 @@ async def test_the_option_turns_the_model_on(hass: HomeAssistant, entry: MockCon
     await climate.async_control_heating_loop()
 
     assert climate.learned_opv.attributes["model_status"] == STATUS_COLLECTING
+
+
+def _model_with_timing(boiler_timing: bool) -> OpvModel:
+    return OpvModel(enabled=True, applied=False, heat_pump=False, minimum_burn_seconds=360, limits=lambda: (40.0, 55.0), boiler_timing=boiler_timing)
+
+
+def test_no_self_shut_off_is_known_after_ten_burns_with_a_reason():
+    for timing, words in ((True, "boiler timing"), (False, "SAT ends them")):
+        boiler, model = Boiler(self_shut_off=False), _model_with_timing(timing)
+        _run(boiler, model, 10)
+        _now(boiler)
+
+        attributes = model.attributes(46.0)
+        assert attributes["model_status"] == STATUS_NO_SELF_SHUT_OFF
+        assert words in attributes["model_reason"]
+        assert attributes["model_choice"] is None
+        assert attributes["model_value"] is None
+        assert attributes["predicted_burn_seconds"] is None
+
+
+def test_fewer_than_ten_burns_is_still_collecting():
+    boiler, model = Boiler(self_shut_off=False), _model()
+    _run(boiler, model, 9)
+    _now(boiler)
+
+    attributes = model.attributes(46.0)
+    assert attributes["model_status"] == STATUS_COLLECTING
+    assert "9 of 30" in attributes["model_reason"]
+
+
+def test_a_boiler_that_switches_itself_off_keeps_collecting_until_thirty_burns():
+    boiler, model = Boiler(), _model()
+    _run(boiler, model, 20)
+    _now(boiler)
+
+    attributes = model.attributes(46.0)
+    assert attributes["model_status"] == STATUS_COLLECTING
+    assert attributes["predicted_burn_seconds"] is None
+    assert attributes["model_choice"] is None
+
+
+def test_predictions_are_shown_while_comparing_and_with_a_poor_fit():
+    boiler, model = Boiler(), _model()
+    _run(boiler, model, 40)
+    now = _now(boiler)
+
+    model._errors = []
+    assert model.status(now) == STATUS_COLLECTING
+    assert model.attributes(46.0)["predicted_burn_seconds"] is not None
+    assert model.attributes(46.0)["model_choice"] is None
+
+    model._errors = [(now, 0.5)] * 10
+    attributes = model.attributes(46.0)
+    assert attributes["model_status"] == STATUS_POOR_FIT
+    assert attributes["predicted_burn_seconds"] is not None
+    assert attributes["model_choice"] is None
+    assert "20%" in attributes["model_reason"]
+
+
+def test_choice_and_value_are_shown_when_active():
+    boiler, model = Boiler(), _model(applied=True, minimum_burn=600)
+    _run(boiler, model, 40, opv=46.0)
+    _now(boiler)
+
+    attributes = model.attributes(46.0)
+    assert attributes["model_status"] == STATUS_ACTIVE
+    assert attributes["model_choice"] is not None
+    assert attributes["model_value"] is not None
+    assert "applies" in attributes["model_reason"]
+
+
+def test_every_status_has_a_reason():
+    assert "heat pump" in _model(heat_pump=True).reason(T0)
+    boiler, model = Boiler(pwm=False), _model()
+    _run(boiler, model, 10)
+    assert "continuously" in model.reason(_now(boiler))
+    boiler, model = Boiler(flow=False), _model()
+    _run(boiler, model, 3)
+    assert "flow temperature" in model.reason(_now(boiler))
+
+
+def test_a_test_without_an_applying_model_has_no_prediction():
+    boiler, model = Boiler(self_shut_off=False), _model()
+    _run(boiler, model, 12)
+    _now(boiler)
+
+    model.start_test(-1, 24, 46.0)
+
+    assert model.attributes(46.0)["test"]["predicted_seconds"] is None

@@ -1,25 +1,42 @@
 # Installation
 
-SAT-xtreme is installed through [HACS](https://hacs.xyz) as a custom repository. It needs Home Assistant
-2025.8 or newer.
+SAT-xtreme is available in the Marketplace (Home Assistant 2026.11 or newer) and in [HACS](https://hacs.xyz)
+(older versions). It needs Home Assistant 2025.8 or newer.
 
 !!! note "Its own domain"
     SAT-xtreme uses its own domain, `sat_xtreme`, so it can be installed next to the official SAT, but **do not
     let both control the same boiler**. Coming from the official SAT? See
     [Moving from the official SAT](#moving-from-the-official-sat).
 
-## Install with HACS
+## Install from the Marketplace or HACS
 
-1. Open *HACS → ⋮ → Custom repositories*, add `https://github.com/justink0k/SAT-xtreme` with type
-   *Integration*, and install **SAT-xtreme**.
-2. Restart Home Assistant.
+1. Open *Settings → Marketplace* (Home Assistant 2026.11 or newer) or HACS (older versions), search for
+   **SAT-xtreme** and install it.
+2. Restart Home Assistant. In the Marketplace, a repair under *Settings → System → Repairs* offers the restart
+   when it is needed.
 3. Refresh the cache of your browser (Ctrl+Shift+R, or Cmd+Shift+R on a Mac), or reset the frontend cache
    in the companion app. Otherwise the options pages may still show old texts.
 4. Add the integration: *Settings → Devices & services → Add integration → SAT-xtreme*, and follow the
    [setup wizard](setup-wizard.md). An OpenTherm Gateway is often discovered automatically.
 
-Updates appear in HACS like any other integration. After every update, restart Home Assistant and refresh
-the browser cache again.
+Updates appear like any other update: in the Marketplace under *Settings → Updates*, in HACS in its own list.
+After every update, restart Home Assistant and refresh the browser cache again.
+
+!!! note "Added as a custom repository before?"
+    You do not need to change anything. A custom repository carries over to the Marketplace and keeps getting
+    updates.
+
+## Test versions
+
+New versions are often published first as a test version (pre-release). Only take them if you want to help
+test:
+
+- **Marketplace:** open *Settings → Devices & services → Marketplace*, open the device of SAT-xtreme, enable its
+  *Pre-release* entity (it is disabled by default) and turn the switch on. A specific version can be chosen on
+  the page of the repository with *⋮ → Install another version*.
+- **HACS:** open SAT-xtreme in HACS, choose *⋮ → Redownload*, turn on *Show beta versions* and choose the version.
+
+Everyone else only gets the stable versions.
 
 ## Manual installation
 

@@ -203,6 +203,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             model=coordinator.xtreme_profile.opv_search,
             heat_pump=coordinator.heating_system == HEATING_SYSTEM_HEAT_PUMP,
             minimum_burn_seconds=coordinator.xtreme_profile.minimum_burn_time,
+            boiler_timing=coordinator.xtreme_profile.boiler_timing,
         )
 
         # Xtreme profile: what to do when the inside or outside temperature is no longer updated

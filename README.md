@@ -59,8 +59,8 @@ The full comparison, a dashboard created with one click, boiler presets and more
 
 ## Install
 
-1. In HACS, add `https://github.com/justink0k/SAT-xtreme` as a custom repository of type *Integration* (or
-   use the button above) and install **SAT-xtreme**.
+1. Open *Settings → Marketplace* (Home Assistant 2026.11 or newer) or HACS (older versions), search for
+   **SAT-xtreme** and install it.
 2. Restart Home Assistant and refresh the browser cache.
 3. Add the integration **SAT-xtreme** under *Settings → Devices & services*, and create the dashboard from
    *Settings → System → Repairs*.

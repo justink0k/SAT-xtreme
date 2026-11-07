@@ -1104,3 +1104,25 @@ same OPV, so trying a step and comparing periods could not decide within weeks. 
 `tests/test_xtreme_opv_model.py` (new), `tests/test_xtreme_opv_search.py` (removed),
 `tests/test_xtreme_dashboard_builder.py`, `docs/learned-opv.md`, `docs/actions.md`, `docs/dashboard.md`,
 `docs/settings-xtreme-profile.md`, `custom_components/sat_xtreme/manifest.json`.
+
+## Version 37: a clear status for the OPV model, and the Marketplace (`4.2.1-xtreme.37`, 2026-11-08)
+
+No change in how SAT-xtreme heats. The first stable release since version 32: it contains versions 33 to 36.
+
+- **OPV model status.** Whether the model applies is now judged from 10 burns instead of 30. The new attribute
+  `model_reason` says in words why the model chooses or not; with boiler timing it says that SAT ends the PWM
+  blocks. `model_choice` and `model_value` are only shown when the model is active, and `predicted_burn_seconds`
+  only when the model applies; before, a choice was shown that was based on a shut-off that did not happen.
+  The dashboard shows the reason. The help text of *Choose the OPV from a model* and the manual explain when
+  the model applies.
+- **Marketplace.** SAT-xtreme is in the default catalog, which Home Assistant 2026.11 includes as the
+  Marketplace. README and manual describe installing from the Marketplace (or HACS on older versions) instead of
+  adding a custom repository, and how to get test versions (the *Pre-release* switch in the Marketplace).
+  `RELEASING.md` notes that a release marked *Latest* reaches every user.
+
+**Files.** `custom_components/sat_xtreme/xtreme/opv_model.py`, `custom_components/sat_xtreme/xtreme/opv.py`,
+`custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/dashboard.py`,
+`custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
+`custom_components/sat_xtreme/manifest.json`, `tests/test_xtreme_opv_model.py`,
+`tests/test_xtreme_dashboard_builder.py`, `README.md`, `RELEASING.md`, `docs/installation.md`,
+`docs/learned-opv.md`.
