@@ -1130,3 +1130,13 @@ No change in how SAT-xtreme heats. The first stable release since version 32: it
 `custom_components/sat_xtreme/manifest.json`, `tests/test_xtreme_opv_model.py`,
 `tests/test_xtreme_dashboard_builder.py`, `README.md`, `RELEASING.md`, `docs/installation.md`,
 `docs/learned-opv.md`, `custom_components/sat_xtreme/esphome/__init__.py`, `tests/test_esphome_upstream_fixes.py`.
+
+## Version 38: buttons for the Marketplace (`4.2.1-xtreme.38`, 2026-11-08)
+
+Documentation only; no change in the integration.
+
+- The README and the installation page have two buttons: *Open in the Marketplace* (`marketplace_repository`,
+  Home Assistant 2026.11; it replaces the HACS button, whose link now points to the same place) and *Add
+  integration* (`config_flow_start` for `sat_xtreme`), which starts the setup wizard.
+
+**Files.** `README.md`, `docs/installation.md`, `custom_components/sat_xtreme/manifest.json`.

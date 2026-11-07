@@ -1,6 +1,7 @@
 # SAT-xtreme
 
-[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=justink0k&repository=SAT-xtreme&category=integration)
+[![Open SAT-xtreme in the Marketplace of your Home Assistant.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=justink0k&repository=SAT-xtreme&category=integration)
+[![Add the SAT-xtreme integration to your Home Assistant.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=sat_xtreme)
 
 *An unofficial fork of [Smart Autotune Thermostat (SAT)](https://github.com/Alexwijn/SAT). All credit for SAT goes
 to its authors.*
@@ -60,10 +61,10 @@ The full comparison, a dashboard created with one click, boiler presets and more
 ## Install
 
 1. Open *Settings → Marketplace* (Home Assistant 2026.11 or newer) or HACS (older versions), search for
-   **SAT-xtreme** and install it.
+   **SAT-xtreme** and install it, or use the first button above.
 2. Restart Home Assistant and refresh the browser cache.
-3. Add the integration **SAT-xtreme** under *Settings → Devices & services*, and create the dashboard from
-   *Settings → System → Repairs*.
+3. Add the integration **SAT-xtreme** under *Settings → Devices & services* (or use the second button above),
+   and create the dashboard from *Settings → System → Repairs*.
 4. Turn on the features you want, one at a time, under *Configure → Xtreme profile (fork)* and
    *Configure → PID settings (fork)*.
 

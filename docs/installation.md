@@ -10,6 +10,12 @@ SAT-xtreme is available in the Marketplace (Home Assistant 2026.11 or newer) and
 
 ## Install from the Marketplace or HACS
 
+[![Open SAT-xtreme in the Marketplace of your Home Assistant.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=justink0k&repository=SAT-xtreme&category=integration)
+[![Add the SAT-xtreme integration to your Home Assistant.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=sat_xtreme)
+
+The first button opens SAT-xtreme in the Marketplace of your Home Assistant (on versions before 2026.11 install
+it from HACS as described below); the second starts the setup wizard once it is installed.
+
 1. Open *Settings → Marketplace* (Home Assistant 2026.11 or newer) or HACS (older versions), search for
    **SAT-xtreme** and install it.
 2. Restart Home Assistant. In the Marketplace, a repair under *Settings → System → Repairs* offers the restart
