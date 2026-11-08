@@ -84,6 +84,10 @@ decides how long the switch stays on in each block.
 The *Temperature setting* in the wizard is the water temperature the boiler makes when it is on (for
 electric heating: 100).
 
+!!! note "Fixed in the fork"
+    In the official SAT the switch was turned on but never off again, because SAT looked up its state by the
+    wrong ID and always saw it off. The fork reads the state of the switch itself.
+
 ## Simulator
 
 The simulator simulates a boiler for the tests and for development. Since 4.2.1-xtreme.30 it is no longer

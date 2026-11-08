@@ -1266,3 +1266,31 @@ starting point.
 **Files.** `custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/translations/en.json`,
 `custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_pwm_hysteresis.py`, `docs/settings-pid.md`,
 `docs/settings-xtreme-profile.md`, `docs/stale-sensors.md`, `docs/overshoot-protection.md`.
+
+## Unreleased: fixes from the code audit (switch mode, heating system), and a control loop test harness
+
+Bug fixes, without an option, found in a full read of the code (2026-11-08). Both are also in the official SAT;
+bellini666/SAT fixed the first one too (bf3a5c4).
+
+- **Switch mode turns the switch off again.** `switch/__init__.py` looked up the state with the registry ID of the
+  entity instead of its entity ID, so it never found a state and always saw the switch off. SAT turned the switch
+  on and never off again (unless setpoint priming was on). The coordinator now keeps the entity ID itself; the
+  registry entry is only used for the name.
+- **The PID uses the heating system of the setup wizard.** `util.py` read the heating system from the options,
+  which only hold the default *radiators*; the wizard stores it in the data. Underfloor heating got the automatic
+  gains of radiators: with version 3, kP was a third too high (divisor 3 instead of 4); versions 1 and 2 used the
+  radiator factors too. The climate and the rooms now pass the heating system from the data. **Behaviour change
+  for underfloor heating:** the PID correction becomes about 25 % gentler. Radiators and heat pumps keep the same
+  gains (the PID treats a heat pump like radiators).
+- **A heat pump gets its own choices for *Duty cycles per hour*** (2 or 3) on the *System Configuration* page;
+  it got the choices of radiators.
+- **Test harness for the control loop** (`tests/loop_harness.py`): records what the climate sends to the
+  coordinator and which Home Assistant services leave SAT, so a test can run whole control loops and check the
+  commands. First tests: a setpoint every loop while heating, heater off once and then nothing when turned off,
+  never above the maximum setpoint, and a setpoint in the safe mode of stale sensors.
+
+**Files.** `custom_components/sat_xtreme/switch/__init__.py`, `custom_components/sat_xtreme/util.py`,
+`custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/area.py`,
+`custom_components/sat_xtreme/config_flow.py`, `tests/loop_harness.py` (new), `tests/test_xtreme_control_loop.py`
+(new), `tests/test_xtreme_switch_mode.py` (new), `tests/test_xtreme_heating_system.py` (new),
+`docs/gateways.md`, `docs/settings-system.md`, `docs/troubleshooting.md`.

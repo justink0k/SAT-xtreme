@@ -25,6 +25,10 @@ block: 60 minutes divided by this number.
 
 Not shown for underfloor heating. Fewer blocks per hour means longer burns and fewer starts.
 
+!!! note "Fixed in the fork"
+    The official SAT read the heating system from the options, which only hold the default *radiators*, so a heat
+    pump got the choices of radiators here. The fork reads the heating system of the setup wizard.
+
 ## Temperature sensor maximum value age
 
 !!! info "Fork"

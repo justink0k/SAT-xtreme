@@ -105,6 +105,12 @@ These fixes apply to everyone, without an option:
 - **A room's target change restarted the PWM block.** It now keeps the running on or off phase.
 - **Hot water in the PWM blocks.** The hot flow of a hot water burn shaped the length of the next blocks; it now
   does not.
+- **Switch mode never turned the switch off.** SAT looked up the state of the switch by its registry ID, found
+  nothing and always saw it off; it turned the switch on and never off again. It now reads the switch itself.
+- **Underfloor heating got the PID gains of radiators.** The heating system was read from the options, which only
+  hold the default *radiators*; the PID now uses the heating system of the setup wizard. With automatic gains
+  (version 3) the correction for underfloor heating becomes about 25 % gentler, as intended. A heat pump also gets
+  its own choices for *Duty cycles per hour* again.
 - **The safe mode of *Handle stale sensors* sent nothing.** Without a usable inside sensor the control loop
   stopped at the missing temperature, so SAT did not heat on the heating curve as described. It now does.
 

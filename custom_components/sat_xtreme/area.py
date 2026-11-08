@@ -5,7 +5,7 @@ from homeassistant.components.climate import HVACMode
 from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, State
 
-from .const import CONF_ROOMS
+from .const import CONF_HEATING_SYSTEM, CONF_ROOMS
 from .errors import Errors, Error
 from .heating_curve import HeatingCurve
 from .helpers import float_value
@@ -24,7 +24,7 @@ class Area:
         self._hass: HomeAssistant | None = None
 
         # Create controllers with the given configuration options
-        self.pid: PID = create_pid_controller(config_options)
+        self.pid: PID = create_pid_controller(config_options, heating_system=config_data.get(CONF_HEATING_SYSTEM))
         self.heating_curve: HeatingCurve = create_heating_curve_controller(config_data, config_options)
 
     @property

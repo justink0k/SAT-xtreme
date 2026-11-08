@@ -19,14 +19,18 @@ if TYPE_CHECKING:
     from .climate import SatClimate
 
 
-def create_pid_controller(config_options, xtreme_profile: XtremeProfile | None = None) -> PID:
-    """Create and return a PID controller instance with the given configuration options."""
+def create_pid_controller(config_options, xtreme_profile: XtremeProfile | None = None, heating_system: str | None = None) -> PID:
+    """Create and return a PID controller instance with the given configuration options.
+
+    Xtreme fork: the heating system is stored in the entry data by the setup wizard; the options only have the default
+    "radiators", so the caller passes the heating system from the data.
+    """
     # Extract the configuration options
     kp = float(config_options.get(CONF_PROPORTIONAL))
     ki = float(config_options.get(CONF_INTEGRAL))
     kd = float(config_options.get(CONF_DERIVATIVE))
 
-    heating_system = config_options.get(CONF_HEATING_SYSTEM)
+    heating_system = heating_system or config_options.get(CONF_HEATING_SYSTEM)
     version = int(config_options.get(CONF_PID_CONTROLLER_VERSION))
     automatic_gains = bool(config_options.get(CONF_AUTOMATIC_GAINS))
     automatic_gains_value = float(config_options.get(CONF_AUTOMATIC_GAINS_VALUE))
