@@ -23,6 +23,9 @@ def async_setup_xtreme_binary_sensors(coordinator, config_entry: ConfigEntry, cl
     if coordinator.xtreme_profile.stale_sensors:
         async_add_entities([SatStaleSensorBinarySensor(coordinator, config_entry, climate)])
 
+    if coordinator.supports_online_status:
+        async_add_entities([SatGatewayOnlineBinarySensor(coordinator, config_entry)])
+
 
 class _XtremeName:
     _key: str = ""
@@ -95,3 +98,15 @@ class SatStaleSensorBinarySensor(_XtremeName, SatClimateEntity, BinarySensorEnti
     @property
     def extra_state_attributes(self) -> dict:
         return self._climate.stale_sensors.attributes
+
+
+class SatGatewayOnlineBinarySensor(_XtremeName, SatEntity, BinarySensorEntity):
+    """On while the gateway reports itself online; SAT pauses its control while it is offline."""
+
+    _key = "gateway-online"
+    _label = "Gateway Online"
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+
+    @property
+    def is_on(self) -> bool:
+        return self._coordinator.online

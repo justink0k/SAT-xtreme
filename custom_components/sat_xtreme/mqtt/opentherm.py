@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import Callable, Optional
+
+from homeassistant.components import mqtt
+from homeassistant.core import callback
 
 from . import SatMqttCoordinator
 from ..coordinator import DeviceState
@@ -30,11 +33,31 @@ DATA_MAX_REL_MOD_LEVEL_SETTING = "MaxRelModLevelSetting"
 DATA_DHW_SETPOINT_MINIMUM = "TdhwSetUBTdhwSetLB_value_lb"
 DATA_DHW_SETPOINT_MAXIMUM = "TdhwSetUBTdhwSetLB_value_hb"
 
+# Xtreme fork: the overrides SAT sets on the gateway, in the order they are sent again after a gateway restart
+OVERRIDE_ORDER = ("SH", "SW", "HW", "MM", "TC", "CH", "CS")
+
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
 class SatOpenThermMqttCoordinator(SatMqttCoordinator):
     """Class to manage to fetch data from the OTGW Gateway using mqtt."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        # Xtreme fork: the gateway's will message, None until the first one arrives
+        self._online: Optional[bool] = None
+        self._overrides: dict[str, str] = {}
+        self._availability_unsub: Optional[Callable[[], None]] = None
+
+    @property
+    def supports_online_status(self) -> bool:
+        return True
+
+    @property
+    def online(self) -> bool:
+        # Firmware without a will message never reports offline
+        return self._online is not False
 
     @property
     def device_type(self) -> str:
@@ -163,6 +186,59 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
 
         return None
 
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        # OTGW-firmware publishes its will message, "online" or "offline", retained on the bare value topic
+        self._availability_unsub = await mqtt.async_subscribe(self.hass, f"{self._topic}/value/{self._device_id}", self._availability_changed)
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._availability_unsub is not None:
+            self._availability_unsub()
+            self._availability_unsub = None
+
+        await super().async_will_remove_from_hass()
+
+    @callback
+    def _availability_changed(self, message) -> None:
+        """Xtreme fork: track the gateway's will message, and restore the overrides after a restart (idea from bellini666/SAT)."""
+        payload = message.payload.decode() if isinstance(message.payload, bytes) else str(message.payload)
+        online = payload.strip().lower() == "online"
+
+        if online != self._online:
+            if not online:
+                _LOGGER.warning("The OpenTherm Gateway went offline; SAT pauses its control until it is back.")
+            elif self._online is False:
+                _LOGGER.info("The OpenTherm Gateway is back online.")
+
+            self._online = online
+            self.async_update_listeners()
+
+        # A retained "online" is the broker replaying the last state; a live one is a gateway that (re)started and
+        # dropped every override, also after a clean restart without an "offline" before it
+        if online and not message.retain:
+            self.hass.async_create_task(self.async_restore_overrides())
+
+    async def async_restore_overrides(self) -> None:
+        """Xtreme fork: send the boot commands and the last value of every override SAT set again."""
+        _LOGGER.info("The OpenTherm Gateway (re)started, sending the overrides of SAT again: %s", ", ".join(self._overrides.values()) or "none")
+
+        await self.boot()
+
+        for key in OVERRIDE_ORDER:
+            if (payload := self._overrides.get(key)) is None:
+                continue
+
+            await self._publish_command(payload)
+
+            if key == "CS" and payload != "CS=0":
+                await self._publish_command("PM=25")
+
+    async def _publish_override(self, key: str, payload: str) -> None:
+        """Xtreme fork: publish an override and remember it, so it can be sent again after a gateway restart."""
+        self._overrides[key] = payload
+        await self._publish_command(payload)
+
     async def boot(self) -> None:
         await self._publish_command("PM=3")
         await self._publish_command("PM=15")
@@ -192,7 +268,7 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
         ]
 
     async def async_set_control_setpoint(self, value: float) -> None:
-        await self._publish_command(f"CS={value}")
+        await self._publish_override("CS", f"CS={value}")
         await self._publish_command(f"PM=25")
 
         await super().async_set_control_setpoint(value)
@@ -203,7 +279,7 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
 
     async def async_release_control_setpoint(self) -> None:
         # CS=0 hands the control setpoint (and the central heating enable bit) back to the thermostat
-        await self._publish_command("CS=0")
+        await self._publish_override("CS", "CS=0")
 
         await super().async_release_control_setpoint()
 
@@ -214,22 +290,22 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
     async def async_set_hot_water_keep_warm(self, enabled: bool) -> None:
         # HW=A leaves the DHW enable bit to the thermostat on the bus (normal operation), HW=0 clears it.
         # The gateway keeps this setting until it is changed again; it has no heartbeat.
-        await self._publish_command("HW=A" if enabled else "HW=0")
+        await self._publish_override("HW", "HW=A" if enabled else "HW=0")
 
         await super().async_set_hot_water_keep_warm(enabled)
 
     async def async_set_control_hot_water_setpoint(self, value: float) -> None:
-        await self._publish_command(f"SW={value}")
+        await self._publish_override("SW", f"SW={value}")
 
         await super().async_set_control_hot_water_setpoint(value)
 
     async def async_set_control_thermostat_setpoint(self, value: float) -> None:
-        await self._publish_command(f"TC={value}")
+        await self._publish_override("TC", f"TC={value}")
 
         await super().async_set_control_thermostat_setpoint(value)
 
     async def async_set_heater_state(self, state: DeviceState) -> None:
-        await self._publish_command(f"CH={1 if state == DeviceState.ON else 0}")
+        await self._publish_override("CH", f"CH={1 if state == DeviceState.ON else 0}")
 
         await super().async_set_heater_state(state)
 
@@ -237,12 +313,12 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
         if isinstance(self.manufacturer, Immergas):
             await self._publish_command(f"TP=11:12={min(value, 80)}")
 
-        await self._publish_command(f"MM={value}")
+        await self._publish_override("MM", f"MM={value}")
 
         await super().async_set_control_max_relative_modulation(value)
 
     async def async_set_control_max_setpoint(self, value: float) -> None:
-        await self._publish_command(f"SH={value}")
+        await self._publish_override("SH", f"SH={value}")
 
         await super().async_set_control_max_setpoint(value)
 

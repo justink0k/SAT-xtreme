@@ -523,6 +523,16 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         return True
 
     @property
+    def supports_online_status(self) -> bool:
+        """Xtreme fork: whether the device reports when it goes offline and comes back (OpenTherm Gateway over MQTT)."""
+        return False
+
+    @property
+    def online(self) -> bool:
+        """Xtreme fork: whether the device is reachable; True when it doesn't report it."""
+        return True
+
+    @property
     def supports_setpoint_release(self) -> bool:
         """Xtreme fork: whether the device can hand the setpoint back to the thermostat on the bus (OpenTherm Gateway CS=0)."""
         return False

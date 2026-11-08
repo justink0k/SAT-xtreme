@@ -38,6 +38,11 @@ In the wizard choose *MQTT Gateway → OpenTherm*, then fill in:
 SAT sends the gateway commands such as `CS=` (control setpoint), `CH=` (heating on or off), `MM=` (maximum
 modulation) and `SW=` (hot water setpoint).
 
+**Offline and restarts.** The OTGW firmware publishes `online` or `offline` on `OTGW/value/<device>`. While the
+gateway is offline, SAT pauses its control and the binary sensor *Xtreme fork: Gateway Online* is off. When the
+gateway restarts, it forgets every command; SAT then sends the last value of each command it had sent again
+(also `CS=0` after a [hand over](handover.md)). Gateway firmware without this message counts as always online.
+
 ### Gateway mode and a thermostat on the bus
 
 The OpenTherm Gateway can sit between the boiler and your existing thermostat (*gateway mode*). This is the

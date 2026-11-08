@@ -71,6 +71,7 @@ All names start with **Xtreme fork:**.
 | *Flame* | always (binary) | The flame is on. |
 | *Hot Water Active* | always (binary) | The boiler is making hot water. |
 | *Heating Demand* | always (binary) | SAT asks the boiler for heat. |
+| *Gateway Online* | OpenTherm Gateway over MQTT (binary) | The gateway reports itself online. While it is off, SAT pauses its control. |
 | *Create Dashboard* | always (button) | Creates or rebuilds the [dashboard](dashboard.md). |
 | *PWM Burn Time* | [Boiler timing](boiler-timing.md) | Burn time of the last PWM block, with the planned on time. |
 | *Anti-cycling Remaining* | [Boiler timing](boiler-timing.md) | Seconds until the boiler may start again. |

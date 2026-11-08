@@ -1086,6 +1086,12 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         if self.hvac_mode != HVACMode.HEAT:
             return
 
+        # Xtreme fork: while the gateway is offline its values are old and commands get lost, so pause the control,
+        # the learning and the cycle tracking until it is back (idea from bellini666/SAT)
+        if not self._coordinator.online:
+            _LOGGER.debug("The gateway is offline, skipping the control loop.")
+            return
+
         # Control the heating through the coordinator
         await self._coordinator.async_control_heating_loop(climate=self, pwm_state=self.pwm.state)
 

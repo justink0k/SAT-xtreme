@@ -1164,3 +1164,24 @@ code is written for SAT-xtreme.
 **Files.** `custom_components/sat_xtreme/pid.py`, `custom_components/sat_xtreme/climate.py`,
 `custom_components/sat_xtreme/heating_curve.py`, `custom_components/sat_xtreme/helpers.py`,
 `tests/test_xtreme_control_fixes.py` (new), `docs/settings-system.md`, `docs/troubleshooting.md`.
+
+## Unreleased: the OpenTherm Gateway going offline and restarting
+
+A bug fix for the OpenTherm Gateway over MQTT, without an option. The idea comes from the fork
+[bellini666/SAT](https://github.com/bellini666/SAT) (GPL-3.0, commits 8bc5ee6, 0505356, b99665e, af6c774); the code
+is written for SAT-xtreme.
+
+- **SAT follows the will message of the gateway** (`<topic>/value/<device>`, `online` or `offline`). While the
+  gateway is offline, the control loop pauses: no commands, no learning and no cycle tracking on old values.
+  Firmware without the will message counts as always online, as before.
+- **After a gateway restart SAT sends its commands again.** A restart drops every override, so the boiler ran on
+  the thermostat until SAT happened to send each command again, and `SH`, `SW` and `HW` were not sent again at all.
+  On a live (not retained) `online`, SAT sends the boot commands (`PM=`, `MI=`) and the last value of every override
+  it had sent: `SH`, `SW`, `HW`, `MM`, `TC`, `CH` and `CS` (with `PM=25`), also `CS=0` after a hand over. Commands
+  SAT never sent are not sent; hot water is only touched when SAT had set it (the hot water setpoint, or the opt-in
+  keep-warm switch).
+- **New binary sensor** *Xtreme fork: Gateway Online*, only for the OpenTherm Gateway over MQTT.
+
+**Files.** `custom_components/sat_xtreme/mqtt/opentherm.py`, `custom_components/sat_xtreme/coordinator.py`,
+`custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/binary_sensor.py`,
+`tests/test_xtreme_gateway_online.py` (new), `docs/gateways.md`, `docs/entities.md`, `docs/troubleshooting.md`.

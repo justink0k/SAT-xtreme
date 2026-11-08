@@ -95,8 +95,11 @@ These fixes apply to everyone, without an option:
 - **Error changes skipped** when they arrived inside the sample time of the PID controller; they are now applied
   at the next control loop.
 - **Heating curve rose again in very warm weather**, and its autotune undid its own steps.
+- **OpenTherm Gateway restart forgot SAT's commands.** After a restart of the gateway (over MQTT) the boiler ran
+  on the thermostat until SAT happened to send each command again, and a maximum setpoint or keep-warm setting
+  stayed lost. SAT now sends them again right away, and pauses its control while the gateway is offline.
 
-The fixes for the PID controller and the heating curve come from the fork
+The fixes for the PID controller, the heating curve and the gateway restart come from the fork
 [bellini666/SAT](https://github.com/bellini666/SAT).
 
 The full list with versions and files is in
