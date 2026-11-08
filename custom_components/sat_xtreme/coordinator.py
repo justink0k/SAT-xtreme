@@ -58,6 +58,10 @@ class SatData(dict):
     def reset_dirty(self):
         self._is_dirty = False
 
+    def mark_dirty(self):
+        """Notify the listeners also when the value stays the same, for example when a stored value becomes live."""
+        self._is_dirty = True
+
     def is_dirty(self) -> bool:
         return self._is_dirty
 
@@ -533,6 +537,11 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         return True
 
     @property
+    def flame_known(self) -> bool:
+        """Xtreme fork: whether the flame state is live; False until the first message of a gateway after a start-up."""
+        return True
+
+    @property
     def supports_setpoint_release(self) -> bool:
         """Xtreme fork: whether the device can hand the setpoint back to the thermostat on the bus (OpenTherm Gateway CS=0)."""
         return False
@@ -569,7 +578,10 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_will_remove_from_hass(self) -> None:
         """Run when an entity is removed from hass."""
-        pass
+        # Xtreme fork: a notification that is still planned must not wake up this coordinator after the unload
+        if self._listeners_unsub is not None:
+            self._listeners_unsub()
+            self._listeners_unsub = None
 
     async def async_control_heating_loop(self, climate: Optional[SatClimate] = None, pwm_state: Optional[PWMState] = None, _time=None) -> None:
         """Control the heating loop for the device."""

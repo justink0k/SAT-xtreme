@@ -54,19 +54,23 @@ class SatEmsMqttCoordinator(SatMqttCoordinator):
 
     @property
     def device_active(self) -> bool:
-        return self.data.get(DATA_CENTRAL_HEATING) == DATA_ON
+        return self._live_value(DATA_CENTRAL_HEATING) == DATA_ON
 
     @property
     def flame_active(self) -> bool:
-        return self.data.get(DATA_FLAME_ACTIVE) == DATA_ON
+        return self._live_value(DATA_FLAME_ACTIVE) == DATA_ON
+
+    @property
+    def flame_known(self) -> bool:
+        return self._live_value(DATA_FLAME_ACTIVE) is not None
 
     @property
     def hot_water_active(self) -> bool:
-        return self.data.get(DATA_DHW_ENABLE) == DATA_ON
+        return self._live_value(DATA_DHW_ENABLE) == DATA_ON
 
     @property
     def setpoint(self) -> Optional[float]:
-        return float_value(self.data.get(DATA_CONTROL_SETPOINT))
+        return float_value(self._live_value(DATA_CONTROL_SETPOINT))
 
     @property
     def hot_water_setpoint(self) -> Optional[float]:
@@ -74,15 +78,15 @@ class SatEmsMqttCoordinator(SatMqttCoordinator):
 
     @property
     def boiler_temperature(self) -> Optional[float]:
-        return float_value(self.data.get(DATA_BOILER_TEMPERATURE))
+        return float_value(self._live_value(DATA_BOILER_TEMPERATURE))
 
     @property
     def return_temperature(self) -> Optional[float]:
-        return float_value(self.data.get(DATA_RETURN_TEMPERATURE))
+        return float_value(self._live_value(DATA_RETURN_TEMPERATURE))
 
     @property
     def relative_modulation_value(self) -> Optional[float]:
-        return float_value(self.data.get(DATA_REL_MOD_LEVEL))
+        return float_value(self._live_value(DATA_REL_MOD_LEVEL))
 
     @property
     def boiler_capacity(self) -> Optional[float]:
@@ -145,6 +149,8 @@ class SatEmsMqttCoordinator(SatMqttCoordinator):
 
     def _process_message_payload(self, key: str, value: str):
         try:
-            self.async_set_updated_data(json.loads(value))
+            data = json.loads(value)
+            self._mark_live(data)
+            self.async_set_updated_data(data)
         except json.JSONDecodeError as error:
             _LOGGER.error("Failed to decode JSON payload: %s. Error: %s", value, error)

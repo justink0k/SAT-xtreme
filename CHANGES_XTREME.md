@@ -1327,3 +1327,31 @@ several of them too (be46f75, 72de3dc, 1d571a4, 1ddd7e3).
 **Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/switch/__init__.py`,
 `tests/test_xtreme_robust_values.py` (new), `tests/test_xtreme_switch_mode.py`, `docs/gateways.md`,
 `docs/troubleshooting.md`.
+
+## Unreleased: subscriptions end at the unload, and stored values don't count as live
+
+Bug fixes, without an option, found in the code audit. Both are also in the official SAT; the ideas of the second
+come from bellini666/SAT (GPL-3.0, 8bc5ee6); the code is written for SAT-xtreme.
+
+- **Subscriptions end at the unload.** The MQTT subscriptions and the state tracking of ESPHome were never ended, so
+  after every reload (every change of an option) and every calibration in the wizard an old coordinator kept
+  receiving messages. A notification that is still planned is cancelled too.
+- **Stored values don't count as live.** After a restart SAT used the stored values of a gateway over MQTT as if they
+  were live, for example "flame on" while the boiler is off. The broker keeps none of these values (measured on the
+  tested OTGW). Flame, central heating, hot water active, control setpoint, flow and return temperature, modulation
+  and maximum modulation now count from the first message of the gateway. Fixed values (capacity, minimum modulation,
+  member ID, limits, hot water setpoint) still come from storage, because they arrive rarely. **Visible change:** these
+  sensors show *unknown* or *off* for a short time after a restart or reload, usually a minute or two at most, and
+  without a flow temperature PWM starts its first block only when the flow temperature arrives.
+- **Cycle tracking waits for the first live flame state** (new property `flame_known`), so a burn that already runs
+  after a start-up is not counted as a new, too short cycle. The counter *Burner Starts* can still count one extra
+  start when SAT restarts during a burn.
+- **Missing values are handled** where they can now occur after a start-up: the dynamic minimum setpoint without a
+  return temperature or modulation, and the calibration in the wizard without a modulation, raised an error.
+
+**Files.** `custom_components/sat_xtreme/mqtt/__init__.py`, `custom_components/sat_xtreme/mqtt/opentherm.py`,
+`custom_components/sat_xtreme/mqtt/ems.py`, `custom_components/sat_xtreme/esphome/__init__.py`,
+`custom_components/sat_xtreme/serial/__init__.py`, `custom_components/sat_xtreme/coordinator.py`,
+`custom_components/sat_xtreme/xtreme/cycles.py`, `custom_components/sat_xtreme/state.py`,
+`custom_components/sat_xtreme/minimum_setpoint.py`, `custom_components/sat_xtreme/overshoot_protection.py`,
+`tests/test_xtreme_mqtt_lifecycle.py` (new), `tests/test_esphome_upstream_fixes.py`, `docs/troubleshooting.md`.

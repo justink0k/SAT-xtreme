@@ -179,6 +179,8 @@ class SatSerialCoordinator(SatDataUpdateCoordinator):
 
         await self._graceful_disconnect()
 
+        await super().async_will_remove_from_hass()
+
     async def async_set_control_setpoint(self, value: float) -> None:
         if not self._simulation:
             await self._api.set_control_setpoint(value)

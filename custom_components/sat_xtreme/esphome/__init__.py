@@ -50,6 +50,7 @@ class SatEspHomeCoordinator(SatDataUpdateCoordinator, SatEntityCoordinator):
 
         self._entity_registry: EntityRegistry = entity_registry.async_get(hass)
         self._entities: list[RegistryEntry] = entity_registry.async_entries_for_device(self._entity_registry, self._device.id)
+        self._state_change_unsub = None
 
     @property
     def device_id(self) -> str:
@@ -159,9 +160,17 @@ class SatEspHomeCoordinator(SatDataUpdateCoordinator, SatEntityCoordinator):
         ]))
 
         # Track those entities so the coordinator can be updated when something changes
-        async_track_state_change_event(self.hass, entities, self.async_state_change_event)
+        self._state_change_unsub = async_track_state_change_event(self.hass, entities, self.async_state_change_event)
 
         await super().async_added_to_hass()
+
+    async def async_will_remove_from_hass(self) -> None:
+        # Xtreme fork: stop following the entities, so this coordinator gets no more updates after a reload
+        if self._state_change_unsub is not None:
+            self._state_change_unsub()
+            self._state_change_unsub = None
+
+        await super().async_will_remove_from_hass()
 
     async def async_state_change_event(self, _event: Event[EventStateChangedData]):
         await self.async_notify_listeners()

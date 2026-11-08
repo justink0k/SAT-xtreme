@@ -141,6 +141,11 @@ class CycleTracker:
     @callback
     def _async_coordinator_updated(self) -> None:
         coordinator = self._coordinator
+
+        # A burn that already runs after a start-up is not a new cycle; wait for the first live flame state
+        if not coordinator.flame_known:
+            return
+
         self.update(CycleSample(
             time=_now(),
             flame=bool(coordinator.flame_active),

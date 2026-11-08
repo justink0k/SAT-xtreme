@@ -26,6 +26,11 @@ class OvershootProtection:
         if self._setpoint is None:
             raise ValueError(f"Invalid heating system: {heating_system}")
 
+    @property
+    def _relative_modulation(self) -> float:
+        """Xtreme fork: the modulation of the boiler; 0 when it is not known (yet)."""
+        return self._coordinator.relative_modulation_value or 0
+
     async def calculate(self) -> float | None:
         """Calculate the overshoot protection value."""
         try:
@@ -38,7 +43,7 @@ class OvershootProtection:
             await asyncio.wait_for(self._wait_for_stable_temperature(), timeout=OVERSHOOT_PROTECTION_STABLE_WAIT)
 
             # Wait a bit before calculating the overshoot value, if required
-            if self._coordinator.relative_modulation_value > 0:
+            if self._relative_modulation > 0:
                 await self._wait_a_moment(OVERSHOOT_PROTECTION_RELATIVE_MODULATION_WAIT)
 
             return self._calculate_overshoot_value()
@@ -90,10 +95,10 @@ class OvershootProtection:
 
     def _calculate_overshoot_value(self) -> float:
         """Calculate and log the overshoot value."""
-        if self._coordinator.relative_modulation_value == 0:
+        if self._relative_modulation == 0:
             return self._stable_temperature
 
-        return (100 - self._coordinator.relative_modulation_value) / 100 * self._setpoint
+        return (100 - self._relative_modulation) / 100 * self._setpoint
 
     def _calculate_exponential_moving_average(self, previous_average: float, current_value: float) -> tuple[float, float]:
         """Calculate the exponential moving average and error."""
@@ -112,7 +117,7 @@ class OvershootProtection:
 
     async def _get_setpoint(self, is_ready: bool) -> float:
         """Get the setpoint for the heating cycle."""
-        return self._setpoint if not is_ready or self._coordinator.relative_modulation_value > 0 else self._coordinator.boiler_temperature
+        return self._setpoint if not is_ready or self._relative_modulation > 0 else self._coordinator.boiler_temperature
 
     async def _reset_heater_state(self) -> None:
         """Reset the heater state to default settings."""

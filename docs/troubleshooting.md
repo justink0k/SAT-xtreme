@@ -48,6 +48,12 @@ turned on. Remove personal data (addresses, names of rooms you would rather not 
     The boiler probably ignores the modulation limit. Enter a plausible value by hand, turn on the fork's
     [slow calibration](calibration.md) and run it.
 
+??? question "Sensors are empty after a restart"
+    With a gateway over MQTT this is normal for a short time. After a restart or a reload the flame, flow
+    temperature, setpoint and modulation show *unknown* or *off* until the gateway sends them again, usually within
+    a minute or two, sometimes longer for the return temperature. SAT does not use the old values from before the
+    restart. Fixed values of the boiler, such as its capacity, stay available.
+
 ??? question "The room overshoots the target"
     The PID correction is too strong or the heating curve too high. Lower the
     [heating curve coefficient](settings-general.md#heating-curve-coefficient) a little, or lower the
@@ -107,6 +113,11 @@ These fixes apply to everyone, without an option:
   does not.
 - **Switch mode never turned the switch off.** SAT looked up the state of the switch by its registry ID, found
   nothing and always saw it off; it turned the switch on and never off again. It now reads the switch itself.
+- **Old values after a restart.** With a gateway over MQTT, SAT used the values from before the restart (flame,
+  flow temperature, setpoint, modulation) as if they were live. They now count only after the first message of the
+  gateway. See *Sensors are empty after a restart* above.
+- **Messages to an old coordinator after a reload.** Every reload left the MQTT or ESPHome subscriptions of the old
+  coordinator running. They now end at the unload.
 - **A valve in switch mode got no command.** The setup wizard offers valves, but SAT never opened or closed them. It
   now does.
 - **A sensor value that is not a number stopped the control.** A value such as `none`, or a weather entity without

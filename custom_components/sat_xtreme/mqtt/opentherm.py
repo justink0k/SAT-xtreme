@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Optional
+from typing import Optional
 
 from homeassistant.components import mqtt
 from homeassistant.core import callback
@@ -48,7 +48,6 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
         # Xtreme fork: the gateway's will message, None until the first one arrives
         self._online: Optional[bool] = None
         self._overrides: dict[str, str] = {}
-        self._availability_unsub: Optional[Callable[[], None]] = None
 
     @property
     def supports_online_status(self) -> bool:
@@ -81,19 +80,23 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
 
     @property
     def device_active(self) -> bool:
-        return self.data.get(DATA_CENTRAL_HEATING) == STATE_ON
+        return self._live_value(DATA_CENTRAL_HEATING) == STATE_ON
 
     @property
     def flame_active(self) -> bool:
-        return self.data.get(DATA_FLAME_ACTIVE) == STATE_ON
+        return self._live_value(DATA_FLAME_ACTIVE) == STATE_ON
+
+    @property
+    def flame_known(self) -> bool:
+        return self._live_value(DATA_FLAME_ACTIVE) is not None
 
     @property
     def hot_water_active(self) -> bool:
-        return self.data.get(DATA_DHW_ENABLE) == STATE_ON
+        return self._live_value(DATA_DHW_ENABLE) == STATE_ON
 
     @property
     def setpoint(self) -> Optional[float]:
-        if (setpoint := self.data.get(DATA_CONTROL_SETPOINT)) is not None:
+        if (setpoint := self._live_value(DATA_CONTROL_SETPOINT)) is not None:
             return float(setpoint)
 
         return None
@@ -135,21 +138,21 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
 
     @property
     def boiler_temperature(self) -> Optional[float]:
-        if (value := self.data.get(DATA_BOILER_TEMPERATURE)) is not None:
+        if (value := self._live_value(DATA_BOILER_TEMPERATURE)) is not None:
             return float(value)
 
         return super().boiler_temperature
 
     @property
     def return_temperature(self) -> Optional[float]:
-        if (value := self.data.get(DATA_RETURN_TEMPERATURE)) is not None:
+        if (value := self._live_value(DATA_RETURN_TEMPERATURE)) is not None:
             return float(value)
 
         return super().return_temperature
 
     @property
     def relative_modulation_value(self) -> Optional[float]:
-        if (value := self.data.get(DATA_REL_MOD_LEVEL)) is not None:
+        if (value := self._live_value(DATA_REL_MOD_LEVEL)) is not None:
             return float(value)
 
         return super().relative_modulation_value
@@ -174,7 +177,7 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
 
     @property
     def maximum_relative_modulation_value(self) -> Optional[float]:
-        if (value := self.data.get(DATA_MAX_REL_MOD_LEVEL_SETTING)) is not None:
+        if (value := self._live_value(DATA_MAX_REL_MOD_LEVEL_SETTING)) is not None:
             return float(value)
 
         return super().maximum_relative_modulation_value
@@ -190,14 +193,7 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
         await super().async_added_to_hass()
 
         # OTGW-firmware publishes its will message, "online" or "offline", retained on the bare value topic
-        self._availability_unsub = await mqtt.async_subscribe(self.hass, f"{self._topic}/value/{self._device_id}", self._availability_changed)
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._availability_unsub is not None:
-            self._availability_unsub()
-            self._availability_unsub = None
-
-        await super().async_will_remove_from_hass()
+        self._subscriptions.append(await mqtt.async_subscribe(self.hass, f"{self._topic}/value/{self._device_id}", self._availability_changed))
 
     @callback
     def _availability_changed(self, message) -> None:

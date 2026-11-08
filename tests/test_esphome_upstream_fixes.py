@@ -52,3 +52,17 @@ def test_entity_ids_are_found_with_the_current_unique_id_scheme():
 
     assert coordinator._get_entity_id("sensor", "boiler_temperature") == "sensor.boiler_temperature"
     assert coordinator._get_entity_id("number", "boiler_temperature") is None
+
+
+async def test_following_the_entities_ends_at_the_unload():
+    from unittest.mock import MagicMock
+
+    coordinator = object.__new__(SatEspHomeCoordinator)
+    unsubscribe = MagicMock()
+    coordinator._state_change_unsub = unsubscribe
+    coordinator._listeners_unsub = None
+
+    await coordinator.async_will_remove_from_hass()
+
+    unsubscribe.assert_called_once()
+    assert coordinator._state_change_unsub is None

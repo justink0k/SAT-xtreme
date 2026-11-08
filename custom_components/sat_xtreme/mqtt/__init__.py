@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from abc import abstractmethod
-from typing import Mapping, Any
+from typing import Any, Callable, Mapping, Optional
 
 from homeassistant.components import mqtt
 from homeassistant.core import HomeAssistant, callback
@@ -26,6 +26,10 @@ class SatMqttCoordinator(SatDataUpdateCoordinator):
         self._topic: str = config_data.get(CONF_MQTT_TOPIC)
         self._store: Store = Store(hass, STORAGE_VERSION, snake_case(f"{self.__class__.__name__}_{device_id}"))
 
+        # Xtreme fork: the subscriptions to end at the unload, and the values from storage without a live message yet
+        self._subscriptions: list[Callable[[], None]] = []
+        self._restored_keys: set[str] = set()
+
     @property
     def device_id(self) -> str:
         return self._device_id
@@ -37,24 +41,46 @@ class SatMqttCoordinator(SatDataUpdateCoordinator):
         await mqtt.async_wait_for_mqtt_client(self.hass)
 
         for key in self.get_tracked_entities():
-            await mqtt.async_subscribe(
+            self._subscriptions.append(await mqtt.async_subscribe(
                 self.hass,
                 self._get_topic_for_subscription(key),
                 self._create_message_handler(key)
-            )
+            ))
 
         await self.boot()
 
         await super().async_added_to_hass()
 
     async def async_will_remove_from_hass(self) -> None:
+        # Xtreme fork: end the subscriptions, so this coordinator gets no more messages after a reload
+        while self._subscriptions:
+            self._subscriptions.pop()()
+
         # Save the updated data to persistent storage
         await self._save_data()
+
+        await super().async_will_remove_from_hass()
 
     async def _load_stored_data(self) -> None:
         """Load the data from persistent storage."""
         if stored_data := await self._store.async_load():
-            self.async_set_updated_data({key: value for key, value in stored_data.items() if value not in (None, "")})
+            restored = {key: value for key, value in stored_data.items() if value not in (None, "")}
+            self._restored_keys = set(restored)
+            self.async_set_updated_data(restored)
+
+    def _live_value(self, key: str) -> Optional[Any]:
+        """Xtreme fork: the value of a key, unless it still comes from storage; for values that change while running.
+
+        Values that are fixed for a boiler (capacity, member ID) are read from the data directly, because they arrive
+        rarely. The idea comes from bellini666/SAT.
+        """
+        return None if key in self._restored_keys else self.data.get(key)
+
+    def _mark_live(self, keys) -> None:
+        """Xtreme fork: these keys got a live message; tell the listeners also when the value is the same as the stored one."""
+        if self._restored_keys.intersection(keys):
+            self._restored_keys.difference_update(keys)
+            self.data.mark_dirty()
 
     async def _save_data(self) -> None:
         """Save the data to persistent storage."""
@@ -97,6 +123,7 @@ class SatMqttCoordinator(SatDataUpdateCoordinator):
 
     def _process_message_payload(self, key: str, value):
         """Process and store the payload of a received MQTT message."""
+        self._mark_live([key])
         self.async_set_updated_data({key: value})
 
     async def _publish_command(self, payload: str, wait_time: float = 1.0):

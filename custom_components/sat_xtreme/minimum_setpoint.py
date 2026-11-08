@@ -35,6 +35,10 @@ class MinimumSetpoint:
             _LOGGER.debug("Loaded base return temperature from storage.")
 
     def warming_up(self, boiler_state: BoilerState) -> None:
+        # Xtreme fork: the return temperature may not have arrived yet after a start-up
+        if boiler_state.return_temperature is None:
+            return
+
         if self._base_return_temperature.value is not None and self._base_return_temperature.value == boiler_state.return_temperature:
             return
 
