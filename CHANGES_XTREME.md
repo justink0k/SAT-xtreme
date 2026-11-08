@@ -1452,3 +1452,25 @@ explains why).
 `custom_components/sat_xtreme/minimum_setpoint.py`, `custom_components/sat_xtreme/overshoot_protection.py`,
 `custom_components/sat_xtreme/xtreme/cycles.py`, `custom_components/sat_xtreme/xtreme/opv.py`,
 `custom_components/sat_xtreme/xtreme/opv_model.py`, `tests/test_xtreme_audit_small.py` (new), `docs/troubleshooting.md`.
+
+## Unreleased: short burns after a restart
+
+Bug fixes, without an option. Seen on the tested boiler after installing version 40: three burns of 24 to 34 seconds in the
+first four minutes after a restart.
+
+- **No heating demand until the flow temperature is known** (a regression of version 40). Since stored values no longer
+  count as live, the flow temperature is unknown after a start. PWM can't run without it, so SAT heated on the calculated
+  setpoint: 34 °C with an OPV of 46 °C on the tested boiler. SAT now sends the minimum setpoint without heating demand until
+  the first flow temperature arrives, at most 5 minutes, and then behaves as before. This applies to the gateways with a
+  live flow temperature: OpenTherm Gateway (MQTT and serial), EMS-ESP and ESPHome.
+- **No derivative in the first 3 minutes after a start.** Sensors come online one by one, so a helper such as a median
+  jumps for a moment. On the tested boiler the error moved from -0.45 to 0.1 °C, which gave a derivative of 48.5 and a
+  requested setpoint of 82 °C. The proportional and the integral keep working. This also applies at a reload.
+
+**Not explained yet:** the second and third burn stopped at a flow of about 40 °C while SAT reported a higher setpoint. These
+fixes change how a restart runs, but they are not shown to solve those two burns.
+
+**Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/coordinator.py`,
+`custom_components/sat_xtreme/const.py`, `custom_components/sat_xtreme/pid.py`, `custom_components/sat_xtreme/mqtt/__init__.py`,
+`custom_components/sat_xtreme/serial/__init__.py`, `custom_components/sat_xtreme/esphome/__init__.py`,
+`tests/test_xtreme_restart_settling.py` (new), `docs/troubleshooting.md`.

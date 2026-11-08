@@ -28,6 +28,10 @@ MAXIMUM_RELATIVE_MODULATION = 100
 
 MAX_BOILER_TEMPERATURE_AGE = 60
 
+# Xtreme fork: after a start, the longest wait for the first live flow temperature, and how long sensors get to come online
+BOILER_TEMPERATURE_WAIT_SECONDS = 300
+PID_SETTLE_SECONDS = 180
+
 # Configuration and options
 CONF_MODE = "mode"
 CONF_NAME = "name"

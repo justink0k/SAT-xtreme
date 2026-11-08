@@ -31,6 +31,10 @@ class SatMqttCoordinator(SatDataUpdateCoordinator):
         self._restored_keys: set[str] = set()
 
     @property
+    def awaits_boiler_temperature(self) -> bool:
+        return True
+
+    @property
     def device_id(self) -> str:
         return self._device_id
 

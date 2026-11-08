@@ -52,7 +52,8 @@ turned on. Remove personal data (addresses, names of rooms you would rather not 
     With a gateway over MQTT this is normal for a short time. After a restart or a reload the flame, flow
     temperature, setpoint and modulation show *unknown* or *off* until the gateway sends them again, usually within
     a minute or two, sometimes longer for the return temperature. SAT does not use the old values from before the
-    restart. Fixed values of the boiler, such as its capacity, stay available.
+    restart. Fixed values of the boiler, such as its capacity, stay available. Until the flow temperature is known, at
+    most 5 minutes, SAT sends no heating demand.
 
 ??? question "The room overshoots the target"
     The PID correction is too strong or the heating curve too high. Lower the
@@ -144,6 +145,10 @@ These fixes apply to everyone, without an option:
 - **Old values after a restart.** With a gateway over MQTT, SAT used the values from before the restart (flame,
   flow temperature, setpoint, modulation) as if they were live. They now count only after the first message of the
   gateway. See *Sensors are empty after a restart* above.
+- **Short burns after a restart (version 40).** Without a flow temperature PWM can't run, so SAT heated on the calculated
+  setpoint, below the OPV. SAT now waits for the first flow temperature, at most 5 minutes.
+- **A setpoint spike after a restart.** Sensors come online one by one, so a helper such as a median jumps for a moment,
+  and the derivative took that for a fast change. It now stays at zero for the first 3 minutes after a start.
 - **Messages to an old coordinator after a reload.** Every reload left the MQTT or ESPHome subscriptions of the old
   coordinator running. They now end at the unload.
 - **A valve in switch mode got no command.** The setup wizard offers valves, but SAT never opened or closed them. It

@@ -87,6 +87,10 @@ class SatSerialCoordinator(SatDataUpdateCoordinator):
         return super().hot_water_setpoint
 
     @property
+    def awaits_boiler_temperature(self) -> bool:
+        return True
+
+    @property
     def boiler_temperature(self) -> Optional[float]:
         if (value := self.get(DATA_CH_WATER_TEMP)) is not None:
             return float(value)

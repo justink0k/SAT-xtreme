@@ -481,6 +481,11 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         await self.async_set_control_max_setpoint(self._maximum_setpoint_override)
 
     @property
+    def awaits_boiler_temperature(self) -> bool:
+        """Xtreme fork: the flow temperature is unknown after a start until the gateway reports it; it is not a missing feature."""
+        return False
+
+    @property
     def supports_setpoint_management(self):
         """Returns whether the device supports setting a boiler setpoint.
 

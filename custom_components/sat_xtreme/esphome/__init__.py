@@ -110,6 +110,10 @@ class SatEspHomeCoordinator(SatDataUpdateCoordinator, SatEntityCoordinator):
         return float_value(self.get(sensor.DOMAIN, DATA_DHW_SETPOINT_MAXIMUM)) or super().maximum_hot_water_setpoint
 
     @property
+    def awaits_boiler_temperature(self) -> bool:
+        return True
+
+    @property
     def boiler_temperature(self) -> float | None:
         return float_value(self.get(sensor.DOMAIN, DATA_BOILER_TEMPERATURE))
 

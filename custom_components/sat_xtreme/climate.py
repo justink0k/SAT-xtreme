@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import timedelta, datetime
-from time import time
+from time import monotonic, time
 from typing import Optional, Callable
 
 from homeassistant.components import notify, sensor, weather
@@ -147,6 +147,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         # Xtreme fork: one control loop at a time, and turning off waits for a running loop
         self._control_lock: asyncio.Lock = asyncio.Lock()
+
+        # Xtreme fork: when this SAT started, for the wait for the first flow temperature
+        self._started_at: float = monotonic()
         self._xtreme_modulation_limit_reset: bool = False
 
         # Xtreme fork: the last modulation limit SAT sent, for a boiler that does not report the limit
@@ -252,6 +255,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         # Restore the previous state if available, or set default values
         await self._restore_previous_state_or_set_defaults()
+
+        # Xtreme fork: sensors come online one by one after a start, and a helper such as a median jumps until they have
+        self.pid.hold_derivative(PID_SETTLE_SECONDS)
 
         # Load the stored base return temperature of the dynamic minimum setpoint (never loaded upstream)
         await self.minimum_setpoint.async_initialize(self.hass, self._config_entry.entry_id)
@@ -1157,6 +1163,16 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self.async_write_ha_state()
             return
 
+        # Xtreme fork: without a flow temperature PWM can't run, and heating on the calculated setpoint gives short burns
+        # below the OPV. The setpoint keeps going out, so SAT stays in control and the gateway is asked for the flow.
+        if self._waiting_for_boiler_temperature:
+            _LOGGER.debug("Waiting for the first flow temperature, no heating demand yet.")
+            self._setpoint = MINIMUM_SETPOINT
+            await self._coordinator.async_set_control_setpoint(MINIMUM_SETPOINT)
+            await self.async_set_heater_state(DeviceState.OFF)
+            self.async_write_ha_state()
+            return
+
         if self._calculated_setpoint is None:
             # Default to the calculated setpoint
             self._calculated_setpoint = self._calculate_control_setpoint()
@@ -1298,6 +1314,15 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self.async_write_ha_state()
 
         return False
+
+    @property
+    def _waiting_for_boiler_temperature(self) -> bool:
+        """Xtreme fork: the flow temperature is not known yet after a start; gives up after a while, so the house doesn't stay cold."""
+        return (
+            self._coordinator.awaits_boiler_temperature
+            and self._coordinator.boiler_temperature is None
+            and monotonic() - self._started_at < BOILER_TEMPERATURE_WAIT_SECONDS
+        )
 
     def _desired_heater_state(self) -> DeviceState:
         """Determine the heater state for the current setpoint and PWM state."""

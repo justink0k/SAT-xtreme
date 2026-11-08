@@ -63,6 +63,7 @@ class PID:
         self._last_interval_updated: float = monotonic()
         self._integral_time_limit: float = max(integral_time_limit, 1)
         self._sample_time_limit: Optional[float] = (max(sample_time_limit, 1) if sample_time_limit is not None else None)
+        self._derivative_hold_until: Optional[float] = None
 
         self.reset()
 
@@ -124,6 +125,10 @@ class PID:
 
         self._last_boiler_temperature = boiler_temperature
         self._last_heating_curve_value = heating_curve_value
+
+    def hold_derivative(self, seconds: float) -> None:
+        """Xtreme fork: keep the derivative at zero for a while; a jump of the inside sensor at a start is no real change."""
+        self._derivative_hold_until = monotonic() + seconds
 
     def update_reset(self, error: Error, heating_curve_value: Optional[float]) -> None:
         """
@@ -195,6 +200,12 @@ class PID:
         :param alpha2: Second low-pass filter parameter (0..1).
         """
         now = monotonic()
+
+        # Xtreme fork: sensors are still coming online, so the slope starts again after the hold
+        if self._derivative_hold_until is not None and now < self._derivative_hold_until:
+            self._raw_derivative = 0.0
+            self._last_derivative_time = now
+            return
 
         # After a restore the slope starts now, not across the downtime (idea from bellini666/SAT)
         if self._last_derivative_time is None:
