@@ -11,6 +11,8 @@ from typing import Any, Mapping, Optional
 
 from ..const import (
     OPTIONS_DEFAULTS,
+    MODE_MQTT_OPENTHERM,
+    MODE_SWITCH,
     CONF_XTREME_PRIME_SETPOINT,
     CONF_XTREME_BOILER_MAXIMUM_POWER,
     CONF_XTREME_BOILER_MINIMUM_POWER,
@@ -74,6 +76,24 @@ PRESET_OPTIONS = {
     CONF_XTREME_BOILER_MINIMUM_POWER: "minimum_power",
     CONF_XTREME_ANTI_CYCLING_TIME: "anti_cycling_time",
 }
+
+
+def recommended_options(mode: str) -> dict[str, bool]:
+    """The options the setup wizard recommends for a gateway: they need no values of the boiler and work on any boiler.
+
+    Options that change how the boiler runs (boiler timing, setpoint priming, learned OPV) are not in here.
+    """
+    options = {CONF_XTREME_CYCLE_TRACKING: True, CONF_XTREME_STALE_SENSORS: True}
+
+    # A switch has no setpoint to show
+    if mode != MODE_SWITCH:
+        options[CONF_XTREME_SETPOINT_CHAIN] = True
+
+    # Handing over only works with the OpenTherm Gateway over MQTT
+    if mode == MODE_MQTT_OPENTHERM:
+        options[CONF_XTREME_HANDOVER_ON_OFF] = True
+
+    return options
 
 
 def apply_boiler_preset(previous: dict[str, Any], submitted: dict[str, Any]) -> dict[str, Any]:

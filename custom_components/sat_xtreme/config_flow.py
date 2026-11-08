@@ -20,7 +20,7 @@ from voluptuous import Marker
 from . import SatDataUpdateCoordinatorFactory
 from .const import *
 from .xtreme.migration import CONF_MIGRATED_FROM, async_unload_legacy_entry, legacy_entries
-from .xtreme.profile import BOILER_PRESETS, apply_boiler_preset
+from .xtreme.profile import BOILER_PRESETS, apply_boiler_preset, recommended_options
 
 # Sections of the Xtreme profile page
 XTREME_SECTION_THERMOSTAT = "thermostat"
@@ -55,6 +55,9 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self.data = {}
         self.errors = {}
         self.config_entry = None
+
+        # Xtreme fork: the fork options chosen at the end of the wizard, None until the choice is made
+        self.xtreme_options: dict[str, Any] | None = None
 
     @staticmethod
     @callback
@@ -550,7 +553,8 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             options.append({"value": name, "label": manufacturer.friendly_name})
 
         return self.async_show_form(
-            last_step=True,
+            # Xtreme fork: a new installation still gets the step with the fork options
+            last_step=self.config_entry is not None,
             step_id="manufacturer",
             data_schema=vol.Schema({
                 vol.Required(CONF_MANUFACTURER, default=default_manufacturer): selector.SelectSelector(
@@ -559,7 +563,39 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             })
         )
 
+    async def async_step_xtreme_start(self, _user_input: dict[str, Any] | None = None):
+        """Xtreme fork: the last step of a new installation, the choice of the fork options."""
+        return self.async_show_menu(
+            step_id="xtreme_start",
+            menu_options=["xtreme_recommended", "xtreme_official", "xtreme_choose"],
+        )
+
+    async def async_step_xtreme_recommended(self, _user_input: dict[str, Any] | None = None):
+        self.xtreme_options = recommended_options(self.data[CONF_MODE])
+        return await self.async_step_finish()
+
+    async def async_step_xtreme_official(self, _user_input: dict[str, Any] | None = None):
+        self.xtreme_options = {}
+        return await self.async_step_finish()
+
+    async def async_step_xtreme_choose(self, _user_input: dict[str, Any] | None = None):
+        if _user_input is not None:
+            self.xtreme_options = _user_input
+            return await self.async_step_finish()
+
+        return self.async_show_form(
+            last_step=True,
+            step_id="xtreme_choose",
+            data_schema=vol.Schema({
+                vol.Required(option, default=False): bool for option in recommended_options(self.data[CONF_MODE])
+            }),
+        )
+
     async def async_step_finish(self, _user_input: dict[str, Any] | None = None):
+        # Xtreme fork: every route through the wizard ends here, so a new installation chooses the fork options here
+        if self.config_entry is None and self.xtreme_options is None:
+            return await self.async_step_xtreme_start()
+
         # Xtreme fork: SAT reads the PID choices from the options, so copy the choices of the wizard there
         pid_options = {key: self.data[key] for key in (CONF_AUTOMATIC_GAINS, CONF_PROPORTIONAL, CONF_INTEGRAL, CONF_DERIVATIVE) if key in self.data}
 
@@ -575,7 +611,7 @@ class SatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_create_entry(
             title=self.data[CONF_NAME],
             data=self.data,
-            options=pid_options,
+            options={**pid_options, **self.xtreme_options},
         )
 
     async def async_create_coordinator(self) -> SatDataUpdateCoordinator:

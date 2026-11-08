@@ -157,6 +157,31 @@
         "data": {
           "entry": "Configuration to move"
         }
+      },
+      "xtreme_start": {
+        "title": "SAT-xtreme options",
+        "description": "SAT-xtreme has extra options on top of the official SAT. Everything can be changed later under *Configure*.\n\n**Recommended** turns on the options that need no values of your boiler: tracking burner cycles, showing the setpoint chain, handling stale sensors and, with an OpenTherm Gateway over MQTT, handing over to the thermostat. These were tested on one setup.\n\nHandling stale sensors counts an inside sensor as stale after 90 minutes without a report; SAT then heats on the heating curve only and shows a repair. If your sensor reports less often, raise that time under *Configure → Xtreme profile (fork) → Sensors*.\n\nOptions that change how your boiler runs are never turned on here. They need the values of your boiler, and are under *Configure → Xtreme profile (fork)*.",
+        "menu_options": {
+          "xtreme_recommended": "Recommended",
+          "xtreme_official": "Like the official SAT (all fork options off)",
+          "xtreme_choose": "Choose myself"
+        }
+      },
+      "xtreme_choose": {
+        "title": "Choose the SAT-xtreme options",
+        "description": "Everything can be changed later. The other options, which need the values of your boiler, are under *Configure → Xtreme profile (fork)*; enter the values of your own boiler before you turn them on.",
+        "data": {
+          "xtreme_cycle_tracking": "Track burner cycles",
+          "xtreme_stale_sensors": "Handle stale sensors",
+          "xtreme_setpoint_chain": "Show the setpoint chain",
+          "xtreme_handover_on_off": "Hand over to the thermostat when SAT is turned off"
+        },
+        "data_description": {
+          "xtreme_cycle_tracking": "Recognises every burner cycle (flame on to flame off) and records its duration, temperatures, setpoint, kind (heating or hot water), why it ended and whether it started within the anti-cycling time. Adds the sensor \"Last Cycle\", counters for the last hour and 24 hours, the events sat_xtreme_cycle_started and sat_xtreme_cycle_ended, and keeps the last 500 cycles across restarts.",
+          "xtreme_stale_sensors": "Replaces the 'Temperature Sensor maximum value age' of SAT for the inside and outside sensor. The age counts from the last report of the sensor, also when it reported the same value. Without a usable inside sensor, SAT heats on the heating curve only and never above the setpoint it requested at that moment; a stale outside temperature is replaced by the last known value. A repair and the binary sensor 'Stale Sensor' show it, and SAT returns to normal by itself.",
+          "xtreme_setpoint_chain": "Adds the sensor \"Xtreme fork: Setpoint Chain\". Its value is the setpoint SAT calculates (heating curve plus PID); its attributes show the setpoint SAT sends to the gateway and the setpoint the gateway reports for the boiler, so you can see where a difference comes from.",
+          "xtreme_handover_on_off": "When you turn the SAT thermostat off, the gateway hands control back to the thermostat on the bus right away (CS=0 and MM=T, and TC=0 when the setpoint is pushed to the thermostat), instead of after about a minute. This also happens when SAT starts turned off, when Home Assistant stops or restarts cleanly, and when SAT is unloaded or reloaded. After a crash or power cut the gateway still does this by itself after about a minute. Only for the OpenTherm Gateway over MQTT."
+        }
       }
     }
   },

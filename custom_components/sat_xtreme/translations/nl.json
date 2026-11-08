@@ -149,6 +149,31 @@
         "data": {
           "entry": "Over te zetten configuratie"
         }
+      },
+      "xtreme_start": {
+        "title": "SAT-xtreme-opties",
+        "description": "SAT-xtreme heeft extra opties bovenop de officiële SAT. Alles is later te wijzigen onder *Configureren*.\n\n**Aanbevolen** zet de opties aan die geen waarden van je ketel nodig hebben: branderscycli bijhouden, de setpointketen tonen, verouderde sensoren afhandelen en, bij een OpenTherm Gateway via MQTT, overdragen aan de thermostaat. Deze zijn getest op één opstelling.\n\nVerouderde sensoren afhandelen telt een binnensensor als verouderd na 90 minuten zonder melding; SAT stookt dan alleen op de stooklijn en toont een reparatiemelding. Meldt jouw sensor minder vaak, verhoog die tijd dan onder *Configureren → Xtreme profile (fork) → Sensoren*.\n\nOpties die veranderen hoe je ketel draait, worden hier nooit aangezet. Die hebben de waarden van je ketel nodig en staan onder *Configureren → Xtreme profile (fork)*.",
+        "menu_options": {
+          "xtreme_recommended": "Aanbevolen",
+          "xtreme_official": "Zoals de officiële SAT (alle fork-opties uit)",
+          "xtreme_choose": "Zelf kiezen"
+        }
+      },
+      "xtreme_choose": {
+        "title": "Kies de SAT-xtreme-opties",
+        "description": "Alles is later te wijzigen. De andere opties, die de waarden van je ketel nodig hebben, staan onder *Configureren → Xtreme profile (fork)*; vul de waarden van je eigen ketel in voordat je ze aanzet.",
+        "data": {
+          "xtreme_cycle_tracking": "Volg branderscycli",
+          "xtreme_stale_sensors": "Verouderde sensoren afhandelen",
+          "xtreme_setpoint_chain": "Toon de setpointketen",
+          "xtreme_handover_on_off": "Overdragen aan de thermostaat als SAT uit gaat"
+        },
+        "data_description": {
+          "xtreme_cycle_tracking": "Herkent elke branderscyclus (vlam aan tot vlam uit) en legt de duur, temperaturen, het setpoint, de soort (cv of warm water), de reden van het einde en of hij binnen de anti-pendeltijd begon vast. Voegt de sensor \"Last Cycle\" toe, tellers voor het afgelopen uur en de afgelopen 24 uur, de events sat_xtreme_cycle_started en sat_xtreme_cycle_ended, en bewaart de laatste 500 cycli ook na een herstart.",
+          "xtreme_stale_sensors": "Vervangt de 'maximale leeftijd van de temperatuursensor' van SAT voor de binnen- en buitensensor. De leeftijd telt vanaf de laatste melding van de sensor, ook als die dezelfde waarde meldde. Zonder bruikbare binnensensor stookt SAT alleen op de stooklijn en nooit hoger dan het setpoint dat het op dat moment vroeg; een verouderde buitentemperatuur wordt vervangen door de laatst bekende waarde. Een reparatiemelding en de binaire sensor 'Stale Sensor' tonen dit, en SAT gaat vanzelf terug naar normaal.",
+          "xtreme_setpoint_chain": "Voegt de sensor \"Xtreme fork: Setpoint Chain\" toe. De waarde is het setpoint dat SAT berekent (stooklijn plus PID); de attributen tonen het setpoint dat SAT naar de gateway stuurt en het setpoint dat de gateway voor de ketel meldt, zodat je ziet waar een verschil vandaan komt.",
+          "xtreme_handover_on_off": "Zet je de SAT-thermostaat uit, dan geeft de gateway de regeling direct terug aan de thermostaat op de bus (CS=0 en MM=T, en TC=0 als het setpoint naar de thermostaat wordt gestuurd), in plaats van na ongeveer een minuut. Dat gebeurt ook als SAT uitgeschakeld start, als Home Assistant netjes stopt of herstart, en als SAT wordt ontladen of herladen. Na een crash of stroomuitval doet de gateway dit nog steeds zelf na ongeveer een minuut. Alleen voor de OpenTherm Gateway via MQTT."
+        }
       }
     }
   },

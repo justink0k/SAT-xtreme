@@ -71,6 +71,27 @@ if needed. A few manufacturers get special treatment (for example a filter on th
 Geminox), and the fork warns in the log when a [boiler preset](boiler_presets.md) is for another
 manufacturer.
 
+## 7. SAT-xtreme options
+
+A new installation ends with a choice of the fork options. Everything can be changed later under *Configure*.
+
+- **Recommended** turns on the options that need no values of your boiler:
+  [track burner cycles](burner-cycles.md), [show the setpoint chain](setpoint-chain.md) (not for a switch),
+  [handle stale sensors](stale-sensors.md) and, with an OpenTherm Gateway over MQTT,
+  [hand over to the thermostat](handover.md). These were tested on one setup.
+- **Like the official SAT** keeps all fork options off.
+- **Choose myself** shows the same options, all off, to turn on one by one.
+
+Options that change how your boiler runs are never turned on here; they need the values of your boiler.
+
+!!! warning "Check how often your inside sensor reports"
+    *Handle stale sensors* counts an inside sensor as stale after 90 minutes without a report. SAT then heats on the
+    heating curve only and shows a [repair](repairs.md). If your sensor reports less often, for example only when the
+    temperature changes, raise *Maximum age of the inside temperature* under *Configure → Xtreme profile (fork) →
+    Sensors*.
+
+Reconfiguring an installation and moving from the official SAT skip this step.
+
 ## After the wizard
 
 - The climate entity (for example `climate.sat`) appears. Set it to *Heat* to let SAT control the boiler.

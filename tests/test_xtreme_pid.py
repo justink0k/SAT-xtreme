@@ -136,7 +136,8 @@ async def test_wizard_choices_are_copied_to_the_options(hass: HomeAssistant) -> 
     flow.context = {"source": "user"}
     flow.data = {CONF_NAME: "Test", CONF_MODE: MODE_FAKE, CONF_AUTOMATIC_GAINS: False, CONF_PROPORTIONAL: "30", CONF_INTEGRAL: "0", CONF_DERIVATIVE: "4000"}
 
-    result = await flow.async_step_finish()
+    # The last step of a new installation: the choice of the fork options
+    result = await flow.async_step_xtreme_official()
 
     assert result["options"][CONF_AUTOMATIC_GAINS] is False
     assert result["options"][CONF_PROPORTIONAL] == "30"

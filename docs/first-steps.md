@@ -1,7 +1,8 @@
 # First steps
 
-After the [setup wizard](setup-wizard.md), SAT-xtreme behaves like the official SAT. This page gives a safe
-order to tune SAT and turn on the fork features. Change **one thing at a time** and watch the effect for a
+After the [setup wizard](setup-wizard.md), SAT-xtreme controls the boiler like the official SAT. The recommended options
+of the wizard only change that when a sensor is stale, and when SAT or Home Assistant stops or starts (hand-over). This
+page gives a safe order to tune SAT and turn on the fork features. Change **one thing at a time** and watch the effect for a
 few days; heating reacts slowly, and the weather changes in between.
 
 ## 1. Let SAT run

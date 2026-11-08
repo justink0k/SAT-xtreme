@@ -1355,3 +1355,20 @@ come from bellini666/SAT (GPL-3.0, 8bc5ee6); the code is written for SAT-xtreme.
 `custom_components/sat_xtreme/xtreme/cycles.py`, `custom_components/sat_xtreme/state.py`,
 `custom_components/sat_xtreme/minimum_setpoint.py`, `custom_components/sat_xtreme/overshoot_protection.py`,
 `tests/test_xtreme_mqtt_lifecycle.py` (new), `tests/test_esphome_upstream_fixes.py`, `docs/troubleshooting.md`.
+
+## Unreleased: the setup wizard offers the fork options
+
+A new installation ends with a menu *SAT-xtreme options*. Nothing is preselected; with *Like the official SAT* the
+options stay as they were.
+
+- **Recommended** turns on the options that need no values of the boiler: *Track burner cycles*, *Show the setpoint
+  chain* (not for a switch), *Handle stale sensors*, and *Hand over to the thermostat* (OpenTherm Gateway over MQTT).
+- **Like the official SAT** keeps all fork options off.
+- **Choose myself** shows the same options as checkboxes, all off.
+
+Options that change how the boiler runs or need its values are not offered. Reconfiguring and moving from the official
+SAT skip the step, so existing installations notice nothing.
+
+**Files.** `custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/xtreme/profile.py`,
+`custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
+`tests/test_xtreme_wizard_options.py` (new), `docs/setup-wizard.md`, `docs/first-steps.md`.
