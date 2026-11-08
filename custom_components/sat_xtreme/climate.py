@@ -144,6 +144,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self._attr_supported_features |= ClimateEntityFeature.TURN_OFF
 
         self._control_heating_loop_unsub: Optional[Callable[[], None]] = None
+
+        # Xtreme fork: one control loop at a time, and turning off waits for a running loop
+        self._control_lock: asyncio.Lock = asyncio.Lock()
         self._xtreme_modulation_limit_reset: bool = False
         self._xtreme_preset_checked: bool = False
 
@@ -1074,8 +1077,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
                 self._control_heating_loop_unsub()
                 self._control_heating_loop_unsub = None
 
-                self.hass.async_create_task(self.async_control_heating_loop())
-                return
+            # Xtreme fork: run right away also when nothing was scheduled
+            self.hass.async_create_task(self.async_control_heating_loop())
+            return
 
         # If a run is already scheduled, do nothing.
         if self._control_heating_loop_unsub is not None:
@@ -1088,6 +1092,11 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Let the sub know we have run
         self._control_heating_loop_unsub = None
 
+        async with self._control_lock:
+            await self._async_control_heating_loop()
+
+    async def _async_control_heating_loop(self) -> None:
+        """One run of the control loop; the caller holds the lock."""
         # A sensor that stops reporting fires no state change, so the stale reset has to happen here too, before a
         # missing temperature ends the loop (fix from bellini666/SAT)
         if not self.stale_sensors.enabled and is_state_stale(self.hass.states.get(self.inside_sensor_entity_id), self._sensor_max_value_age):
@@ -1261,11 +1270,14 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
     async def _async_handover_on_shutdown(self) -> None:
         """Xtreme profile: Home Assistant stops; MQTT still works in this first stage of the shutdown."""
-        await self._async_handover_to_thermostat("Home Assistant stops")
+        async with self._control_lock:
+            await self._async_handover_to_thermostat("Home Assistant stops")
 
     async def async_will_remove_from_hass(self) -> None:
         """Xtreme profile: the integration is unloaded (also on a reload), so nothing controls the boiler anymore."""
-        await self._async_handover_to_thermostat("SAT is unloaded")
+        async with self._control_lock:
+            await self._async_handover_to_thermostat("SAT is unloaded")
+
         await super().async_will_remove_from_hass()
 
     async def _async_control_stale_hand_over(self) -> bool:
@@ -1374,11 +1386,14 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         elif hvac_mode == HVACMode.OFF:
             self._hvac_mode = HVACMode.OFF
             await self.xtreme_calibration.async_stop("The thermostat was turned off")
-            await self.async_set_heater_state(DeviceState.OFF)
-            await self._async_handover_to_thermostat()
 
-            # Xtreme fork: a restart of the gateway must not bring back a control setpoint while SAT is off
-            self._coordinator.forget_control_overrides()
+            # Xtreme fork: wait for a running control loop, so it can't send anything after this
+            async with self._control_lock:
+                await self.async_set_heater_state(DeviceState.OFF)
+                await self._async_handover_to_thermostat()
+
+                # A restart of the gateway must not bring back a control setpoint while SAT is off
+                self._coordinator.forget_control_overrides()
         else:
             # If an unsupported mode is passed, log an error message
             _LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)
@@ -1399,8 +1414,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             # Set the hvac mode for those climate devices
             for entity_id in climates:
                 state = self.hass.states.get(entity_id)
-                if state is None or hvac_mode not in state.attributes.get("hvac_modes"):
-                    return
+                # Xtreme fork: a climate without this mode no longer stops the others and the state update below
+                if state is None or hvac_mode not in (state.attributes.get("hvac_modes") or []):
+                    continue
 
                 data = {ATTR_ENTITY_ID: entity_id, ATTR_HVAC_MODE: hvac_mode}
                 await self.hass.services.async_call(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE, data, blocking=True)

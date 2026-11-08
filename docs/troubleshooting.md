@@ -127,6 +127,13 @@ These fixes apply to everyone, without an option:
   does not.
 - **Switch mode never turned the switch off.** SAT looked up the state of the switch by its registry ID, found
   nothing and always saw it off; it turned the switch on and never off again. It now reads the switch itself.
+- **The wizard calibration left the boiler heating.** After a successful calibration or a timeout the setpoint and the
+  heating demand stayed; ESPHome and EMS-ESP keep them until they change. The boiler is now reset after every outcome.
+- **A command could arrive after turning SAT off.** A running control loop could still send a setpoint or heating
+  demand. Turning off now waits for that loop, and only one control loop runs at a time.
+- **One climate without a mode stopped the others.** When SAT changed its mode, a radiator without that mode ended the
+  update for the other radiators and for SAT itself.
+- **A new target temperature could wait 10 seconds.** It now takes effect right away.
 - **SAT left its modulation limit on the gateway.** The limit has no expiry, so after turning SAT off or stopping Home
   Assistant it kept limiting the thermostat. SAT now clears it when it stops controlling; this also applies with
   all fork options off.

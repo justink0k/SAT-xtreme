@@ -47,11 +47,12 @@ class OvershootProtection:
                 await self._wait_a_moment(OVERSHOOT_PROTECTION_RELATIVE_MODULATION_WAIT)
 
             return self._calculate_overshoot_value()
-        except asyncio.CancelledError as exception:
-            await self._coordinator.async_set_heater_state(DeviceState.OFF)
-            await self._coordinator.async_set_control_setpoint(MINIMUM_SETPOINT)
-
-            raise exception
+        finally:
+            # Xtreme fork: after every outcome, not only when cancelled; ESPHome and EMS-ESP keep a setpoint until it changes
+            try:
+                await self._reset_heater_state()
+            except Exception:
+                _LOGGER.exception("Could not turn the heating off after the calculation.")
 
     async def _wait_for_flame(self) -> None:
         """Wait until the heating system flame is active."""

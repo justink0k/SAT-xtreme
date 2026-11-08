@@ -331,3 +331,38 @@ async def test_boiler_without_modulation_skips_the_test(hass: HomeAssistant, ent
 
     assert calibration.attributes["modulation_test"]["result"] == "not_reported"
     await calibration.async_stop()
+
+
+# Audit finding M5
+
+@pytest.mark.parametrize(*parameters(**{CONF_XTREME_CALIBRATION: True}))
+async def test_an_offline_gateway_pauses_without_a_false_plateau(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator, clock: Clock) -> None:
+    calibration = await _start(climate)
+    calibration._set_phase(CalibrationPhase.HEATING, "Heating")
+    calibration._window.append((clock.now, 50.0))
+
+    with patch.object(SatFakeCoordinator, "online", new_callable=PropertyMock, return_value=False), \
+            patch.object(SatFakeCoordinator, "async_set_control_setpoint", new_callable=AsyncMock) as setpoint:
+        await calibration.async_step()
+        await calibration.async_step()
+
+    assert calibration.phase == CalibrationPhase.PAUSED_OFFLINE
+    assert calibration.active
+    assert not calibration._window
+    setpoint.assert_not_called()
+
+    await calibration.async_step()
+
+    assert calibration.phase in (CalibrationPhase.WAITING, CalibrationPhase.TESTING_MODULATION, CalibrationPhase.HEATING)
+    await calibration.async_stop()
+
+
+@pytest.mark.parametrize(*parameters(**{CONF_XTREME_CALIBRATION: True, CONF_XTREME_STALE_SENSORS: True}))
+async def test_no_inside_sensor_stops_the_calibration(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, coordinator: SatFakeCoordinator, clock: Clock) -> None:
+    calibration = await _start(climate)
+
+    with patch.object(type(climate.stale_sensors), "safe_mode", new_callable=PropertyMock, return_value=True):
+        await calibration.async_step()
+
+    assert calibration.phase == CalibrationPhase.CANCELLED
+    assert not calibration.active

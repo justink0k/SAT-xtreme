@@ -1393,3 +1393,25 @@ at least every minute, but other overrides have no expiry.
 `tests/test_xtreme_modulation_release.py` (new), `tests/loop_harness.py`, `tests/test_xtreme_gateway_online.py`,
 `tests/test_xtreme_handover_extended.py`, `tests/test_xtreme_presets_and_handover.py`, `docs/gateways.md`,
 `docs/troubleshooting.md`, `docs/background.md`, `docs/handover.md`, `docs/modulation-limit.md`.
+
+## Unreleased: the wizard calibration resets the boiler, and the control loop gets a lock
+
+Bug fixes, without an option, found in the code audit. The first, third and fourth are also in the official SAT.
+
+- **The calibration in the wizard always resets the boiler** (heating off, minimum setpoint), also after a success, a
+  timeout or an error; before, only when it was cancelled. ESPHome and EMS-ESP kept up to 62 °C and the heating demand
+  until SAT was turned on. The OpenTherm Gateway drops the setpoint by itself after a minute.
+- **The slow calibration follows the gateway and the inside sensor.** It pauses while the gateway is offline (new phase
+  `paused_offline`), because frozen values looked like a plateau, and it stops in the safe mode of stale sensors,
+  because the comfort check needs an inside temperature and the thermostat may take over.
+- **A climate without the requested mode no longer ends the mode change.** The other climates still get it, and the
+  state of SAT is written.
+- **The control loop has a lock, and `force` works.** One control loop runs at a time. Turning SAT off, stopping Home
+  Assistant and unloading wait for a running loop, which could otherwise send a setpoint or heating demand afterwards.
+  A forced run started right away only when another run was already scheduled; it now always does, so a new target
+  temperature no longer waits up to 10 seconds.
+
+**Files.** `custom_components/sat_xtreme/overshoot_protection.py`, `custom_components/sat_xtreme/climate.py`,
+`custom_components/sat_xtreme/xtreme/calibration.py`, `custom_components/sat_xtreme/xtreme/sensor.py`,
+`tests/test_xtreme_audit_control.py` (new), `tests/test_xtreme_calibration.py`, `docs/calibration.md`,
+`docs/troubleshooting.md`.

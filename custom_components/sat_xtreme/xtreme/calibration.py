@@ -82,6 +82,7 @@ class CalibrationPhase(str, Enum):
     HEATING = "heating"
     PAUSED_HOT_WATER = "paused_hot_water"
     PAUSED_COMFORT = "paused_comfort"
+    PAUSED_OFFLINE = "paused_offline"
     COOLDOWN = "cooldown"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
@@ -94,6 +95,7 @@ ACTIVE_PHASES = (
     CalibrationPhase.HEATING,
     CalibrationPhase.PAUSED_HOT_WATER,
     CalibrationPhase.PAUSED_COMFORT,
+    CalibrationPhase.PAUSED_OFFLINE,
     CalibrationPhase.COOLDOWN,
 )
 
@@ -259,6 +261,21 @@ class XtremeCalibration:
         if self._climate.hvac_mode != HVACMode.HEAT:
             await self._async_finish(CalibrationPhase.CANCELLED, "The thermostat left heat mode")
             return
+
+        # Without an inside temperature the comfort check can't work, and the thermostat may take over
+        if self._climate.stale_sensors.safe_mode:
+            await self._async_finish(CalibrationPhase.CANCELLED, "No usable inside temperature sensor")
+            return
+
+        # While the gateway is offline its values are frozen, and would look like a plateau
+        if not self._coordinator.online:
+            if self._phase != CalibrationPhase.PAUSED_OFFLINE:
+                self._discard_step("gateway offline")
+                self._set_phase(CalibrationPhase.PAUSED_OFFLINE, "Paused while the gateway is offline")
+            return
+
+        if self._phase == CalibrationPhase.PAUSED_OFFLINE:
+            self._set_phase(CalibrationPhase.WAITING, "Waiting until the boiler may start after the gateway came back")
 
         flow = self._coordinator.boiler_temperature
         modulation = self._coordinator.relative_modulation_value

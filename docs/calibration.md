@@ -68,4 +68,9 @@ soon as you turn learning on.
 ## Phases
 
 The sensor shows one of these phases: `idle`, `waiting`, `testing_modulation`, `heating`,
-`paused_hot_water`, `paused_comfort`, `cooldown`, `succeeded`, `failed`, `cancelled`.
+`paused_hot_water`, `paused_comfort`, `paused_offline`, `cooldown`, `succeeded`, `failed`, `cancelled`.
+
+While the gateway is offline the calibration pauses (`paused_offline`), because frozen values would look like a stable
+flow; the measurement of that moment is dropped. Without a usable inside sensor
+([safe mode of stale sensors](stale-sensors.md)) the calibration stops, because SAT can't see whether the room gets too
+warm.
