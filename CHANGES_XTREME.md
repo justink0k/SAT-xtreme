@@ -1453,7 +1453,7 @@ explains why).
 `custom_components/sat_xtreme/xtreme/cycles.py`, `custom_components/sat_xtreme/xtreme/opv.py`,
 `custom_components/sat_xtreme/xtreme/opv_model.py`, `tests/test_xtreme_audit_small.py` (new), `docs/troubleshooting.md`.
 
-## Unreleased: short burns after a restart
+## Version 41: short burns after a restart (`4.2.1-xtreme.41`, 2026-11-08)
 
 Bug fixes, without an option. Seen on the tested boiler after installing version 40: three burns of 24 to 34 seconds in the
 first four minutes after a restart.
