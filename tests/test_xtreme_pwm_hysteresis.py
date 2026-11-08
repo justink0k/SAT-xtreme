@@ -6,7 +6,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.sat_xtreme.climate import SatClimate
 from custom_components.sat_xtreme.const import *
 from custom_components.sat_xtreme.xtreme.profile import XtremeProfile
-from tests.xtreme_helpers import parameters, xtreme_profile_input
+from tests.xtreme_helpers import parameters
 
 
 def _enabled(climate: SatClimate, setpoint: float, status: PWMStatus) -> bool:
@@ -47,10 +47,27 @@ async def test_idle_pwm_starts_at_the_minimum_as_before(hass: HomeAssistant, ent
 
 
 @pytest.mark.parametrize(*parameters())
-async def test_the_option_is_stored(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate) -> None:
+async def test_the_option_is_on_the_pid_settings_page(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate) -> None:
     result = await hass.config_entries.options.async_init(entry.entry_id)
-    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "xtreme_profile"})
-    result = await hass.config_entries.options.async_configure(result["flow_id"], xtreme_profile_input(**{CONF_XTREME_PWM_HYSTERESIS: 2.5}))
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "pid_settings"})
+    assert CONF_XTREME_PWM_HYSTERESIS in [str(key) for key in result["data_schema"].schema]
+
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {
+        CONF_AUTOMATIC_GAINS: True, CONF_XTREME_PID_GAIN_FACTOR: 1.0, CONF_XTREME_MAXIMUM_SETPOINT_RISE: 0, CONF_XTREME_PWM_HYSTERESIS: 2.5,
+    })
 
     assert result["type"] == "create_entry"
     assert entry.options[CONF_XTREME_PWM_HYSTERESIS] == 2.5
+
+
+@pytest.mark.parametrize(*parameters())
+async def test_the_option_is_no_longer_in_the_boiler_section(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate) -> None:
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "xtreme_profile"})
+
+    boiler = result["data_schema"].schema["boiler"].schema.schema
+    sensors = [str(key) for key in result["data_schema"].schema["sensors"].schema.schema]
+    assert CONF_XTREME_PWM_HYSTERESIS not in [str(key) for key in boiler]
+
+    # Without an inside sensor sits next to the backup inside sensor
+    assert sensors.index(CONF_XTREME_STALE_ACTION) == sensors.index(CONF_XTREME_BACKUP_INSIDE_SENSOR) + 1

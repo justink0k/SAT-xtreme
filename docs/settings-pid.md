@@ -4,7 +4,7 @@
 
 SAT calculates the water temperature as the [heating curve plus a PID correction](how-sat-works.md#pid-correction).
 This page decides how strong that correction is. It exists only in SAT-xtreme. With the defaults (automatic
-gains on, gain factor 1.0, maximum rise 0) nothing changes compared to the official SAT.
+gains on, gain factor 1.0, maximum rise 0, PWM hysteresis 0) nothing changes compared to the official SAT.
 
 ## Automatic gains
 
@@ -43,3 +43,10 @@ however cold the room is. This keeps the setpoint calm after a cold night or an 
     with a generous value (for example 10 °C) and lower it only when needed.
 
 The [maximum setpoint](settings-general.md#maximum-setpoint) still applies on top of this.
+
+## PWM hysteresis
+
+Default 0 °C (off), range 0 to 5 °C in steps of 0.5 °C. While PWM runs, it only turns off once the requested
+setpoint is this much above the OPV. With automatic gains one step of 0.1 °C of the room sensor moves the setpoint
+by about 2 °C, so **2 °C is a good start**. See [PWM hysteresis](overshoot-protection.md#pwm-hysteresis) for the
+details.

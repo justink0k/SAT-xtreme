@@ -861,9 +861,6 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
             vol.Required(CONF_XTREME_MINIMUM_DUTY_CYCLE, default=options[CONF_XTREME_MINIMUM_DUTY_CYCLE]): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=2.5, max=30, step=0.5, unit_of_measurement="%")
             ),
-            vol.Required(CONF_XTREME_PWM_HYSTERESIS, default=options[CONF_XTREME_PWM_HYSTERESIS]): selector.NumberSelector(
-                selector.NumberSelectorConfig(min=0, max=5, step=0.5, unit_of_measurement="°C")
-            ),
             vol.Required(CONF_XTREME_HOT_WATER_SWITCH, default=options[CONF_XTREME_HOT_WATER_SWITCH]): bool,
             vol.Required(CONF_XTREME_MAXIMUM_SETPOINT_ENTITY, default=options[CONF_XTREME_MAXIMUM_SETPOINT_ENTITY]): bool,
         })
@@ -890,11 +887,11 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
             vol.Optional(CONF_XTREME_BACKUP_INSIDE_SENSOR, description={"suggested_value": options[CONF_XTREME_BACKUP_INSIDE_SENSOR]}): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain=sensor.DOMAIN, device_class=[sensor.SensorDeviceClass.TEMPERATURE])
             ),
-            vol.Required(CONF_XTREME_OUTSIDE_MAX_AGE, default=options[CONF_XTREME_OUTSIDE_MAX_AGE]): selector.NumberSelector(
-                selector.NumberSelectorConfig(min=30, max=2880, step=10, unit_of_measurement="min")
-            ),
             vol.Required(CONF_XTREME_STALE_ACTION, default=options[CONF_XTREME_STALE_ACTION]): selector.SelectSelector(
                 selector.SelectSelectorConfig(options=[STALE_ACTION_HEATING_CURVE, STALE_ACTION_HAND_OVER], translation_key="xtreme_stale_action")
+            ),
+            vol.Required(CONF_XTREME_OUTSIDE_MAX_AGE, default=options[CONF_XTREME_OUTSIDE_MAX_AGE]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=30, max=2880, step=10, unit_of_measurement="min")
             ),
         })
 
@@ -915,7 +912,7 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
         )
 
     async def async_step_pid_settings(self, _user_input: dict[str, Any] | None = None):
-        """Xtreme fork: automatic gains, gain factor and maximum rise above the heating curve."""
+        """Xtreme fork: automatic gains, gain factor, maximum rise above the heating curve and PWM hysteresis."""
         if _user_input is not None:
             self._options.update(_user_input)
 
@@ -935,6 +932,9 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
                 ),
                 vol.Required(CONF_XTREME_MAXIMUM_SETPOINT_RISE, default=options[CONF_XTREME_MAXIMUM_SETPOINT_RISE]): selector.NumberSelector(
                     selector.NumberSelectorConfig(min=0, max=40, step=0.5, unit_of_measurement="°C")
+                ),
+                vol.Required(CONF_XTREME_PWM_HYSTERESIS, default=options[CONF_XTREME_PWM_HYSTERESIS]): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=0, max=5, step=0.5, unit_of_measurement="°C")
                 ),
             })
         )

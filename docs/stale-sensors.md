@@ -63,8 +63,8 @@ its last setpoint, as SAT 4.2.1 does.
 | Handle stale sensors | off | | Turns this on. |
 | Maximum age of the inside temperature | 90 min | 10 – 1440 min | Take more than the longest report interval of your sensor (often 1 hour for Zigbee sensors). |
 | Backup inside sensor | none | | A second temperature sensor in the same room or a room nearby. |
-| Maximum age of the outside temperature | 180 min | 30 – 2880 min | A weather entity is usually updated every hour. |
 | Without an inside sensor | Heat on the heating curve only | | Or *Hand over to the thermostat after 10 minutes*. |
+| Maximum age of the outside temperature | 180 min | 30 – 2880 min | A weather entity is usually updated every hour. |
 
 ## What you see
 

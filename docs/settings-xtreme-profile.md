@@ -30,7 +30,6 @@ Values for your boiler, from its rating plate and installation manual, or from a
 | Extra margin on the anti-cycling time | 15 s | 0 – 120 s | Added to the anti-cycling time. |
 | Minimum burn time per PWM block | 360 s | 240 – 600 s | The shortest burn of a block. |
 | Do not heat below this duty cycle | 7.5 % | 2.5 – 30 % | Below this, SAT does not heat until the demand rises. |
-| PWM hysteresis | 0 °C (off) | 0 – 5 °C | Running PWM only turns off this far above the OPV; 2 °C is a good start. See [PWM hysteresis](overshoot-protection.md#pwm-hysteresis) |
 | Hot water keep-warm switch | off | | [Hot water keep-warm](hot_water_keep_warm.md); OpenTherm Gateway over MQTT only |
 | Maximum setpoint as an entity | off | | [Maximum setpoint entity](maximum-setpoint.md) |
 
@@ -63,8 +62,8 @@ What SAT does when the inside or outside temperature is no longer updated.
 | Handle stale sensors | off | | See [Stale sensors](stale-sensors.md) |
 | Maximum age of the inside temperature | 90 min | 10 – 1440 min | |
 | Backup inside sensor | none | | Optional |
-| Maximum age of the outside temperature | 180 min | 30 – 2880 min | |
 | Without an inside sensor | Heat on the heating curve only | | Or *Hand over to the thermostat after 10 minutes*; see [Stale sensors](stale-sensors.md#without-an-inside-sensor) |
+| Maximum age of the outside temperature | 180 min | 30 – 2880 min | |
 
 ## Diagnostics
 

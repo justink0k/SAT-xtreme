@@ -68,7 +68,7 @@ after a change of the target temperature. A hot water burn does not count in the
 
 ### PWM hysteresis
 
-*Xtreme profile (fork) → Boiler → PWM hysteresis.* Default 0 °C (off), range 0 – 5 °C in steps of 0.5 °C.
+*PID settings (fork) → PWM hysteresis.* Default 0 °C (off), range 0 – 5 °C in steps of 0.5 °C.
 
 Without it, PWM turns off as soon as the requested setpoint is above the OPV again. With automatic gains, one step
 of 0.1 °C of the room sensor moves the setpoint by about 2 °C, so a setpoint close to the OPV can switch PWM on and

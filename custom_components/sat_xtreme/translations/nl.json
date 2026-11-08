@@ -278,8 +278,7 @@
               "xtreme_minimum_burn_time": "Minimale brandtijd per PWM-blok",
               "xtreme_minimum_duty_cycle": "Niet stoken onder deze duty cycle",
               "xtreme_hot_water_switch": "Schakelaar voor warm water warmhouden",
-              "xtreme_maximum_setpoint_entity": "Maximum setpoint als entiteit",
-              "xtreme_pwm_hysteresis": "PWM-hysterese"
+              "xtreme_maximum_setpoint_entity": "Maximum setpoint als entiteit"
             },
             "data_description": {
               "xtreme_boiler_preset": "Vult het vermogen en de anti-pendeltijd in van een bekende ketel. Zet nooit een optie aan of uit. Wijzig je zelf een van deze waarden, dan gaat de preset terug naar Aangepast.",
@@ -292,8 +291,7 @@
               "xtreme_minimum_burn_time": "De kortste brand van een PWM-blok. Langer branden betekent minder starts en langere pauzes. Standaard 6 minuten.",
               "xtreme_minimum_duty_cycle": "Heeft het huis minder warmte nodig dan dit deel van de tijd, dan stookt SAT helemaal niet tot de vraag stijgt. Standaard 7,5 %.",
               "xtreme_hot_water_switch": "Voegt de schakelaar 'Xtreme fork: Hot Water Keep Warm' toe. Aan: normaal bedrijf (HW=A): de warmwater-bit volgt de thermostaat op de bus. Uit (HW=0): de warmwater-bit gaat uit, zodat een ketel die deze bit volgt stopt met warmhouden: minder korte branderstarts, maar warm water komt later uit de kraan. Of de ketel de bit volgt, hangt af van de ketel: bij Intergas alleen als het tapcomfort op Eco staat en parameter P074 (aantal Eco-dagen) op 0; met On of een zelflerend Eco heeft de schakelaar geen effect. Gebruik hem met de hand of in een automatisering, bijvoorbeeld 's nachts uit. De gateway onthoudt de laatste stand, ook als Home Assistant uitvalt. Test eerst of er met de schakelaar uit nog warm water uit de kraan komt: sommige ketels blokkeren warm water dan helemaal. Zet je deze optie uit, dan krijgt de ketel het warmhouden terug. Alleen voor de OpenTherm Gateway via MQTT.",
-              "xtreme_maximum_setpoint_entity": "Voegt de number-entiteit \"Maximum Setpoint\" toe, zodat je het maximum setpoint vanuit een dashboard of automatisering kunt aanpassen. Een wijziging wordt opgeslagen als de optie Maximum Setpoint en direct gebruikt. Hij is in te stellen tussen de OPV die SAT gebruikt (minstens 30 °C) en 75 °C bij radiatoren, 50 °C bij vloerverwarming of 55 °C bij een warmtepomp, en nooit boven de grens die de ketel meldt. Tijdens de calibratie kan hij niet worden gewijzigd.",
-              "xtreme_pwm_hysteresis": "Zolang PWM loopt, gaat het pas uit als het gevraagde setpoint zoveel boven het minimale setpoint (de OPV) ligt, zodat één sensorstap PWM niet aan en uit zet. 0 zet het uit. 2 °C is een goed begin met automatische gains."
+              "xtreme_maximum_setpoint_entity": "Voegt de number-entiteit \"Maximum Setpoint\" toe, zodat je het maximum setpoint vanuit een dashboard of automatisering kunt aanpassen. Een wijziging wordt opgeslagen als de optie Maximum Setpoint en direct gebruikt. Hij is in te stellen tussen de OPV die SAT gebruikt (minstens 30 °C) en 75 °C bij radiatoren, 50 °C bij vloerverwarming of 55 °C bij een warmtepomp, en nooit boven de grens die de ketel meldt. Tijdens de calibratie kan hij niet worden gewijzigd."
             }
           },
           "learning": {
@@ -321,15 +319,15 @@
               "xtreme_stale_sensors": "Verouderde sensoren afhandelen",
               "xtreme_inside_max_age": "Maximale leeftijd van de binnentemperatuur",
               "xtreme_backup_inside_sensor": "Reservesensor binnen",
-              "xtreme_outside_max_age": "Maximale leeftijd van de buitentemperatuur",
-              "xtreme_stale_action": "Zonder binnensensor"
+              "xtreme_stale_action": "Zonder binnensensor",
+              "xtreme_outside_max_age": "Maximale leeftijd van de buitentemperatuur"
             },
             "data_description": {
               "xtreme_stale_sensors": "Vervangt de 'maximale leeftijd van de temperatuursensor' van SAT voor de binnen- en buitensensor. De leeftijd telt vanaf de laatste melding van de sensor, ook als die dezelfde waarde meldde. Zonder bruikbare binnensensor stookt SAT alleen op de stooklijn en nooit hoger dan het setpoint dat het op dat moment vroeg; een verouderde buitentemperatuur wordt vervangen door de laatst bekende waarde. Een reparatiemelding en de binaire sensor 'Stale Sensor' tonen dit, en SAT gaat vanzelf terug naar normaal.",
               "xtreme_inside_max_age": "Na zoveel minuten zonder melding telt de binnensensor als verouderd. Neem meer dan het langste meldinterval van je sensor.",
               "xtreme_backup_inside_sensor": "Optioneel. Wordt gebruikt zolang de binnensensor verouderd is en deze sensor niet.",
-              "xtreme_outside_max_age": "Na zoveel minuten zonder melding telt de buitentemperatuur als verouderd.",
-              "xtreme_stale_action": "Wat SAT doet als geen binnensensor bruikbaar is. 'Alleen op de stooklijn stoken' blijft op de stooklijn stoken, nooit hoger dan het setpoint van dat moment. 'Na 10 minuten overdragen aan de thermostaat' doet eerst hetzelfde en geeft de ketel daarna aan de thermostaat op de bus (CS=0 en MM=T, en TC=0 als het setpoint naar de thermostaat wordt gestuurd) tot een binnensensor weer meldt; alleen voor de OpenTherm Gateway via MQTT, andere gateways blijven op de stooklijn."
+              "xtreme_stale_action": "Wat SAT doet als geen binnensensor bruikbaar is. 'Alleen op de stooklijn stoken' blijft op de stooklijn stoken, nooit hoger dan het setpoint van dat moment. 'Na 10 minuten overdragen aan de thermostaat' doet eerst hetzelfde en geeft de ketel daarna aan de thermostaat op de bus (CS=0 en MM=T, en TC=0 als het setpoint naar de thermostaat wordt gestuurd) tot een binnensensor weer meldt; alleen voor de OpenTherm Gateway via MQTT, andere gateways blijven op de stooklijn.",
+              "xtreme_outside_max_age": "Na zoveel minuten zonder melding telt de buitentemperatuur als verouderd."
             }
           },
           "diagnostics": {
@@ -348,16 +346,18 @@
       },
       "pid_settings": {
         "title": "PID-instellingen (fork)",
-        "description": "Deze pagina hoort bij SAT-xtreme, een onofficiële fork van SAT, niet bij de officiële SAT. SAT berekent de watertemperatuur als: stooklijn + bijsturing (PID). Hier kies je hoe sterk die bijsturing is.",
+        "description": "Deze pagina hoort bij SAT-xtreme, een onofficiële fork van SAT, niet bij de officiële SAT. SAT berekent de watertemperatuur als: stooklijn + bijsturing (PID). Hier kies je hoe sterk die bijsturing is. De PWM-hysterese bepaalt wanneer een lopende PWM weer uitgaat.",
         "data": {
           "automatic_gains": "Automatische versterking",
           "xtreme_pid_gain_factor": "Dempingsfactor",
-          "xtreme_maximum_setpoint_rise": "Maximale stijging boven de stooklijn"
+          "xtreme_maximum_setpoint_rise": "Maximale stijging boven de stooklijn",
+          "xtreme_pwm_hysteresis": "PWM-hysterese"
         },
         "data_description": {
           "automatic_gains": "SAT berekent de sterkte van de bijsturing uit de stooklijn. Zet uit om kP, kI en kD zelf in te vullen op de volgende pagina; die is vooraf ingevuld met de waarden die SAT nu gebruikt.",
           "xtreme_pid_gain_factor": "Maakt de automatische bijsturing rustiger (onder 1,0) of feller (boven 1,0). Bijvoorbeeld 0,5: een kamer die 1 °C te koud is, maakt het water ongeveer half zo veel extra warm. 1,0 = ongewijzigd. Niet gebruikt bij handmatige waarden.",
-          "xtreme_maximum_setpoint_rise": "Het water wordt nooit meer dan dit warmer dan de stooklijn. 0 = geen grens. Let op: dit vertraagt ook het opwarmen in de ochtend."
+          "xtreme_maximum_setpoint_rise": "Het water wordt nooit meer dan dit warmer dan de stooklijn. 0 = geen grens. Let op: dit vertraagt ook het opwarmen in de ochtend.",
+          "xtreme_pwm_hysteresis": "Zolang PWM loopt, gaat het pas uit als het gevraagde setpoint zoveel boven het minimale setpoint (de OPV) ligt, zodat één sensorstap PWM niet aan en uit zet. 0 zet het uit. 2 °C is een goed begin met automatische gains."
         }
       },
       "manual_gains": {

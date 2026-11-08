@@ -1255,3 +1255,14 @@ starting point.
 `custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_handover_extended.py` (new),
 `tests/xtreme_helpers.py`, `docs/handover.md`, `docs/stale-sensors.md`, `docs/settings-xtreme-profile.md`,
 `docs/gateways.md`, `docs/troubleshooting.md`.
+
+## Unreleased: options on a more logical place
+
+- **PWM hysteresis** moved from *Xtreme profile (fork) → Boiler* to the page *PID settings (fork)*. It is a setting
+  of the control, not of the boiler, and its value follows from the gains on that page. The option is stored flat,
+  so a value set in version 39 stays as it is.
+- **Without an inside sensor** now sits right after *Backup inside sensor* in *Xtreme profile (fork) → Sensors*.
+
+**Files.** `custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/translations/en.json`,
+`custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_pwm_hysteresis.py`, `docs/settings-pid.md`,
+`docs/settings-xtreme-profile.md`, `docs/stale-sensors.md`, `docs/overshoot-protection.md`.
