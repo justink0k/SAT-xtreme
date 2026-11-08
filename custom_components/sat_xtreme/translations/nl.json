@@ -261,7 +261,7 @@
             },
             "data_description": {
               "xtreme_prime_setpoint": "Tussen PWM-blokken verlaagt SAT het setpoint normaal naar 10 °C. Met een thermostaat op de bus komt het nieuwe setpoint dan laat bij de ketel aan (bij een Nest tot 2,5 minuut), zodat elk blok brandtijd verliest. Met deze optie blijft het setpoint op de overshoot-beveiligingswaarde staan en gaat alleen de warmtevraag uit, zodat de ketel binnen enkele seconden start.",
-              "xtreme_handover_on_off": "Zet je de SAT-thermostaat uit, dan geeft de gateway de regeling direct terug aan de thermostaat op de bus (CS=0), in plaats van na ongeveer een minuut. Stopt Home Assistant, dan doet de gateway dit nog steeds na ongeveer een minuut. Alleen voor de OpenTherm Gateway via MQTT."
+              "xtreme_handover_on_off": "Zet je de SAT-thermostaat uit, dan geeft de gateway de regeling direct terug aan de thermostaat op de bus (CS=0, en TC=0 als het setpoint naar de thermostaat wordt gestuurd), in plaats van na ongeveer een minuut. Dat gebeurt ook als SAT uitgeschakeld start, als Home Assistant netjes stopt of herstart, en als SAT wordt ontladen of herladen. Na een crash of stroomuitval doet de gateway dit nog steeds zelf na ongeveer een minuut. Alleen voor de OpenTherm Gateway via MQTT."
             }
           },
           "boiler": {
@@ -319,13 +319,15 @@
               "xtreme_stale_sensors": "Verouderde sensoren afhandelen",
               "xtreme_inside_max_age": "Maximale leeftijd van de binnentemperatuur",
               "xtreme_backup_inside_sensor": "Reservesensor binnen",
-              "xtreme_outside_max_age": "Maximale leeftijd van de buitentemperatuur"
+              "xtreme_outside_max_age": "Maximale leeftijd van de buitentemperatuur",
+              "xtreme_stale_action": "Zonder binnensensor"
             },
             "data_description": {
               "xtreme_stale_sensors": "Vervangt de 'maximale leeftijd van de temperatuursensor' van SAT voor de binnen- en buitensensor. De leeftijd telt vanaf de laatste melding van de sensor, ook als die dezelfde waarde meldde. Zonder bruikbare binnensensor stookt SAT alleen op de stooklijn en nooit hoger dan het setpoint dat het op dat moment vroeg; een verouderde buitentemperatuur wordt vervangen door de laatst bekende waarde. Een reparatiemelding en de binaire sensor 'Stale Sensor' tonen dit, en SAT gaat vanzelf terug naar normaal.",
               "xtreme_inside_max_age": "Na zoveel minuten zonder melding telt de binnensensor als verouderd. Neem meer dan het langste meldinterval van je sensor.",
               "xtreme_backup_inside_sensor": "Optioneel. Wordt gebruikt zolang de binnensensor verouderd is en deze sensor niet.",
-              "xtreme_outside_max_age": "Na zoveel minuten zonder melding telt de buitentemperatuur als verouderd."
+              "xtreme_outside_max_age": "Na zoveel minuten zonder melding telt de buitentemperatuur als verouderd.",
+              "xtreme_stale_action": "Wat SAT doet als geen binnensensor bruikbaar is. 'Alleen op de stooklijn stoken' blijft op de stooklijn stoken, nooit hoger dan het setpoint van dat moment. 'Na 10 minuten overdragen aan de thermostaat' doet eerst hetzelfde en geeft de ketel daarna aan de thermostaat op de bus (CS=0, en TC=0 als het setpoint naar de thermostaat wordt gestuurd) tot een binnensensor weer meldt; alleen voor de OpenTherm Gateway via MQTT, andere gateways blijven op de stooklijn."
             }
           },
           "diagnostics": {
@@ -384,6 +386,12 @@
       "options": {
         "custom": "Aangepast",
         "intergas_xtreme_30_2024": "Intergas Xtreme 30 (2024)"
+      }
+    },
+    "xtreme_stale_action": {
+      "options": {
+        "heating_curve": "Alleen op de stooklijn stoken",
+        "hand_over": "Na 10 minuten overdragen aan de thermostaat"
       }
     }
   },

@@ -272,7 +272,7 @@
             },
             "data_description": {
               "xtreme_prime_setpoint": "Between PWM blocks SAT normally lowers the setpoint to 10 °C. With a thermostat on the bus the new setpoint then reaches the boiler late (with a Nest up to 2.5 minutes), so every block loses burn time. With this on, the setpoint stays at the overshoot protection value and only the heating demand is turned off, so the boiler starts within seconds.",
-              "xtreme_handover_on_off": "When you turn the SAT thermostat off, the gateway hands control back to the thermostat on the bus right away (CS=0), instead of after about a minute. If Home Assistant stops, the gateway still does this after about a minute. Only for the OpenTherm Gateway over MQTT."
+              "xtreme_handover_on_off": "When you turn the SAT thermostat off, the gateway hands control back to the thermostat on the bus right away (CS=0, and TC=0 when the setpoint is pushed to the thermostat), instead of after about a minute. This also happens when SAT starts turned off, when Home Assistant stops or restarts cleanly, and when SAT is unloaded or reloaded. After a crash or power cut the gateway still does this by itself after about a minute. Only for the OpenTherm Gateway over MQTT."
             }
           },
           "boiler": {
@@ -330,13 +330,15 @@
               "xtreme_stale_sensors": "Handle stale sensors",
               "xtreme_inside_max_age": "Maximum age of the inside temperature",
               "xtreme_backup_inside_sensor": "Backup inside sensor",
-              "xtreme_outside_max_age": "Maximum age of the outside temperature"
+              "xtreme_outside_max_age": "Maximum age of the outside temperature",
+              "xtreme_stale_action": "Without an inside sensor"
             },
             "data_description": {
               "xtreme_stale_sensors": "Replaces the 'Temperature Sensor maximum value age' of SAT for the inside and outside sensor. The age counts from the last report of the sensor, also when it reported the same value. Without a usable inside sensor, SAT heats on the heating curve only and never above the setpoint it requested at that moment; a stale outside temperature is replaced by the last known value. A repair and the binary sensor 'Stale Sensor' show it, and SAT returns to normal by itself.",
               "xtreme_inside_max_age": "After this many minutes without a report, the inside sensor counts as stale. Take more than the longest report interval of your sensor.",
               "xtreme_backup_inside_sensor": "Optional. Used while the inside sensor is stale and this sensor is not.",
-              "xtreme_outside_max_age": "After this many minutes without a report, the outside temperature counts as stale."
+              "xtreme_outside_max_age": "After this many minutes without a report, the outside temperature counts as stale.",
+              "xtreme_stale_action": "What SAT does when no inside sensor is usable. 'Heat on the heating curve only' keeps heating on the heating curve, never above the setpoint from that moment. 'Hand over to the thermostat after 10 minutes' does that first, and then gives the boiler to the thermostat on the bus (CS=0, and TC=0 when the setpoint is pushed to the thermostat) until an inside sensor reports again; only for the OpenTherm Gateway over MQTT, other gateways keep the heating curve."
             }
           },
           "diagnostics": {
@@ -437,6 +439,12 @@
       "options": {
         "custom": "Custom",
         "intergas_xtreme_30_2024": "Intergas Xtreme 30 (2024)"
+      }
+    },
+    "xtreme_stale_action": {
+      "options": {
+        "heating_curve": "Heat on the heating curve only",
+        "hand_over": "Hand over to the thermostat after 10 minutes"
       }
     }
   },

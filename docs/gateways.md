@@ -33,7 +33,7 @@ In the wizard choose *MQTT Gateway → OpenTherm*, then fill in:
 
 - **Name**: the name of this SAT.
 - **MQTT topic**: the *MQTT top topic* from the settings of the OTGW firmware (`OTGW` by default).
-- **Device ID**: the device identifier of the gateway, for example `otgw-AC276ECBE4E8`.
+- **Device ID**: the device identifier of the gateway, for example `otgw-0123456789AB`.
 
 SAT sends the gateway commands such as `CS=` (control setpoint), `CH=` (heating on or off), `MM=` (maximum
 modulation) and `SW=` (hot water setpoint).

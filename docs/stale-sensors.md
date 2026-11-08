@@ -36,6 +36,20 @@ With the option on, SAT-xtreme replaces that check for the inside and outside se
 
 After a restart without a usable inside sensor, the setpoint that SAT requests at start-up is the limit.
 
+### Without an inside sensor
+
+The option *Without an inside sensor* chooses what the safe mode does:
+
+- **Heat on the heating curve only** (default): as described above, for as long as no inside sensor is usable.
+- **Hand over to the thermostat after 10 minutes**: the first 10 minutes as above. Then SAT gives the boiler to
+  the thermostat on the bus: it sends `CS=0`, and `TC=0` when *Push setpoint to thermostat* is on, and sends
+  nothing more. As soon as an inside sensor reports again, SAT takes the boiler back (and pushes the target
+  temperature to the thermostat again). Only for the OpenTherm Gateway over MQTT; with other gateways SAT keeps
+  heating on the heating curve. The attribute `handed_over` of the binary sensor shows it.
+
+Choose the hand-over when your thermostat on the bus has its own room sensor and can heat the house well by
+itself.
+
 ### Outside temperature
 
 When the outside temperature is older than *Maximum age of the outside temperature* (default 3 hours), SAT
@@ -50,12 +64,13 @@ its last setpoint, as SAT 4.2.1 does.
 | Maximum age of the inside temperature | 90 min | 10 – 1440 min | Take more than the longest report interval of your sensor (often 1 hour for Zigbee sensors). |
 | Backup inside sensor | none | | A second temperature sensor in the same room or a room nearby. |
 | Maximum age of the outside temperature | 180 min | 30 – 2880 min | A weather entity is usually updated every hour. |
+| Without an inside sensor | Heat on the heating curve only | | Or *Hand over to the thermostat after 10 minutes*. |
 
 ## What you see
 
 - The binary sensor *Xtreme fork: Stale Sensor* is on while a sensor is stale. Its attributes show the age of
   every sensor in seconds (`inside_age`, `backup_age`, `outside_age`), the inside sensor in use
-  (`inside_source`: `main`, `backup` or empty), `safe_mode` with its `setpoint_cap`, and `outside_stale` with
+  (`inside_source`: `main`, `backup` or empty), `safe_mode` with its `setpoint_cap`, `handed_over`, and `outside_stale` with
   `outside_last_known`.
 - A [repair](repairs.md) appears while the inside or outside sensor is stale and disappears by itself.
 - The log has a warning when SAT switches to the backup sensor or the safe mode.

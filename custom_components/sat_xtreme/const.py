@@ -112,11 +112,16 @@ CONF_XTREME_STALE_SENSORS = "xtreme_stale_sensors"
 CONF_XTREME_INSIDE_MAX_AGE = "xtreme_inside_max_age"
 CONF_XTREME_BACKUP_INSIDE_SENSOR = "xtreme_backup_inside_sensor"
 CONF_XTREME_OUTSIDE_MAX_AGE = "xtreme_outside_max_age"
+CONF_XTREME_STALE_ACTION = "xtreme_stale_action"
 CONF_XTREME_OPV_MINIMUM = "xtreme_opv_minimum"
 CONF_XTREME_OPV_SEARCH = "xtreme_opv_search"
 CONF_XTREME_OPV_SEARCH_GAS_SENSOR = "xtreme_opv_search_gas_sensor"
 
 BOILER_PRESET_CUSTOM = "custom"
+
+# Xtreme fork: what SAT does without a usable inside sensor
+STALE_ACTION_HEATING_CURVE = "heating_curve"
+STALE_ACTION_HAND_OVER = "hand_over"
 
 SERVICE_START_XTREME_CALIBRATION = "start_xtreme_calibration"
 SERVICE_STOP_XTREME_CALIBRATION = "stop_xtreme_calibration"
@@ -210,6 +215,7 @@ OPTIONS_DEFAULTS = {
     CONF_XTREME_INSIDE_MAX_AGE: 90,
     CONF_XTREME_BACKUP_INSIDE_SENSOR: None,
     CONF_XTREME_OUTSIDE_MAX_AGE: 180,
+    CONF_XTREME_STALE_ACTION: "heating_curve",
     CONF_XTREME_OPV_MINIMUM: 40,
     CONF_XTREME_OPV_SEARCH: False,
     CONF_XTREME_OPV_SEARCH_GAS_SENSOR: None,

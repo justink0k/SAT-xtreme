@@ -217,6 +217,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             outside_sensors=list(self.outside_sensor_entities or []),
             inside_max_age_minutes=profile.inside_max_age,
             outside_max_age_minutes=profile.outside_max_age,
+            hand_over=profile.stale_action == STALE_ACTION_HAND_OVER,
         )
 
         # Xtreme profile: the calibration of the OPV
@@ -274,6 +275,11 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         # Let the coordinator know we are ready
         await self._coordinator.async_added_to_hass()
+
+        # Xtreme profile: with the hand-over option, the thermostat gets the boiler back when Home Assistant stops
+        if self._coordinator.xtreme_profile.handover_on_off:
+            self.async_on_remove(self.hass.async_add_shutdown_job(HassJob(self._async_handover_on_shutdown)))
+            await self._async_handover_on_startup()
 
     async def _register_event_listeners(self, _time: Optional[datetime] = None):
         """Register event listeners."""
@@ -1078,8 +1084,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self.pid.reset()
             self.areas.pids.reset()
 
-        # If the current, target or outside temperature is not available, do nothing
-        if self.current_temperature is None or self.target_temperature is None or self.current_outside_temperature is None:
+        # If the current, target or outside temperature is not available, do nothing. Xtreme profile: in the safe mode
+        # of stale sensors there is no inside temperature on purpose, and SAT heats on the heating curve only
+        if (self.current_temperature is None and not self.stale_sensors.safe_mode) or self.target_temperature is None or self.current_outside_temperature is None:
             return
 
         # No need to do anything if we are not on
@@ -1090,6 +1097,10 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # the learning and the cycle tracking until it is back (idea from bellini666/SAT)
         if not self._coordinator.online:
             _LOGGER.debug("The gateway is offline, skipping the control loop.")
+            return
+
+        # Xtreme profile: the thermostat on the bus has the boiler while no inside sensor is usable
+        if await self._async_control_stale_hand_over():
             return
 
         # Control the heating through the coordinator
@@ -1156,9 +1167,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         await self._async_control_relative_modulation()
 
         # Apply an error change that arrived inside the sample time (fix from bellini666/SAT), then control the
-        # integral (if exceeded the time limit)
-        if self.heating_curve.value is not None:
-            if self._coordinator.boiler_temperature_filtered is not None and not self.stale_sensors.safe_mode:
+        # integral (if exceeded the time limit). Xtreme profile: in the safe mode the PID controller is left as it is.
+        if self.heating_curve.value is not None and not self.stale_sensors.safe_mode:
+            if self._coordinator.boiler_temperature_filtered is not None:
                 self.areas.pids.update(self._coordinator.boiler_temperature_filtered)
                 self.pid.update(self.max_error, self.heating_curve.value, self._coordinator.boiler_temperature_filtered)
 
@@ -1202,17 +1213,71 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
                 preset.name, preset.manufacturer, manufacturer.friendly_name
             )
 
-    async def _async_handover_to_thermostat(self) -> None:
-        """Xtreme profile: release the control setpoint, so the thermostat on the bus takes over right away."""
+    async def _async_handover_to_thermostat(self, reason: str = "SAT turned off") -> None:
+        """Xtreme profile: with the hand-over option, give the boiler back to the thermostat on the bus right away."""
         if not self._coordinator.xtreme_profile.handover_on_off:
             return
 
+        await self._async_release_to_thermostat(reason)
+
+    async def _async_release_to_thermostat(self, reason: str) -> bool:
+        """Xtreme profile: release the control setpoint (CS=0), and the thermostat setpoint SAT pushed (TC=0)."""
         if not self._coordinator.supports_setpoint_release:
             _LOGGER.debug("Xtreme profile: handing over is only supported by the OpenTherm Gateway, skipped.")
+            return False
+
+        _LOGGER.info("Xtreme profile: %s, releasing the control setpoint (CS=0) so the thermostat takes over.", reason)
+        await self._coordinator.async_release_control_setpoint()
+
+        # A pushed thermostat setpoint has no expiry on the gateway, and one sent before a restart is not tracked
+        if self._push_setpoint_to_thermostat:
+            await self._coordinator.async_set_control_thermostat_setpoint(0)
+
+        return True
+
+    async def _async_take_back_from_thermostat(self) -> None:
+        """Xtreme profile: push the target temperature to the thermostat again after a hand-over released it."""
+        if self._push_setpoint_to_thermostat and self._coordinator.supports_setpoint_release and self.target_temperature is not None:
+            await self._coordinator.async_set_control_thermostat_setpoint(self.target_temperature)
+
+    async def _async_handover_on_startup(self) -> None:
+        """Xtreme profile: starting in off keeps the boiler with the thermostat; starting in heat pushes a released thermostat setpoint again."""
+        if not self._coordinator.xtreme_profile.handover_on_off:
             return
 
-        _LOGGER.info("Xtreme profile: SAT turned off, releasing the control setpoint (CS=0) so the thermostat takes over.")
-        await self._coordinator.async_release_control_setpoint()
+        if self.hvac_mode == HVACMode.OFF:
+            await self._async_handover_to_thermostat("SAT starts turned off")
+        elif self.hvac_mode == HVACMode.HEAT:
+            await self._async_take_back_from_thermostat()
+
+    async def _async_handover_on_shutdown(self) -> None:
+        """Xtreme profile: Home Assistant stops; MQTT still works in this first stage of the shutdown."""
+        await self._async_handover_to_thermostat("Home Assistant stops")
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Xtreme profile: the integration is unloaded (also on a reload), so nothing controls the boiler anymore."""
+        await self._async_handover_to_thermostat("SAT is unloaded")
+        await super().async_will_remove_from_hass()
+
+    async def _async_control_stale_hand_over(self) -> bool:
+        """Xtreme profile: with the hand-over choice, hand the boiler over after a while without an inside sensor.
+
+        Returns True while the thermostat has the boiler, so the control loop sends nothing.
+        """
+        if self.stale_sensors.hand_over_due:
+            if not self.stale_sensors.handed_over and await self._async_release_to_thermostat("no usable inside sensor for 10 minutes"):
+                self.stale_sensors.handed_over = True
+                self.async_write_ha_state()
+
+            return self.stale_sensors.handed_over
+
+        if self.stale_sensors.handed_over:
+            _LOGGER.info("Xtreme profile: the inside sensor reports again, SAT takes the boiler back from the thermostat.")
+            self.stale_sensors.handed_over = False
+            await self._async_take_back_from_thermostat()
+            self.async_write_ha_state()
+
+        return False
 
     def _desired_heater_state(self) -> DeviceState:
         """Determine the heater state for the current setpoint and PWM state."""

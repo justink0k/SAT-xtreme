@@ -31,6 +31,9 @@ SOURCE_BACKUP = "backup"
 ISSUE_INSIDE = "stale_inside_sensor"
 ISSUE_OUTSIDE = "stale_outside_sensor"
 
+# With the hand-over choice: how long the safe mode lasts before the thermostat on the bus takes over
+HAND_OVER_DELAY = 600
+
 
 def _now() -> datetime:
     return dt_util.utcnow()
@@ -60,7 +63,8 @@ class StaleSensorGuard:
     """Decides which inside and outside temperature SAT may use."""
 
     def __init__(self, entry_id: str, name: str, enabled: bool, inside_sensor: str, backup_sensor: Optional[str],
-                 outside_sensors: list[str], inside_max_age_minutes: float, outside_max_age_minutes: float) -> None:
+                 outside_sensors: list[str], inside_max_age_minutes: float, outside_max_age_minutes: float,
+                 hand_over: bool = False) -> None:
         self._entry_id = entry_id
         self._name = name
         self.enabled = enabled
@@ -79,6 +83,11 @@ class StaleSensorGuard:
         self._last_outside: Optional[float] = None
         self._setpoint_cap: Optional[float] = None
 
+        # The hand-over choice: after HAND_OVER_DELAY seconds in the safe mode, the thermostat on the bus takes over
+        self.hand_over = hand_over
+        self.handed_over: bool = False
+        self._safe_mode_since: Optional[datetime] = None
+
     @property
     def backup_sensor(self) -> Optional[str]:
         return self._backup_sensor
@@ -92,6 +101,14 @@ class StaleSensorGuard:
     def safe_mode(self) -> bool:
         """No usable inside sensor: heat on the heating curve only, capped at the setpoint from that moment."""
         return self.enabled and self._inside_source is None
+
+    @property
+    def hand_over_due(self) -> bool:
+        """With the hand-over choice: whether the safe mode has lasted long enough to hand the boiler over."""
+        if not self.hand_over or not self.safe_mode or self._safe_mode_since is None:
+            return False
+
+        return (_now() - self._safe_mode_since).total_seconds() >= HAND_OVER_DELAY
 
     @property
     def setpoint_cap(self) -> Optional[float]:
@@ -185,9 +202,11 @@ class StaleSensorGuard:
             return False
 
         if source is None and self._inside_source is not None:
+            self._safe_mode_since = _now()
             self._setpoint_cap = requested_setpoint()
             _LOGGER.warning("SAT-xtreme: no usable inside temperature sensor, heating on the heating curve only (at most %.1f°C).", self._setpoint_cap)
         elif source is not None and self._inside_source is None:
+            self._safe_mode_since = None
             _LOGGER.info("SAT-xtreme: the %s inside sensor reports again, back to normal control.", source)
         elif source == SOURCE_BACKUP:
             _LOGGER.warning("SAT-xtreme: the inside sensor %s is stale, using the backup sensor %s.", self._inside_sensor, self._backup_sensor)
@@ -239,6 +258,7 @@ class StaleSensorGuard:
             "inside_source": self._inside_source,
             "safe_mode": self.safe_mode,
             "setpoint_cap": self.setpoint_cap,
+            "handed_over": self.handed_over,
             "outside_stale": self.outside_stale,
             "outside_last_known": self._last_outside,
         }

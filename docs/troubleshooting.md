@@ -99,6 +99,9 @@ These fixes apply to everyone, without an option:
   on the thermostat until SAT happened to send each command again, and a maximum setpoint or keep-warm setting
   stayed lost. SAT now sends them again right away, and pauses its control while the gateway is offline.
 
+- **The safe mode of *Handle stale sensors* sent nothing.** Without a usable inside sensor the control loop
+  stopped at the missing temperature, so SAT did not heat on the heating curve as described. It now does.
+
 The fixes for the PID controller, the heating curve and the gateway restart come from the fork
 [bellini666/SAT](https://github.com/bellini666/SAT).
 

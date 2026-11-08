@@ -1185,3 +1185,29 @@ is written for SAT-xtreme.
 **Files.** `custom_components/sat_xtreme/mqtt/opentherm.py`, `custom_components/sat_xtreme/coordinator.py`,
 `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/binary_sensor.py`,
 `tests/test_xtreme_gateway_online.py` (new), `docs/gateways.md`, `docs/entities.md`, `docs/troubleshooting.md`.
+
+## Unreleased: more hand-overs to the thermostat, and a hand-over without an inside sensor
+
+The ideas come from the fork [bellini666/SAT](https://github.com/bellini666/SAT) (GPL-3.0, commits 35d874e, af6c774,
+62d67fd, 8b87209, e7023c0); the code is written for SAT-xtreme.
+
+- **Hand over to the thermostat when SAT is turned off** (existing option, still off by default) now also hands
+  over when Home Assistant stops (in the first stage of the shutdown, while MQTT still works), when SAT is unloaded
+  or reloaded, and when SAT starts turned off. With *Push setpoint to thermostat* on, the hand-over also sends
+  `TC=0`, and starting in *Heat* pushes the target temperature again.
+- **New choice in *Handle stale sensors*: *Without an inside sensor*.** *Heat on the heating curve only* stays the
+  default. *Hand over to the thermostat after 10 minutes* gives the boiler to the thermostat on the bus (`CS=0`,
+  and `TC=0` with a pushed setpoint) after 10 minutes without a usable inside sensor, and takes it back when a
+  sensor reports again. OpenTherm Gateway over MQTT only; other gateways keep the heating curve. New attribute
+  `handed_over` on *Xtreme fork: Stale Sensor*.
+- **Fix: the safe mode of *Handle stale sensors* really heats on the heating curve.** Without a usable inside
+  sensor the control loop stopped at the missing temperature, so SAT sent no setpoint at all (since
+  4.2.1-xtreme.33). The PID controller is now also left fully as it is in the safe mode.
+- The example device ID in the manual is now a neutral one.
+
+**Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/stale.py`,
+`custom_components/sat_xtreme/xtreme/profile.py`, `custom_components/sat_xtreme/const.py`,
+`custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/translations/en.json`,
+`custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_handover_extended.py` (new),
+`tests/xtreme_helpers.py`, `docs/handover.md`, `docs/stale-sensors.md`, `docs/settings-xtreme-profile.md`,
+`docs/gateways.md`, `docs/troubleshooting.md`.

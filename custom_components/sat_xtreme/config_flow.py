@@ -890,6 +890,9 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
             vol.Required(CONF_XTREME_OUTSIDE_MAX_AGE, default=options[CONF_XTREME_OUTSIDE_MAX_AGE]): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=30, max=2880, step=10, unit_of_measurement="min")
             ),
+            vol.Required(CONF_XTREME_STALE_ACTION, default=options[CONF_XTREME_STALE_ACTION]): selector.SelectSelector(
+                selector.SelectSelectorConfig(options=[STALE_ACTION_HEATING_CURVE, STALE_ACTION_HAND_OVER], translation_key="xtreme_stale_action")
+            ),
         })
 
         diagnostics = vol.Schema({

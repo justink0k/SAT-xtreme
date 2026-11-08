@@ -26,6 +26,8 @@ from ..const import (
     CONF_XTREME_MAXIMUM_SETPOINT_RISE,
     CONF_XTREME_BOILER_PRESET,
     CONF_XTREME_HANDOVER_ON_OFF,
+    CONF_XTREME_STALE_ACTION,
+    STALE_ACTION_HEATING_CURVE,
     CONF_XTREME_HOT_WATER_SWITCH,
     CONF_XTREME_SETPOINT_CHAIN,
     CONF_XTREME_CYCLE_TRACKING,
@@ -182,6 +184,10 @@ class XtremeProfile:
     backup_inside_sensor: Optional[str] = None
     outside_max_age: float = 180
 
+    # Without a usable inside sensor: keep heating on the heating curve only, or hand the boiler over to the
+    # thermostat on the bus after a while (OpenTherm Gateway over MQTT only)
+    stale_action: str = STALE_ACTION_HEATING_CURVE
+
     @property
     def anti_cycling_wait(self) -> int:
         """Seconds to wait after the last flame before a new on phase may start."""
@@ -224,6 +230,7 @@ class XtremeProfile:
             inside_max_age=float(values.get(CONF_XTREME_INSIDE_MAX_AGE)),
             backup_inside_sensor=values.get(CONF_XTREME_BACKUP_INSIDE_SENSOR) or None,
             outside_max_age=float(values.get(CONF_XTREME_OUTSIDE_MAX_AGE)),
+            stale_action=str(values.get(CONF_XTREME_STALE_ACTION)),
         )
 
         if profile.enabled:
@@ -248,6 +255,7 @@ class XtremeProfile:
             ("cycle_tracking", self.cycle_tracking),
             ("maximum_setpoint_entity", self.maximum_setpoint_entity),
             ("stale_sensors", self.stale_sensors),
+            (f"stale_action ({self.stale_action})", self.stale_sensors and self.stale_action != STALE_ACTION_HEATING_CURVE),
             ("opv_search", self.opv_search),
         )
 

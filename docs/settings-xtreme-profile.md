@@ -63,6 +63,7 @@ What SAT does when the inside or outside temperature is no longer updated.
 | Maximum age of the inside temperature | 90 min | 10 – 1440 min | |
 | Backup inside sensor | none | | Optional |
 | Maximum age of the outside temperature | 180 min | 30 – 2880 min | |
+| Without an inside sensor | Heat on the heating curve only | | Or *Hand over to the thermostat after 10 minutes*; see [Stale sensors](stale-sensors.md#without-an-inside-sensor) |
 
 ## Diagnostics
 
