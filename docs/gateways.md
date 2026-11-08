@@ -46,8 +46,10 @@ gateway restarts, it forgets every command; SAT then sends the last value of eac
 ### Gateway mode and a thermostat on the bus
 
 The OpenTherm Gateway can sit between the boiler and your existing thermostat (*gateway mode*). This is the
-safest setup: when Home Assistant stops, the gateway drops SAT's overrides after about a minute and the
-thermostat on the bus takes over again.
+safest setup: when SAT stops sending, the gateway drops the control setpoint after about a minute and the
+thermostat on the bus takes over again. This is a safety check of the
+[gateway firmware](https://otgw.tclcode.com/firmware.html): a `CS=` must be repeated at least every minute. Other
+commands have no such limit; see [what stays behind after a crash](troubleshooting.md#what-stays-behind-after-a-crash).
 
 In gateway mode the gateway only replaces the control setpoint **inside the messages of the thermostat**.
 A thermostat that sends the setpoint rarely (a Nest: about every 150 seconds) therefore delays every new

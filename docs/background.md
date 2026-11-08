@@ -58,7 +58,7 @@ the anti-cycling time of the boiler.
 | Hot water keep-warm | – (left to the boiler and the thermostat on the bus). | A switch to turn the keep-warm function off (`HW=0`) and back to normal (`HW=A`), by hand or with an automation. | keep-warm switch |
 | Insight | – | Sensors for the boiler data (flow, setpoint, modulation, burner starts, flame, hot water, heating demand), the PID correction, PWM burn time, remaining anti-cycling time, learned OPV and calibration status. | boiler data and PID: always; the rest with the matching switches |
 | Dashboard | – | The *SAT Xtreme* dashboard, created with one click from the entities that exist, with any gateway. | with one click |
-| Turning SAT off | The thermostat on the bus takes over after the gateway heartbeat expires (about a minute). | Optionally right away (`CS=0`). | handover |
+| Turning SAT off | The thermostat on the bus takes over after the gateway heartbeat expires (about a minute); the modulation limit stays on the gateway. | The modulation limit is always cleared. Optionally the thermostat takes over right away (`CS=0`). | clearing the limit: always; right away: handover |
 | Boiler presets | – | A preset list and a template to add your boiler. | preset |
 | Home Assistant 2026.12 | Uses an update listener that will stop working. | Prepared: uses `OptionsFlowWithReload`. | always |
 | Start-up | Sensors, binary sensors and buttons could be skipped (or fail with `KeyError: 'climate'`) when the climate was not ready yet. | The climate is set up first. | always |

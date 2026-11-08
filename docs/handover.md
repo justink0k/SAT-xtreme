@@ -21,12 +21,14 @@ SAT also hands over:
 When SAT starts in *Heat*, it pushes the target temperature to the thermostat again (with *Push setpoint to
 thermostat*).
 
-Without this option, the gateway keeps SAT's last setpoint until its override expires, after about a minute.
+Without this option, the gateway keeps SAT's last setpoint until its override expires, after about a minute. SAT
+clears its maximum modulation in both cases, because that override has no expiry.
 
 ## What stays the same
 
-- When Home Assistant crashes or loses power, nothing can send `CS=0`; the gateway still drops the override by
-  itself after about a minute, and the thermostat takes over. This failover always works.
+- When Home Assistant crashes or loses power, nothing can send `CS=0`; the gateway still drops the control setpoint
+  by itself after about a minute, and the thermostat takes over. A maximum modulation and a pushed thermostat setpoint
+  do stay then; see [what stays behind after a crash](troubleshooting.md#what-stays-behind-after-a-crash).
 - Hot water is not affected.
 
 ## When to use it

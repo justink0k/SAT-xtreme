@@ -76,8 +76,10 @@ async def test_stopping_home_assistant_hands_over(hass: HomeAssistant, entry: Mo
 
 
 @pytest.mark.parametrize(*parameters())
-async def test_no_shutdown_job_without_the_option(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate) -> None:
-    assert not [job for job in hass._shutdown_jobs if getattr(job.job.target, "__name__", "") == "_async_handover_on_shutdown"]
+async def test_stopping_without_the_option_does_not_release_the_setpoint(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate, release) -> None:
+    await climate._async_handover_on_shutdown()
+
+    release.assert_not_called()
 
 
 @pytest.mark.parametrize(*parameters(**HANDOVER))

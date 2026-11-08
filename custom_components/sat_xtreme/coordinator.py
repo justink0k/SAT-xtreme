@@ -550,6 +550,12 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
         """Xtreme fork: hand the control setpoint back to the thermostat on the bus."""
         _LOGGER.info("Released the control setpoint to the thermostat")
 
+    async def async_release_modulation_limit(self) -> None:
+        """Xtreme fork: clear the maximum modulation SAT set, when the gateway would otherwise keep it after SAT stops controlling."""
+
+    def forget_control_overrides(self) -> None:
+        """Xtreme fork: SAT stops controlling, so a restart of the gateway must not bring the control setpoint and heater state back."""
+
     @property
     def supports_hot_water_keep_warm_control(self) -> bool:
         """Xtreme fork: whether the device can turn the hot water enable (keep-warm) bit off and back to automatic."""

@@ -139,8 +139,7 @@ async def test_opentherm_gateway_releases_with_cs_0(hass: HomeAssistant) -> None
         await coordinator.async_release_control_setpoint()
 
     assert coordinator.supports_setpoint_release
-    # MM=T clears the maximum modulation override too (4.2.1-xtreme.39)
-    assert [call.args[0] for call in publish.call_args_list] == ["CS=0", "MM=T"]
+    publish.assert_called_once_with("CS=0")
 
 
 @pytest.mark.parametrize(*parameters())

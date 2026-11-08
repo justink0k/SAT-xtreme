@@ -1372,3 +1372,24 @@ SAT skip the step, so existing installations notice nothing.
 **Files.** `custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/xtreme/profile.py`,
 `custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
 `tests/test_xtreme_wizard_options.py` (new), `docs/setup-wizard.md`, `docs/first-steps.md`.
+
+## Unreleased: SAT clears its modulation limit when it stops controlling, and the manual on the failover
+
+Found while checking the failover in the documentation of the gateway firmware: a `CS=` of 8 or higher must be repeated
+at least every minute, but other overrides have no expiry.
+
+- **The maximum modulation is cleared when SAT stops controlling** (bug fix, without an option): when SAT is turned
+  off, when Home Assistant stops, at an unload or reload, and when SAT starts turned off. The OpenTherm Gateway over
+  MQTT gets `MM=T`, serial the same with `-`. Before, this only happened with the opt-in hand-over, and a limit of
+  `MM=0` from PWM kept limiting the thermostat. **With all fork options off this differs from the official SAT.** At a
+  reload during a PWM block, the boiler may modulate higher for a few seconds.
+- **A gateway restart sends no control setpoint while SAT is off.** The restore of the overrides (version 39) also sent
+  the last `CS=` and `CH=`, so the boiler could heat for the minute until the gateway dropped the setpoint.
+- **The manual is corrected:** only the control setpoint expires by itself. A new section describes what stays behind
+  after a crash, which SAT cannot prevent, and how to recover.
+
+**Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/coordinator.py`,
+`custom_components/sat_xtreme/mqtt/opentherm.py`, `custom_components/sat_xtreme/serial/__init__.py`,
+`tests/test_xtreme_modulation_release.py` (new), `tests/loop_harness.py`, `tests/test_xtreme_gateway_online.py`,
+`tests/test_xtreme_handover_extended.py`, `tests/test_xtreme_presets_and_handover.py`, `docs/gateways.md`,
+`docs/troubleshooting.md`, `docs/background.md`, `docs/handover.md`, `docs/modulation-limit.md`.

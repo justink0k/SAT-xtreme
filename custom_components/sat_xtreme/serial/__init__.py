@@ -205,6 +205,11 @@ class SatSerialCoordinator(SatDataUpdateCoordinator):
 
         await super().async_set_heater_state(state)
 
+    async def async_release_modulation_limit(self) -> None:
+        # The connection may already be closed at an unload; closing it clears the limit too
+        if not self._simulation and self._publish_callback is not None:
+            await self._api.set_max_relative_mod("-")
+
     async def async_set_control_max_relative_modulation(self, value: int) -> None:
         if not self._simulation:
             await self._api.set_max_relative_mod(value)

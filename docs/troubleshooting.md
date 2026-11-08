@@ -62,9 +62,23 @@ turned on. Remove personal data (addresses, names of rooms you would rather not 
 ## Is the failover still working?
 
 The thermostat on the bus is your fallback. To check it with an OpenTherm Gateway in gateway mode: stop Home
-Assistant (or the MQTT connection) for a few minutes. Within about a minute the gateway drops SAT's override
+Assistant (or the MQTT connection) for a few minutes. Within about a minute the gateway drops SAT's control setpoint
 and the thermostat controls the boiler again. With [Hand over to the thermostat](handover.md), turning SAT off
 does this right away.
+
+### What stays behind after a crash
+
+Only the control setpoint (`CS=`) expires by itself. When SAT stops normally, it also clears its maximum modulation.
+After a crash, a power cut or a lost connection it cannot do that, so until SAT runs again or the gateway restarts:
+
+- **A maximum modulation (`MM=`) stays.** During PWM this is often `MM=0`. On a boiler that follows this limit, the
+  thermostat can then only heat at minimum power, which may not be enough on a cold day. Boilers that
+  [ignore the modulation limit](modulation-limit.md) are not affected.
+- **A pushed thermostat setpoint (`TC=`) stays**, with *Push setpoint to thermostat* on: the thermostat keeps that
+  target and does not follow its program.
+
+To recover without SAT, send `MM=T` and `TC=0` to the gateway, or restart the gateway. Restarting Home Assistant is
+enough when SAT comes back: it takes control again, and clears the limit when it starts turned off.
 
 ## Bug fixes in the fork
 
@@ -113,6 +127,9 @@ These fixes apply to everyone, without an option:
   does not.
 - **Switch mode never turned the switch off.** SAT looked up the state of the switch by its registry ID, found
   nothing and always saw it off; it turned the switch on and never off again. It now reads the switch itself.
+- **SAT left its modulation limit on the gateway.** The limit has no expiry, so after turning SAT off or stopping Home
+  Assistant it kept limiting the thermostat. SAT now clears it when it stops controlling; this also applies with
+  all fork options off.
 - **Old values after a restart.** With a gateway over MQTT, SAT used the values from before the restart (flame,
   flow temperature, setpoint, modulation) as if they were live. They now count only after the first message of the
   gateway. See *Sensors are empty after a restart* above.

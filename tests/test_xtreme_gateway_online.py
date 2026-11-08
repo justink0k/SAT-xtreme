@@ -90,7 +90,7 @@ async def test_a_restart_repeats_the_release(hass: HomeAssistant, gateway) -> No
     gateway._availability_changed(_message("online"))
     await hass.async_block_till_done()
 
-    assert _sent(gateway) == ["PM=3", "PM=15", "PM=48", "MM=T", "CS=0"]
+    assert _sent(gateway) == ["PM=3", "PM=15", "PM=48", "CS=0"]
 
 
 async def test_only_what_sat_set_is_sent_again(hass: HomeAssistant, gateway) -> None:

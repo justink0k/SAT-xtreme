@@ -30,3 +30,9 @@ reported modulation at all.
   [Xtreme profile](settings-xtreme-profile.md#boiler) instead.
 
 Fill in the heating outputs of your boiler (or choose a [preset](boiler_presets.md)) before you turn this on.
+
+## A limit after a crash
+
+On a boiler that does follow the limit, SAT sets `MM=0` during PWM. The gateway keeps that limit when Home Assistant
+crashes; see [what stays behind after a crash](troubleshooting.md#what-stays-behind-after-a-crash). When SAT stops
+normally it clears the limit itself.

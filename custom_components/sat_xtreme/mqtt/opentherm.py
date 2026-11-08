@@ -277,11 +277,16 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
         # CS=0 hands the control setpoint (and the central heating enable bit) back to the thermostat
         await self._publish_override("CS", "CS=0")
 
-        # Xtreme fork: a non-numeric value clears the maximum modulation override, which has no expiry on the gateway
-        # and would otherwise keep limiting the thermostat (idea from bellini666/SAT)
+        await super().async_release_control_setpoint()
+
+    async def async_release_modulation_limit(self) -> None:
+        # A non-numeric value clears the maximum modulation override, which has no expiry on the gateway and would
+        # otherwise keep limiting the thermostat (idea from bellini666/SAT)
         await self._publish_override("MM", "MM=T")
 
-        await super().async_release_control_setpoint()
+    def forget_control_overrides(self) -> None:
+        self._overrides.pop("CS", None)
+        self._overrides.pop("CH", None)
 
     @property
     def supports_hot_water_keep_warm_control(self) -> bool:

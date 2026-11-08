@@ -276,10 +276,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Let the coordinator know we are ready
         await self._coordinator.async_added_to_hass()
 
-        # Xtreme profile: with the hand-over option, the thermostat gets the boiler back when Home Assistant stops
-        if self._coordinator.xtreme_profile.handover_on_off:
-            self.async_on_remove(self.hass.async_add_shutdown_job(HassJob(self._async_handover_on_shutdown)))
-            await self._async_handover_on_startup()
+        # Xtreme fork: nothing of SAT stays behind when Home Assistant stops or SAT starts turned off
+        self.async_on_remove(self.hass.async_add_shutdown_job(HassJob(self._async_handover_on_shutdown)))
+        await self._async_handover_on_startup()
 
     async def _register_event_listeners(self, _time: Optional[datetime] = None):
         """Register event listeners."""
@@ -1225,20 +1224,22 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             )
 
     async def _async_handover_to_thermostat(self, reason: str = "SAT turned off") -> None:
-        """Xtreme profile: with the hand-over option, give the boiler back to the thermostat on the bus right away."""
-        if not self._coordinator.xtreme_profile.handover_on_off:
+        """SAT stops controlling: never leave its modulation limit behind, and with the hand-over option give the boiler back right away."""
+        if self._coordinator.xtreme_profile.handover_on_off and await self._async_release_to_thermostat(reason):
             return
 
-        await self._async_release_to_thermostat(reason)
+        # Xtreme fork: unlike the control setpoint this limit has no expiry on the gateway, and it would limit the thermostat
+        await self._coordinator.async_release_modulation_limit()
 
     async def _async_release_to_thermostat(self, reason: str) -> bool:
-        """Xtreme profile: release the control setpoint (CS=0), and the thermostat setpoint SAT pushed (TC=0)."""
+        """Xtreme profile: release the control setpoint (CS=0), the modulation limit, and the thermostat setpoint SAT pushed (TC=0)."""
         if not self._coordinator.supports_setpoint_release:
             _LOGGER.debug("Xtreme profile: handing over is only supported by the OpenTherm Gateway, skipped.")
             return False
 
         _LOGGER.info("Xtreme profile: %s, releasing the control setpoint (CS=0) so the thermostat takes over.", reason)
         await self._coordinator.async_release_control_setpoint()
+        await self._coordinator.async_release_modulation_limit()
 
         # A pushed thermostat setpoint has no expiry on the gateway, and one sent before a restart is not tracked
         if self._push_setpoint_to_thermostat:
@@ -1253,12 +1254,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
     async def _async_handover_on_startup(self) -> None:
         """Xtreme profile: starting in off keeps the boiler with the thermostat; starting in heat pushes a released thermostat setpoint again."""
-        if not self._coordinator.xtreme_profile.handover_on_off:
-            return
-
         if self.hvac_mode == HVACMode.OFF:
             await self._async_handover_to_thermostat("SAT starts turned off")
-        elif self.hvac_mode == HVACMode.HEAT:
+        elif self.hvac_mode == HVACMode.HEAT and self._coordinator.xtreme_profile.handover_on_off:
             await self._async_take_back_from_thermostat()
 
     async def _async_handover_on_shutdown(self) -> None:
@@ -1378,6 +1376,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             await self.xtreme_calibration.async_stop("The thermostat was turned off")
             await self.async_set_heater_state(DeviceState.OFF)
             await self._async_handover_to_thermostat()
+
+            # Xtreme fork: a restart of the gateway must not bring back a control setpoint while SAT is off
+            self._coordinator.forget_control_overrides()
         else:
             # If an unsupported mode is passed, log an error message
             _LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)

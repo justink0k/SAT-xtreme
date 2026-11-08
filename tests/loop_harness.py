@@ -20,6 +20,7 @@ COMMANDS = {
     "async_set_control_hot_water_setpoint": "hot_water_setpoint",
     "async_set_control_thermostat_setpoint": "thermostat_setpoint",
     "async_release_control_setpoint": "release",
+    "async_release_modulation_limit": "release_modulation",
     "async_set_hot_water_keep_warm": "keep_warm",
 }
 
