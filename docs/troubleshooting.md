@@ -88,6 +88,16 @@ These fixes apply to everyone, without an option:
   now requires at least 2.2.3, so it follows Home Assistant.
 - **No error reports to the official SAT.** The option *Enable error monitoring* sent errors to the Sentry
   project of the official SAT; the option and Sentry are removed.
+- **PID derivative stuck at an old value.** Inside the deadband the derivative kept its last value; it now
+  decays to zero. After a restart it starts again instead of using a slope across the downtime.
+- **PID reset in a steady room.** A room that stayed at the same temperature for hours lost the integral of the
+  PID controller; the reset now only happens when the inside sensor itself stops reporting.
+- **Error changes skipped** when they arrived inside the sample time of the PID controller; they are now applied
+  at the next control loop.
+- **Heating curve rose again in very warm weather**, and its autotune undid its own steps.
+
+The fixes for the PID controller and the heating curve come from the fork
+[bellini666/SAT](https://github.com/bellini666/SAT).
 
 The full list with versions and files is in
 [CHANGES_XTREME.md](https://github.com/justink0k/SAT-xtreme/blob/xtreme/CHANGES_XTREME.md).

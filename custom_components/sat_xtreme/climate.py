@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import timedelta, datetime
-from time import monotonic, time
+from time import time
 from typing import Optional, Callable
 
 from homeassistant.components import notify, sensor, weather
@@ -895,8 +895,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self.async_write_ha_state()
             return
 
-        # Reset the PID controller if the sensor data is too old
-        if not self.stale_sensors.enabled and self._sensor_max_value_age != 0 and monotonic() - self.pid.last_updated > self._sensor_max_value_age:
+        # Reset the PID controller if the inside sensor is too old. Before, this checked when the PID was last
+        # updated, so a steady error reset it too (fix from bellini666/SAT).
+        if not self.stale_sensors.enabled and is_state_stale(self.hass.states.get(self.inside_sensor_entity_id), self._sensor_max_value_age):
             self.pid.reset()
             self.areas.pids.reset()
 
@@ -1071,6 +1072,12 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Let the sub know we have run
         self._control_heating_loop_unsub = None
 
+        # A sensor that stops reporting fires no state change, so the stale reset has to happen here too, before a
+        # missing temperature ends the loop (fix from bellini666/SAT)
+        if not self.stale_sensors.enabled and is_state_stale(self.hass.states.get(self.inside_sensor_entity_id), self._sensor_max_value_age):
+            self.pid.reset()
+            self.areas.pids.reset()
+
         # If the current, target or outside temperature is not available, do nothing
         if self.current_temperature is None or self.target_temperature is None or self.current_outside_temperature is None:
             return
@@ -1142,8 +1149,13 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Set the relative modulation value, if supported
         await self._async_control_relative_modulation()
 
-        # Control the integral (if exceeded the time limit)
+        # Apply an error change that arrived inside the sample time (fix from bellini666/SAT), then control the
+        # integral (if exceeded the time limit)
         if self.heating_curve.value is not None:
+            if self._coordinator.boiler_temperature_filtered is not None and not self.stale_sensors.safe_mode:
+                self.areas.pids.update(self._coordinator.boiler_temperature_filtered)
+                self.pid.update(self.max_error, self.heating_curve.value, self._coordinator.boiler_temperature_filtered)
+
             self.pid.update_integral(self.max_error, self.heating_curve.value)
 
         # Control our areas

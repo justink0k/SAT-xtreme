@@ -35,27 +35,29 @@ class HeatingCurve:
 
     def autotune(self, setpoint: float, target_temperature: float, outside_temperature: float):
         """Calculate an optimal coefficient value."""
-        if setpoint <= MINIMUM_SETPOINT:
+        # Without a heating demand on the curve (as warm outside as the target) there is nothing to tune
+        if setpoint <= MINIMUM_SETPOINT or self.calculate(target_temperature, outside_temperature) <= 0:
             return
 
         coefficient = self.calculate_coefficient(setpoint, target_temperature, outside_temperature)
-        self._coefficient_derivative = round(coefficient - self._optimal_coefficient, 1) if self._optimal_coefficient else coefficient
+        self._coefficient_derivative = round(coefficient - self._optimal_coefficient, 1) if self._optimal_coefficient is not None else 0.0
 
-        # Fuzzy logic for when the derivative is positive
-        if self._coefficient_derivative > 1:
-            coefficient -= 0.3
-        elif self._coefficient_derivative < 0.5:
-            coefficient -= 0.1
-        elif self._coefficient_derivative < 1:
-            coefficient -= 0.2
-
-        # Fuzzy logic for when the derivative is negative
-        if self._coefficient_derivative < -1:
-            coefficient += 0.3
-        elif self._coefficient_derivative > -0.5:
-            coefficient += 0.1
-        elif self._coefficient_derivative > -1:
-            coefficient += 0.2
+        # Fuzzy logic: step against the sign of the derivative. Before, both blocks ran for every value, so a small
+        # step down was undone by a small step up (fix from bellini666/SAT).
+        if self._coefficient_derivative > 0:
+            if self._coefficient_derivative > 1:
+                coefficient -= 0.3
+            elif self._coefficient_derivative < 0.5:
+                coefficient -= 0.1
+            else:
+                coefficient -= 0.2
+        elif self._coefficient_derivative < 0:
+            if self._coefficient_derivative < -1:
+                coefficient += 0.3
+            elif self._coefficient_derivative > -0.5:
+                coefficient += 0.1
+            else:
+                coefficient += 0.2
 
         # Store the results
         self._optimal_coefficients.append(coefficient)
@@ -71,6 +73,9 @@ class HeatingCurve:
     @staticmethod
     def calculate(target_temperature: float, outside_temperature: float) -> float:
         """Calculate the heating curve value based on the current outside temperature"""
+        # The parabola bottoms out near 26.7 °C and rises again, so an outside temperature above the target counts as
+        # the target (fix from bellini666/SAT)
+        outside_temperature = min(outside_temperature, target_temperature)
         return 4 * (target_temperature - 20) + 0.03 * (outside_temperature - 20) ** 2 - 0.4 * (outside_temperature - 20)
 
     @property

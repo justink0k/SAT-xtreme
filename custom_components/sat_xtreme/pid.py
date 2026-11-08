@@ -72,7 +72,7 @@ class PID:
 
         self._time_elapsed: float = 0.0
         self._last_updated: float = now
-        self._last_derivative_time: float = now
+        self._last_derivative_time: Optional[float] = now
         self._last_interval_updated: float = now
 
         self._last_error: float = 0.0
@@ -94,8 +94,18 @@ class PID:
         """
         time_elapsed = seconds_since(self._last_updated)
 
-        # If nothing changed, skip
+        # If nothing changed, skip; but do not let the derivative stick (idea from bellini666/SAT)
         if error.value == self._last_error:
+            sample_time_passed = self._sample_time_limit is None or self._last_derivative_time is None or seconds_since(self._last_derivative_time) >= self._sample_time_limit
+
+            if not self.derivative_enabled and sample_time_passed:
+                # Inside the deadband the derivative decays toward zero
+                self.update_derivative(error)
+            elif step := abs(self._last_error - self._previous_error):
+                # Sensors report on change, so the error can't move faster than its last step over the time since that step
+                limit = step / max(seconds_since(self._last_updated), 1.0)
+                self._raw_derivative = max(-limit, min(limit, self._raw_derivative))
+
             return
 
         # Enforce minimum sample time if configured
@@ -184,17 +194,20 @@ class PID:
         :param alpha1: First low-pass filter parameter (0..1).
         :param alpha2: Second low-pass filter parameter (0..1).
         """
-        # If the derivative is disabled, freeze it
-        if not self.derivative_enabled:
+        now = monotonic()
+
+        # After a restore the slope starts now, not across the downtime (idea from bellini666/SAT)
+        if self._last_derivative_time is None:
+            self._last_derivative_time = now
             return
 
-        now = monotonic()
         time_diff = now - self._last_derivative_time
         if time_diff <= 0:
             return
 
-        # Basic derivative: slope between current and last error
-        derivative = (error.value - self._last_error) / time_diff
+        # Basic derivative: slope between current and last error. Inside the deadband the change counts as zero,
+        # so the filters decay the derivative instead of freezing it (idea from bellini666/SAT)
+        derivative = (error.value - self._last_error) / time_diff if self.derivative_enabled else 0.0
 
         # First low-pass filter
         filtered_derivative = alpha1 * derivative + (1 - alpha1) * self._raw_derivative
@@ -214,16 +227,14 @@ class PID:
         if (last_integral := state.attributes.get("integral")) is not None:
             self._integral = float(last_integral)
 
-        if (last_raw_derivative := state.attributes.get("derivative_raw")) is not None:
-            self._raw_derivative = float(last_raw_derivative)
-
         if (last_heating_curve := state.attributes.get("heating_curve")) is not None:
             self._last_heating_curve_value = float(last_heating_curve)
 
-        # After restore, reset timing anchors "now"
+        # After restore, reset timing anchors "now"; the restored slope is from before the downtime, so the
+        # derivative starts again with the next update
         now = monotonic()
         self._last_updated = now
-        self._last_derivative_time = now
+        self._last_derivative_time = None
         self._last_interval_updated = now
 
     def _get_aggression_value(self) -> float:

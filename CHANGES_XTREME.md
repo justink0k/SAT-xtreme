@@ -1140,3 +1140,27 @@ Documentation only; no change in the integration.
   integration* (`config_flow_start` for `sat_xtreme`), which starts the setup wizard.
 
 **Files.** `README.md`, `docs/installation.md`, `custom_components/sat_xtreme/manifest.json`.
+
+## Unreleased: fixes in the PID controller and the heating curve
+
+Bug fixes, without an option. The ideas come from the fork [bellini666/SAT](https://github.com/bellini666/SAT)
+(GPL-3.0, commits ef44d59, 0cd2dba, 0c117c2, 943cda9, d24c805, 0c6cf08, 51971f0, ba2efa5, a464aef, c30a20e); the
+code is written for SAT-xtreme.
+
+- **The PID derivative no longer freezes inside the deadband.** It decays toward zero, also with a steady error, and
+  a held derivative can't be larger than the last step of the error over the time since that step. Before, it kept
+  its last value for as long as the error stayed small.
+- **After a restart the derivative starts again** instead of running a slope across the downtime.
+- **A steady error no longer resets the PID.** The reset after the *Temperature sensor maximum value age* checked
+  when the PID was last updated, so a sensor that reports the same value for hours reset the integral too. It now
+  checks the age of the inside sensor, also from the control loop when the sensor stops reporting.
+- **The age of a sensor counts from its last report** (`last_reported`), also when the value did not change.
+- **An error that arrives inside the sample time is applied** at the next control loop instead of being skipped.
+- **The heating curve stays flat** when it is as warm outside as the target; the formula rose again above about
+  26.7 °C.
+- **The autotune of the heating curve steps in the right direction.** Both fuzzy blocks ran for every value, so a
+  small step down was undone by a small step up. This only changes the attribute `optimal_coefficient`.
+
+**Files.** `custom_components/sat_xtreme/pid.py`, `custom_components/sat_xtreme/climate.py`,
+`custom_components/sat_xtreme/heating_curve.py`, `custom_components/sat_xtreme/helpers.py`,
+`tests/test_xtreme_control_fixes.py` (new), `docs/settings-system.md`, `docs/troubleshooting.md`.
