@@ -55,7 +55,8 @@ With **Automatic duty cycle** (the default), SAT turns the duty cycle into on an
 Without automatic duty cycle, the on and off times are the duty cycle times the
 [maximum duty cycle](settings-general.md#maximum-duty-cycle-for-pulse-width-modulation) time.
 
-SAT also never starts more blocks per hour than *Duty cycles per hour*, counted over the last 60 minutes.
+SAT also never starts more blocks per hour than *Duty cycles per hour*, counted over the last 60 minutes, also
+after a change of the target temperature. A hot water burn does not count in the length of the blocks.
 
 ### When PWM is used
 

@@ -8,7 +8,8 @@ Default off. OpenTherm Gateway over MQTT only.
 When you turn the SAT climate entity **off**, SAT sends `CS=0` to the OpenTherm Gateway. The gateway then
 stops overriding the control setpoint, and the thermostat on the bus controls the boiler again **right
 away**. With *Push setpoint to thermostat* on, SAT also sends `TC=0`, so the thermostat follows its own
-program again; that override has no expiry on the gateway.
+program again; that override has no expiry on the gateway. SAT also sends `MM=T`, which clears its maximum
+modulation, so the thermostat can use the full power of the boiler again.
 
 SAT also hands over:
 

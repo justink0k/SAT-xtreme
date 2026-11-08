@@ -88,20 +88,21 @@ class PWM:
             self._duty_cycle_lower_threshold * 100, self._duty_cycle_upper_threshold * 100, self._setpoint_offset
         )
 
+        # Start times of the duty cycles of the last hour (rolling window). Xtreme fork: kept across a reset, so the
+        # maximum cycles per hour still holds after a target change or while PWM was off
+        self._cycle_starts: deque[float] = deque()
+
         self.reset()
 
     def reset(self) -> None:
         """Reset the PWM control."""
         self._enabled = False
-        self._current_cycle: int = 0
+        self._current_cycle: int = len(self._cycle_starts)
         self._status: PWMStatus = PWMStatus.IDLE
         self._last_update: float = monotonic()
         self._duty_cycle: Tuple[int, int] | None = None
 
         self._last_duty_cycle_percentage: float | None = None
-
-        # Start times of the duty cycles of the last hour (rolling window)
-        self._cycle_starts: deque[float] = deque()
 
         # Xtreme profile: burn time bookkeeping of the current on phase
         self._on_started_at: float | None = None
@@ -149,8 +150,9 @@ class PWM:
         elapsed = monotonic() - self._last_update
         self._duty_cycle = self._calculate_duty_cycle(requested_setpoint, boiler)
 
-        # Update boiler temperature if heater has just started up
-        if self._status == PWMStatus.ON:
+        # Update boiler temperature if heater has just started up. Xtreme fork: hot water heats the flow far past what
+        # the radiators see, so it does not shape the duty cycle (idea from bellini666/SAT)
+        if self._status == PWMStatus.ON and not boiler.hot_water_active:
             if elapsed <= HEATER_STARTUP_TIMEFRAME:
                 self._last_boiler_temperature = (self._alpha * boiler.flow_temperature + (1 - self._alpha) * self._last_boiler_temperature)
 
@@ -197,7 +199,8 @@ class PWM:
             self._current_cycle = len(self._cycle_starts)
             self._status = PWMStatus.ON
             self._last_update = monotonic()
-            self._last_boiler_temperature = boiler.flow_temperature
+            if not boiler.hot_water_active:
+                self._last_boiler_temperature = boiler.flow_temperature
             self._start_burn_time()
             _LOGGER.info("Starting new duty cycle (ON state). Current CYCLES count: %d", self._current_cycle)
             return

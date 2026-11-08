@@ -1205,6 +1205,27 @@ The ideas come from the fork [bellini666/SAT](https://github.com/bellini666/SAT)
   4.2.1-xtreme.33). The PID controller is now also left fully as it is in the safe mode.
 - The example device ID in the manual is now a neutral one.
 
+## Unreleased: fixes in pulse width modulation
+
+Bug fixes, without an option. The ideas come from the fork [bellini666/SAT](https://github.com/bellini666/SAT)
+(GPL-3.0, commits 4eed10a, b3dfa77, e7023c0); the code is written for SAT-xtreme.
+
+- **The maximum cycles per hour survives a PWM reset.** The reset (a change of the target temperature or mode, and
+  every control loop while PWM is off) cleared the starts of the last hour, so *Duty cycles per hour* started
+  counting from zero again. The starts are now kept and still expire after 60 minutes.
+- **A room's target change keeps the PWM phase.** A new target of a room climate reset the PWM and restarted the
+  running on or off phase. Now only the PID resets. A change of SAT's own target or mode still resets the PWM.
+- **Hot water does not shape the duty cycle.** The flow temperature of a hot water burn was used to calculate the
+  length of the PWM blocks.
+- **The hand-over clears the maximum modulation too** (`MM=T`), within the opt-in *Hand over to the thermostat
+  when SAT is turned off* and the hand-over without an inside sensor. That override has no expiry on the gateway
+  and kept limiting the thermostat.
+
+**Files.** `custom_components/sat_xtreme/pwm.py`, `custom_components/sat_xtreme/climate.py`,
+`custom_components/sat_xtreme/mqtt/opentherm.py`, `tests/test_xtreme_pwm_fixes.py` (new),
+`tests/test_xtreme_gateway_online.py`, `tests/test_xtreme_presets_and_handover.py`, `docs/overshoot-protection.md`,
+`docs/handover.md`, `docs/troubleshooting.md`.
+
 **Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/stale.py`,
 `custom_components/sat_xtreme/xtreme/profile.py`, `custom_components/sat_xtreme/const.py`,
 `custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/translations/en.json`,

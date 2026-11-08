@@ -42,7 +42,7 @@ The option *Without an inside sensor* chooses what the safe mode does:
 
 - **Heat on the heating curve only** (default): as described above, for as long as no inside sensor is usable.
 - **Hand over to the thermostat after 10 minutes**: the first 10 minutes as above. Then SAT gives the boiler to
-  the thermostat on the bus: it sends `CS=0`, and `TC=0` when *Push setpoint to thermostat* is on, and sends
+  the thermostat on the bus: it sends `CS=0` and `MM=T`, and `TC=0` when *Push setpoint to thermostat* is on, and sends
   nothing more. As soon as an inside sensor reports again, SAT takes the boiler back (and pushes the target
   temperature to the thermostat again). Only for the OpenTherm Gateway over MQTT; with other gateways SAT keeps
   heating on the heating curve. The attribute `handed_over` of the binary sensor shows it.

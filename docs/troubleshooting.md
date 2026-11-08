@@ -99,6 +99,12 @@ These fixes apply to everyone, without an option:
   on the thermostat until SAT happened to send each command again, and a maximum setpoint or keep-warm setting
   stayed lost. SAT now sends them again right away, and pauses its control while the gateway is offline.
 
+- **Maximum cycles per hour forgotten after a target change.** A change of the target temperature, or PWM
+  turning off for a moment, cleared the list of PWM starts of the last hour, so the limit started from zero. It
+  now keeps counting.
+- **A room's target change restarted the PWM block.** It now keeps the running on or off phase.
+- **Hot water in the PWM blocks.** The hot flow of a hot water burn shaped the length of the next blocks; it now
+  does not.
 - **The safe mode of *Handle stale sensors* sent nothing.** Without a usable inside sensor the control loop
   stopped at the missing temperature, so SAT did not heat on the heating curve as described. It now does.
 

@@ -939,7 +939,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
             self.pid.update_reset(error=max_error, heating_curve_value=self.heating_curve.value)
             self._calculated_setpoint = None
-            self.pwm.reset()
+
+            # Xtreme fork: the PWM phase is kept when a room changes its target; that changes the duty cycle, not the
+            # running phase (idea from bellini666/SAT). A change of SAT's own target or mode still resets the PWM.
 
         self.async_write_ha_state()
 
