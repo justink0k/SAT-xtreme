@@ -25,6 +25,10 @@ from tests.fake_coordinator import MODE_FAKE, SatFakeCoordinator
             {
                 CONF_HEATING_CURVE_COEFFICIENT: 1.8,
                 CONF_FORCE_PULSE_WIDTH_MODULATION: True,
+                # The expected numbers are calculated with PID version 1 and 3 cycles per hour (before, the test entry
+                # got these from the migration)
+                CONF_PID_CONTROLLER_VERSION: 1,
+                CONF_CYCLES_PER_HOUR: 3,
             },
             {
                 TEMPLATE_DOMAIN: [
@@ -71,6 +75,10 @@ async def test_scenario_1(hass: HomeAssistant, entry: MockConfigEntry, climate: 
             {
                 CONF_HEATING_CURVE_COEFFICIENT: 1.3,
                 CONF_FORCE_PULSE_WIDTH_MODULATION: True,
+                # The expected numbers are calculated with PID version 1 and 3 cycles per hour (before, the test entry
+                # got these from the migration)
+                CONF_PID_CONTROLLER_VERSION: 1,
+                CONF_CYCLES_PER_HOUR: 3,
             },
             {
                 TEMPLATE_DOMAIN: [
@@ -118,6 +126,10 @@ async def test_scenario_2(hass: HomeAssistant, entry: MockConfigEntry, climate: 
             {
                 CONF_HEATING_CURVE_COEFFICIENT: 0.9,
                 CONF_FORCE_PULSE_WIDTH_MODULATION: True,
+                # The expected numbers are calculated with PID version 1 and 3 cycles per hour (before, the test entry
+                # got these from the migration)
+                CONF_PID_CONTROLLER_VERSION: 1,
+                CONF_CYCLES_PER_HOUR: 3,
             },
             {
                 TEMPLATE_DOMAIN: [

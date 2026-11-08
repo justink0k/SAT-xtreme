@@ -1294,3 +1294,13 @@ bellini666/SAT fixed the first one too (bf3a5c4).
 `custom_components/sat_xtreme/config_flow.py`, `tests/loop_harness.py` (new), `tests/test_xtreme_control_loop.py`
 (new), `tests/test_xtreme_switch_mode.py` (new), `tests/test_xtreme_heating_system.py` (new),
 `docs/gateways.md`, `docs/settings-system.md`, `docs/troubleshooting.md`.
+
+## Unreleased: the tests use the settings of a new installation
+
+Only the tests change, not SAT. Every test entry started at config version 1, so it ran the old migrations first (PID
+version 1, 3 cycles per hour, heating system rewritten). Test entries now start at the current config version. The
+three scenarios of the official SAT in `tests/test_climate.py` state PID version 1 and 3 cycles per hour explicitly,
+and a new test checks that an old entry is still migrated.
+
+**Files.** `tests/conftest.py`, `tests/test_climate.py`, `tests/test_xtreme_heating_system.py`,
+`tests/test_xtreme_config_migration.py` (new).

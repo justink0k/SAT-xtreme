@@ -7,6 +7,7 @@ from pytest_homeassistant_custom_component.common import assert_setup_component,
 
 from custom_components.sat_xtreme.const import DOMAIN, CLIMATE, COORDINATOR
 from custom_components.sat_xtreme.climate import SatClimate
+from custom_components.sat_xtreme.config_flow import SatFlowHandler
 from custom_components.sat_xtreme.coordinator import SatDataUpdateCoordinatorFactory
 from tests.fake_coordinator import MODE_FAKE, SatFakeCoordinator
 from tests.const import DEFAULT_USER_DATA
@@ -45,7 +46,9 @@ async def entry(hass: HomeAssistant, domains: list, data: dict, options: dict, c
     user_data = DEFAULT_USER_DATA.copy()
     user_data.update(data)
 
-    config_entry = MockConfigEntry(domain=DOMAIN, data=user_data, options=options)
+    # A new entry is at the current config version; before, every test entry ran the old migrations (PID version 1,
+    # heating system rewritten), so the tests did not use the settings of a new installation
+    config_entry = MockConfigEntry(domain=DOMAIN, data=user_data, options=options, version=SatFlowHandler.VERSION, minor_version=SatFlowHandler.MINOR_VERSION)
     await hass.config_entries.async_add(config_entry)
 
     return config_entry
