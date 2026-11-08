@@ -76,7 +76,7 @@ choose *MQTT Gateway → EMS-ESP* and fill in the MQTT topic of EMS-ESP (`ems-es
 
 ## Switch or relay
 
-*PID Thermostat (PWM On/Off)* controls any `switch` or `input_boolean` that turns the heating on and off,
+*PID Thermostat (PWM On/Off)* controls any `switch`, `input_boolean` or `valve` that turns the heating on and off,
 for example a relay on the thermostat contacts of a boiler, or an electric heater. SAT cannot set a water
 temperature, so it always uses [PWM](overshoot-protection.md#pulse-width-modulation-pwm): the PID output
 decides how long the switch stays on in each block.
@@ -86,7 +86,8 @@ electric heating: 100).
 
 !!! note "Fixed in the fork"
     In the official SAT the switch was turned on but never off again, because SAT looked up its state by the
-    wrong ID and always saw it off. The fork reads the state of the switch itself.
+    wrong ID and always saw it off, and a valve got no command at all. The fork reads the state of the entity itself,
+    and opens and closes a valve.
 
 ## Simulator
 

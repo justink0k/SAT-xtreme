@@ -41,7 +41,7 @@ from .const import PWMStatus
 from .coordinator import SatDataUpdateCoordinator, DeviceState
 from .entity import SatEntity
 from .errors import Errors, Error
-from .helpers import convert_time_str_to_seconds, is_state_stale, state_age_seconds
+from .helpers import convert_time_str_to_seconds, float_value, is_state_stale, state_age_seconds
 from .manufacturers.geminox import Geminox
 from .pwm import PWMState
 from .relative_modulation import RelativeModulation, RelativeModulationState
@@ -537,17 +537,21 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         if self.stale_sensors.enabled:
             return self.stale_sensors.outside_temperature(self.hass)
 
-        self.outside_sensor_entities.sort(key=lambda x: "sensor" not in x)
-        for entity_id in self.outside_sensor_entities:
+        # Xtreme fork: sensors first, and a value that is not a number moves on to the next entity instead of raising
+        for entity_id in sorted(self.outside_sensor_entities, key=lambda x: not x.startswith(f"{sensor.DOMAIN}.")):
             state = self.hass.states.get(entity_id)
             if state is None or state.state in [STATE_UNKNOWN, STATE_UNAVAILABLE]:
                 continue
 
-            if sensor.DOMAIN in entity_id:
-                return float(state.state)
+            if entity_id.startswith(f"{sensor.DOMAIN}."):
+                value = float_value(state.state)
+            elif entity_id.startswith(f"{weather.DOMAIN}."):
+                value = float_value(state.attributes.get("temperature"))
+            else:
+                value = None
 
-            if weather.DOMAIN in entity_id:
-                return float(state.attributes.get("temperature"))
+            if value is not None:
+                return value
 
         return None
 
@@ -655,7 +659,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
                 current_temperature = state.attributes.get("current_temperature")
 
                 # If there is a current temperature, and it is not at the target temperature, we can assume the valves are open
-                if current_temperature is not None and float(target_temperature) >= float(current_temperature) + float(self._climate_valve_offset):
+                target_value, current_value = float_value(target_temperature), float_value(current_temperature)
+                if target_value is not None and current_value is not None and target_value >= current_value + float(self._climate_valve_offset):
                     return True
 
         # If none of the thermostats have open valves, return False
@@ -1441,8 +1446,17 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
                     data = {ATTR_ENTITY_ID: entity_id, ATTR_TEMPERATURE: target_temperature}
                     await self.hass.services.async_call(CLIMATE_DOMAIN, SERVICE_SET_TEMPERATURE, data, blocking=True)
 
+        # Xtreme fork: setting the target writes nothing when it stays the same, and the new preset must still show
+        self.async_write_ha_state()
+
     async def async_set_target_temperature(self, temperature: float, cascade: bool = True) -> None:
         """Set the temperature setpoint for all main climates."""
+        # Xtreme fork: without a temperature (a thermostat that is off, or no saved temperature) the last target stays;
+        # a target of None stopped the control loop and sent TC=None to the gateway
+        if temperature is None:
+            _LOGGER.debug("No target temperature given, keeping %s.", self._target_temperature)
+            return
+
         if self._target_temperature == temperature:
             return
 
@@ -1493,4 +1507,5 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         if entity.state in [STATE_UNKNOWN, STATE_UNAVAILABLE]:
             return None
 
-        return float(entity.state)
+        # Xtreme fork: a value that is not a number counts as no value, instead of raising in every control loop
+        return float_value(entity.state)

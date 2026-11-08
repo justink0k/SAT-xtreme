@@ -4,7 +4,8 @@ from typing import Mapping, Any
 
 from homeassistant.components.input_boolean import DOMAIN as INPUT_BOOLEAN_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
-from homeassistant.const import SERVICE_TURN_ON, SERVICE_TURN_OFF, ATTR_ENTITY_ID, STATE_ON
+from homeassistant.components.valve import DOMAIN as VALVE_DOMAIN, ValveState
+from homeassistant.const import SERVICE_CLOSE_VALVE, SERVICE_OPEN_VALVE, SERVICE_TURN_ON, SERVICE_TURN_OFF, ATTR_ENTITY_ID, STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry
 from homeassistant.helpers.entity_registry import RegistryEntry
@@ -14,10 +15,14 @@ from ..coordinator import DeviceState, SatDataUpdateCoordinator
 # This package is also the switch platform of the integration; the fork's switch lives in xtreme/switch.py
 from ..xtreme.switch import async_setup_entry  # noqa: F401
 
-DOMAIN_SERVICE = {
-    SWITCH_DOMAIN: SWITCH_DOMAIN,
-    INPUT_BOOLEAN_DOMAIN: INPUT_BOOLEAN_DOMAIN
+# Per domain: the service to turn the entity on and off (Xtreme fork: the wizard also offers valves, which got no command)
+DOMAIN_SERVICES = {
+    SWITCH_DOMAIN: (SERVICE_TURN_ON, SERVICE_TURN_OFF),
+    INPUT_BOOLEAN_DOMAIN: (SERVICE_TURN_ON, SERVICE_TURN_OFF),
+    VALVE_DOMAIN: (SERVICE_OPEN_VALVE, SERVICE_CLOSE_VALVE),
 }
+
+STATES_ON = (STATE_ON, ValveState.OPEN, ValveState.OPENING)
 
 
 class SatSwitchCoordinator(SatDataUpdateCoordinator):
@@ -54,7 +59,7 @@ class SatSwitchCoordinator(SatDataUpdateCoordinator):
         if (state := self.hass.states.get(self._entity_id)) is None:
             return False
 
-        return state.state == STATE_ON
+        return state.state in STATES_ON
 
     @property
     def member_id(self) -> int | None:
@@ -62,10 +67,10 @@ class SatSwitchCoordinator(SatDataUpdateCoordinator):
 
     async def async_set_heater_state(self, state: DeviceState) -> None:
         if not self._simulation:
-            domain_service = DOMAIN_SERVICE.get(self._entity_id.split(".", 1)[0])
-            state_service = SERVICE_TURN_ON if state == DeviceState.ON else SERVICE_TURN_OFF
+            domain = self._entity_id.split(".", 1)[0]
 
-            if domain_service:
-                await self.hass.services.async_call(domain_service, state_service, {ATTR_ENTITY_ID: self._entity_id}, blocking=True)
+            if services := DOMAIN_SERVICES.get(domain):
+                service = services[0] if state == DeviceState.ON else services[1]
+                await self.hass.services.async_call(domain, service, {ATTR_ENTITY_ID: self._entity_id}, blocking=True)
 
         await super().async_set_heater_state(state)

@@ -107,6 +107,15 @@ These fixes apply to everyone, without an option:
   does not.
 - **Switch mode never turned the switch off.** SAT looked up the state of the switch by its registry ID, found
   nothing and always saw it off; it turned the switch on and never off again. It now reads the switch itself.
+- **A valve in switch mode got no command.** The setup wizard offers valves, but SAT never opened or closed them. It
+  now does.
+- **A sensor value that is not a number stopped the control.** A value such as `none`, or a weather entity without
+  a temperature, raised an error in every control loop. It now counts as no value, and SAT tries the next outside
+  sensor.
+- **A missing target temperature stopped the control.** A synchronized thermostat that turned off, or clearing a
+  preset without a saved temperature, removed the target of SAT. SAT now keeps the last target.
+- **A preset with the same temperature did not show.** Choosing a preset whose temperature equals the current
+  target left the old preset in Home Assistant.
 - **Underfloor heating got the PID gains of radiators.** The heating system was read from the options, which only
   hold the default *radiators*; the PID now uses the heating system of the setup wizard. With automatic gains
   (version 3) the correction for underfloor heating becomes about 25 % gentler, as intended. A heat pump also gets

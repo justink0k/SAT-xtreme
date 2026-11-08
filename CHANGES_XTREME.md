@@ -1304,3 +1304,26 @@ and a new test checks that an old entry is still migrated.
 
 **Files.** `tests/conftest.py`, `tests/test_climate.py`, `tests/test_xtreme_heating_system.py`,
 `tests/test_xtreme_config_migration.py` (new).
+
+## Unreleased: invalid values and a missing target no longer stop the control, and valves in switch mode
+
+Bug fixes, without an option, found in the code audit. All are also in the official SAT; bellini666/SAT fixed
+several of them too (be46f75, 72de3dc, 1d571a4, 1ddd7e3).
+
+- **A sensor value that is not a number no longer raises.** The inside sensor, the humidity sensor and the outside
+  sensors raised an error in every control loop on a value such as `none`, and a weather entity without a temperature
+  did the same. It now counts as no value, like `unavailable`: SAT tries the next outside sensor, and skips the loop
+  when there is none. A thermostat without a target no longer breaks the check of the valves.
+- **The outside entities are told apart by their domain.** A weather entity with "sensor" in its name was read as a
+  sensor. The configured list is also no longer sorted in place at every read.
+- **A missing target temperature keeps the last target.** A synchronized thermostat that turned off (no temperature),
+  or clearing a preset without a saved temperature, set the target to nothing: the control loop stopped while the
+  last commands stayed on the boiler, and with *Push setpoint to thermostat* the gateway got `TC=None`. With a
+  synchronized thermostat that turns off, SAT now goes on with the last target.
+- **A preset with the same temperature shows.** The state was only written when the target changed.
+- **Valves in switch mode.** The wizard offers `valve` entities, but SAT sent them no command and did not see `open`
+  as on. It now calls `open_valve` and `close_valve`, and `open` and `opening` count as on.
+
+**Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/switch/__init__.py`,
+`tests/test_xtreme_robust_values.py` (new), `tests/test_xtreme_switch_mode.py`, `docs/gateways.md`,
+`docs/troubleshooting.md`.
