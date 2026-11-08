@@ -1141,7 +1141,13 @@ Documentation only; no change in the integration.
 
 **Files.** `README.md`, `docs/installation.md`, `custom_components/sat_xtreme/manifest.json`.
 
-## Unreleased: fixes in the PID controller and the heating curve
+## Version 39: ideas from bellini666/SAT (`4.2.1-xtreme.39`, 2026-11-08)
+
+Bug fixes for everyone, and one new option that is off by default. The ideas come from the fork
+[bellini666/SAT](https://github.com/bellini666/SAT) (GPL-3.0); the code is written for SAT-xtreme. With every option
+off, SAT-xtreme heats as in version 38 plus the fixes below.
+
+### Fixes in the PID controller and the heating curve
 
 Bug fixes, without an option. The ideas come from the fork [bellini666/SAT](https://github.com/bellini666/SAT)
 (GPL-3.0, commits ef44d59, 0cd2dba, 0c117c2, 943cda9, d24c805, 0c6cf08, 51971f0, ba2efa5, a464aef, c30a20e); the
@@ -1165,7 +1171,7 @@ code is written for SAT-xtreme.
 `custom_components/sat_xtreme/heating_curve.py`, `custom_components/sat_xtreme/helpers.py`,
 `tests/test_xtreme_control_fixes.py` (new), `docs/settings-system.md`, `docs/troubleshooting.md`.
 
-## Unreleased: the OpenTherm Gateway going offline and restarting
+### The OpenTherm Gateway going offline and restarting
 
 A bug fix for the OpenTherm Gateway over MQTT, without an option. The idea comes from the fork
 [bellini666/SAT](https://github.com/bellini666/SAT) (GPL-3.0, commits 8bc5ee6, 0505356, b99665e, af6c774); the code
@@ -1186,7 +1192,7 @@ is written for SAT-xtreme.
 `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/binary_sensor.py`,
 `tests/test_xtreme_gateway_online.py` (new), `docs/gateways.md`, `docs/entities.md`, `docs/troubleshooting.md`.
 
-## Unreleased: more hand-overs to the thermostat, and a hand-over without an inside sensor
+### More hand-overs to the thermostat, and a hand-over without an inside sensor
 
 The ideas come from the fork [bellini666/SAT](https://github.com/bellini666/SAT) (GPL-3.0, commits 35d874e, af6c774,
 62d67fd, 8b87209, e7023c0); the code is written for SAT-xtreme.
@@ -1205,7 +1211,7 @@ The ideas come from the fork [bellini666/SAT](https://github.com/bellini666/SAT)
   4.2.1-xtreme.33). The PID controller is now also left fully as it is in the safe mode.
 - The example device ID in the manual is now a neutral one.
 
-## Unreleased: fixes in pulse width modulation
+### Fixes in pulse width modulation
 
 Bug fixes, without an option. The ideas come from the fork [bellini666/SAT](https://github.com/bellini666/SAT)
 (GPL-3.0, commits 4eed10a, b3dfa77, e7023c0); the code is written for SAT-xtreme.
@@ -1226,7 +1232,7 @@ Bug fixes, without an option. The ideas come from the fork [bellini666/SAT](http
 `tests/test_xtreme_gateway_online.py`, `tests/test_xtreme_presets_and_handover.py`, `docs/overshoot-protection.md`,
 `docs/handover.md`, `docs/troubleshooting.md`.
 
-## Unreleased: PWM hysteresis
+### PWM hysteresis
 
 A new option, off by default: *Xtreme profile (fork) → Boiler → PWM hysteresis* (0 – 5 °C in steps of 0.5 °C,
 default 0). The idea comes from the fork [bellini666/SAT](https://github.com/bellini666/SAT) (GPL-3.0, commit
