@@ -1256,7 +1256,14 @@ starting point.
 `tests/xtreme_helpers.py`, `docs/handover.md`, `docs/stale-sensors.md`, `docs/settings-xtreme-profile.md`,
 `docs/gateways.md`, `docs/troubleshooting.md`.
 
-## Unreleased: options on a more logical place
+## Version 40: fixes from a code audit (`4.2.1-xtreme.40`, 2026-11-08)
+
+Bug fixes from a full read of the code (2026-11-08), a new step at the end of the setup wizard, and two moved options.
+There are no new options that change how the boiler runs. **Three visible changes:** the gains for underfloor heating,
+gateway sensors over MQTT that are briefly empty after a restart, and the modulation limit that is cleared when SAT
+stops controlling, which differs from the official SAT with every option off.
+
+### Options on a more logical place
 
 - **PWM hysteresis** moved from *Xtreme profile (fork) → Boiler* to the page *PID settings (fork)*. It is a setting
   of the control, not of the boiler, and its value follows from the gains on that page. The option is stored flat,
@@ -1267,7 +1274,7 @@ starting point.
 `custom_components/sat_xtreme/translations/nl.json`, `tests/test_xtreme_pwm_hysteresis.py`, `docs/settings-pid.md`,
 `docs/settings-xtreme-profile.md`, `docs/stale-sensors.md`, `docs/overshoot-protection.md`.
 
-## Unreleased: fixes from the code audit (switch mode, heating system), and a control loop test harness
+### Fixes from the code audit (switch mode, heating system), and a control loop test harness
 
 Bug fixes, without an option, found in a full read of the code (2026-11-08). Both are also in the official SAT;
 bellini666/SAT fixed the first one too (bf3a5c4).
@@ -1295,7 +1302,7 @@ bellini666/SAT fixed the first one too (bf3a5c4).
 (new), `tests/test_xtreme_switch_mode.py` (new), `tests/test_xtreme_heating_system.py` (new),
 `docs/gateways.md`, `docs/settings-system.md`, `docs/troubleshooting.md`.
 
-## Unreleased: the tests use the settings of a new installation
+### The tests use the settings of a new installation
 
 Only the tests change, not SAT. Every test entry started at config version 1, so it ran the old migrations first (PID
 version 1, 3 cycles per hour, heating system rewritten). Test entries now start at the current config version. The
@@ -1305,7 +1312,7 @@ and a new test checks that an old entry is still migrated.
 **Files.** `tests/conftest.py`, `tests/test_climate.py`, `tests/test_xtreme_heating_system.py`,
 `tests/test_xtreme_config_migration.py` (new).
 
-## Unreleased: invalid values and a missing target no longer stop the control, and valves in switch mode
+### Invalid values and a missing target no longer stop the control, and valves in switch mode
 
 Bug fixes, without an option, found in the code audit. All are also in the official SAT; bellini666/SAT fixed
 several of them too (be46f75, 72de3dc, 1d571a4, 1ddd7e3).
@@ -1328,7 +1335,7 @@ several of them too (be46f75, 72de3dc, 1d571a4, 1ddd7e3).
 `tests/test_xtreme_robust_values.py` (new), `tests/test_xtreme_switch_mode.py`, `docs/gateways.md`,
 `docs/troubleshooting.md`.
 
-## Unreleased: subscriptions end at the unload, and stored values don't count as live
+### Subscriptions end at the unload, and stored values don't count as live
 
 Bug fixes, without an option, found in the code audit. Both are also in the official SAT; the ideas of the second
 come from bellini666/SAT (GPL-3.0, 8bc5ee6); the code is written for SAT-xtreme.
@@ -1356,7 +1363,7 @@ come from bellini666/SAT (GPL-3.0, 8bc5ee6); the code is written for SAT-xtreme.
 `custom_components/sat_xtreme/minimum_setpoint.py`, `custom_components/sat_xtreme/overshoot_protection.py`,
 `tests/test_xtreme_mqtt_lifecycle.py` (new), `tests/test_esphome_upstream_fixes.py`, `docs/troubleshooting.md`.
 
-## Unreleased: the setup wizard offers the fork options
+### The setup wizard offers the fork options
 
 A new installation ends with a menu *SAT-xtreme options*. Nothing is preselected; with *Like the official SAT* the
 options stay as they were.
@@ -1373,7 +1380,7 @@ SAT skip the step, so existing installations notice nothing.
 `custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
 `tests/test_xtreme_wizard_options.py` (new), `docs/setup-wizard.md`, `docs/first-steps.md`.
 
-## Unreleased: SAT clears its modulation limit when it stops controlling, and the manual on the failover
+### SAT clears its modulation limit when it stops controlling, and the manual on the failover
 
 Found while checking the failover in the documentation of the gateway firmware: a `CS=` of 8 or higher must be repeated
 at least every minute, but other overrides have no expiry.
@@ -1394,7 +1401,7 @@ at least every minute, but other overrides have no expiry.
 `tests/test_xtreme_handover_extended.py`, `tests/test_xtreme_presets_and_handover.py`, `docs/gateways.md`,
 `docs/troubleshooting.md`, `docs/background.md`, `docs/handover.md`, `docs/modulation-limit.md`.
 
-## Unreleased: the wizard calibration resets the boiler, and the control loop gets a lock
+### The wizard calibration resets the boiler, and the control loop gets a lock
 
 Bug fixes, without an option, found in the code audit. The first, third and fourth are also in the official SAT.
 
@@ -1416,7 +1423,7 @@ Bug fixes, without an option, found in the code audit. The first, third and four
 `tests/test_xtreme_audit_control.py` (new), `tests/test_xtreme_calibration.py`, `docs/calibration.md`,
 `docs/troubleshooting.md`.
 
-## Unreleased: the small findings of the code audit
+### The small findings of the code audit
 
 Bug fixes, without an option. Most are also in the official SAT; bellini666/SAT fixed some of them too (f03b418, 62e179c,
 00ff027).
