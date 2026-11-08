@@ -30,6 +30,7 @@ Values for your boiler, from its rating plate and installation manual, or from a
 | Extra margin on the anti-cycling time | 15 s | 0 – 120 s | Added to the anti-cycling time. |
 | Minimum burn time per PWM block | 360 s | 240 – 600 s | The shortest burn of a block. |
 | Do not heat below this duty cycle | 7.5 % | 2.5 – 30 % | Below this, SAT does not heat until the demand rises. |
+| PWM hysteresis | 0 °C (off) | 0 – 5 °C | Running PWM only turns off this far above the OPV; 2 °C is a good start. See [PWM hysteresis](overshoot-protection.md#pwm-hysteresis) |
 | Hot water keep-warm switch | off | | [Hot water keep-warm](hot_water_keep_warm.md); OpenTherm Gateway over MQTT only |
 | Maximum setpoint as an entity | off | | [Maximum setpoint entity](maximum-setpoint.md) |
 

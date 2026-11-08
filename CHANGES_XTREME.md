@@ -1226,6 +1226,23 @@ Bug fixes, without an option. The ideas come from the fork [bellini666/SAT](http
 `tests/test_xtreme_gateway_online.py`, `tests/test_xtreme_presets_and_handover.py`, `docs/overshoot-protection.md`,
 `docs/handover.md`, `docs/troubleshooting.md`.
 
+## Unreleased: PWM hysteresis
+
+A new option, off by default: *Xtreme profile (fork) → Boiler → PWM hysteresis* (0 – 5 °C in steps of 0.5 °C,
+default 0). The idea comes from the fork [bellini666/SAT](https://github.com/bellini666/SAT) (GPL-3.0, commit
+66bc60d, which uses a fixed 2 °C); the code is written for SAT-xtreme.
+
+While PWM runs (in its on or off phase), it only turns off once the requested setpoint is the hysteresis above the
+minimum setpoint: the OPV, the applied learned OPV or the dynamic minimum setpoint (version 1). PWM still starts as
+soon as the setpoint drops below that minimum. With automatic gains one sensor step of 0.1 °C moves the setpoint by
+about 2 °C, so without a margin PWM could switch on and off with every sensor report. The manual names 2 °C as a
+starting point.
+
+**Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/const.py`,
+`custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/xtreme/profile.py`,
+`custom_components/sat_xtreme/translations/en.json`, `custom_components/sat_xtreme/translations/nl.json`,
+`tests/test_xtreme_pwm_hysteresis.py` (new), `docs/overshoot-protection.md`, `docs/settings-xtreme-profile.md`.
+
 **Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/stale.py`,
 `custom_components/sat_xtreme/xtreme/profile.py`, `custom_components/sat_xtreme/const.py`,
 `custom_components/sat_xtreme/config_flow.py`, `custom_components/sat_xtreme/translations/en.json`,

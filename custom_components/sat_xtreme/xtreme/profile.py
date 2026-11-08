@@ -20,6 +20,7 @@ from ..const import (
     CONF_XTREME_ANTI_CYCLING_MARGIN,
     CONF_XTREME_MINIMUM_BURN_TIME,
     CONF_XTREME_MINIMUM_DUTY_CYCLE,
+    CONF_XTREME_PWM_HYSTERESIS,
     CONF_XTREME_LEARNED_OPV,
     CONF_XTREME_CALIBRATION,
     CONF_XTREME_PID_GAIN_FACTOR,
@@ -135,6 +136,10 @@ class XtremeProfile:
     minimum_burn_time: int = 360
     minimum_duty_cycle: float = 7.5
 
+    # PWM hysteresis (°C): while PWM runs, it only turns off once the requested setpoint is this much above the
+    # minimum setpoint (the OPV), so one sensor step does not switch PWM on and off. 0 turns it off.
+    pwm_hysteresis: float = 0.0
+
     # Step 4: learn the OPV during normal operation: "off", "learn" (only show it) or "apply" (use it)
     learned_opv: str = "off"
     opv_minimum: float = 40.0
@@ -213,6 +218,7 @@ class XtremeProfile:
             anti_cycling_margin=int(values.get(CONF_XTREME_ANTI_CYCLING_MARGIN)),
             minimum_burn_time=int(values.get(CONF_XTREME_MINIMUM_BURN_TIME)),
             minimum_duty_cycle=float(values.get(CONF_XTREME_MINIMUM_DUTY_CYCLE)),
+            pwm_hysteresis=float(values.get(CONF_XTREME_PWM_HYSTERESIS)),
             learned_opv=str(values.get(CONF_XTREME_LEARNED_OPV)),
             opv_minimum=float(values.get(CONF_XTREME_OPV_MINIMUM)),
             opv_search=bool(values.get(CONF_XTREME_OPV_SEARCH)),
@@ -254,6 +260,7 @@ class XtremeProfile:
             ("setpoint_chain", self.setpoint_chain),
             ("cycle_tracking", self.cycle_tracking),
             ("maximum_setpoint_entity", self.maximum_setpoint_entity),
+            (f"pwm_hysteresis ({self.pwm_hysteresis})", self.pwm_hysteresis > 0),
             ("stale_sensors", self.stale_sensors),
             (f"stale_action ({self.stale_action})", self.stale_sensors and self.stale_action != STALE_ACTION_HEATING_CURVE),
             ("opv_search", self.opv_search),

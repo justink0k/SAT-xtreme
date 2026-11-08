@@ -861,6 +861,9 @@ class SatOptionsFlowHandler(config_entries.OptionsFlowWithReload):
             vol.Required(CONF_XTREME_MINIMUM_DUTY_CYCLE, default=options[CONF_XTREME_MINIMUM_DUTY_CYCLE]): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=2.5, max=30, step=0.5, unit_of_measurement="%")
             ),
+            vol.Required(CONF_XTREME_PWM_HYSTERESIS, default=options[CONF_XTREME_PWM_HYSTERESIS]): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0, max=5, step=0.5, unit_of_measurement="°C")
+            ),
             vol.Required(CONF_XTREME_HOT_WATER_SWITCH, default=options[CONF_XTREME_HOT_WATER_SWITCH]): bool,
             vol.Required(CONF_XTREME_MAXIMUM_SETPOINT_ENTITY, default=options[CONF_XTREME_MAXIMUM_SETPOINT_ENTITY]): bool,
         })

@@ -66,6 +66,17 @@ after a change of the target temperature. A hot water burn does not count in the
   the fork's [learned OPV](learned-opv.md) is applied, or below the dynamic minimum setpoint when that
   is on).
 
+### PWM hysteresis
+
+*Xtreme profile (fork) → Boiler → PWM hysteresis.* Default 0 °C (off), range 0 – 5 °C in steps of 0.5 °C.
+
+Without it, PWM turns off as soon as the requested setpoint is above the OPV again. With automatic gains, one step
+of 0.1 °C of the room sensor moves the setpoint by about 2 °C, so a setpoint close to the OPV can switch PWM on and
+off with every sensor report. With a hysteresis, PWM that is running (in its on or off phase) only turns off once
+the setpoint is that much above the OPV (or the learned OPV, or the dynamic minimum setpoint). PWM still starts as
+soon as the setpoint drops below it. **2 °C is a good start** with automatic gains. The idea comes from the fork
+[bellini666/SAT](https://github.com/bellini666/SAT).
+
 The attribute `pulse_width_modulation_enabled` of the climate entity shows whether PWM is active. The action
 [`sat_xtreme.pulse_width_modulation`](actions.md#sat_xtremepulse_width_modulation) can force it on or off temporarily.
 

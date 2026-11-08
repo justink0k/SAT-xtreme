@@ -670,15 +670,19 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         if not self._overshoot_protection or self._calculated_setpoint is None:
             return False
 
+        # Xtreme profile: while PWM runs, it only turns off once the setpoint clears the minimum by the hysteresis
+        # (idea from bellini666/SAT); 0 by default
+        hysteresis = self._coordinator.xtreme_profile.pwm_hysteresis if self.pwm.status != PWMStatus.IDLE else 0.0
+
         # Xtreme profile: the learned OPV replaces the configured one
         if self.learned_opv.applied:
-            return self.learned_opv.value > self._calculated_setpoint
+            return self.learned_opv.value + hysteresis > self._calculated_setpoint
 
         if not self._dynamic_minimum_setpoint:
-            return self._coordinator.minimum_setpoint > self._calculated_setpoint
+            return self._coordinator.minimum_setpoint + hysteresis > self._calculated_setpoint
 
         if self._minimum_setpoint_version == 1:
-            return self.minimum_setpoint.current > self._calculated_setpoint
+            return self.minimum_setpoint.current + hysteresis > self._calculated_setpoint
 
         return self.pwm.enabled
 
