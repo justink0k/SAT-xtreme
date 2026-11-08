@@ -127,6 +127,10 @@ These fixes apply to everyone, without an option:
   does not.
 - **Switch mode never turned the switch off.** SAT looked up the state of the switch by its registry ID, found
   nothing and always saw it off; it turned the switch on and never off again. It now reads the switch itself.
+- **Smaller fixes.** *Control Setpoint Synchro* no longer reports a problem when SAT asks for more than the maximum
+  setpoint. A window that reports twice can no longer trigger the *Activity* preset after it closed. A missing ESPHome
+  entity gives one warning instead of an error in every control loop. A burn during an offline gateway no longer
+  counts in the burner cycles.
 - **The wizard calibration left the boiler heating.** After a successful calibration or a timeout the setpoint and the
   heating demand stayed; ESPHome and EMS-ESP keep them until they change. The boiler is now reset after every outcome.
 - **A command could arrive after turning SAT off.** A running control loop could still send a setpoint or heating

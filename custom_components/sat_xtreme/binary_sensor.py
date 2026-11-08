@@ -97,7 +97,9 @@ class SatControlSetpointSynchroSensor(SatSynchroSensor, SatClimateEntity, Binary
     @property
     def is_on(self):
         """Return the state of the sensor."""
-        return self.state_delayed(round(self._climate.setpoint, 1) != round(self._coordinator.setpoint, 1))
+        # Xtreme fork: SAT sends the setpoint limited to the maximum, so compare with that
+        sent = min(self._climate.setpoint, self._coordinator.maximum_setpoint)
+        return self.state_delayed(round(sent, 1) != round(self._coordinator.setpoint, 1))
 
     @property
     def unique_id(self):

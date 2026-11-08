@@ -154,7 +154,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if entry.version < 4:
             if entry.data.get("window_sensor") is not None:
                 new_data["window_sensors"] = [entry.data.get("window_sensor")]
-                del new_options["window_sensor"]
+                new_options.pop("window_sensor", None)
 
         if entry.version < 5:
             if entry.options.get("overshoot_protection") is not None:
@@ -182,6 +182,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 new_data["mode"] = "mqtt_opentherm"
                 new_data["device"] = list(device.identifiers)[0][1]
 
+        # Xtreme fork: never runs, the config version is 10 (the same in the official SAT). Left as it is on purpose: running it
+        # now would turn on pushing the setpoint for old installations, and a higher version blocks going back to a release.
         if entry.version < 11:
             if entry.data.get("sync_with_thermostat") is not None:
                 new_data["push_setpoint_to_thermostat"] = entry.data.get("sync_with_thermostat")

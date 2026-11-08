@@ -200,7 +200,12 @@ class LearnedOpv:
 
     def with_test(self, value: float) -> float:
         """Add a running test step to an OPV that does not come from the learned value (with "learn")."""
-        return self.limit(value + self.model.test_offset) if self.model.test_offset else value
+        if not self.model.test_offset:
+            return value
+
+        # A configured OPV below the lowest learned OPV must not be lifted to it by a test step
+        lowest = min(value, self._minimum)
+        return round(min(max(value + self.model.test_offset, lowest), OPV_MAXIMUM, self._maximum_setpoint), 1)
 
     @property
     def minimum(self) -> float:

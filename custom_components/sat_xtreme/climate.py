@@ -28,7 +28,7 @@ from homeassistant.components.climate import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, STATE_UNAVAILABLE, STATE_UNKNOWN, ATTR_ENTITY_ID, STATE_ON, STATE_OFF, EVENT_HOMEASSISTANT_STARTED
-from homeassistant.core import HomeAssistant, ServiceCall, Event, CoreState, EventStateChangedData, HassJob
+from homeassistant.core import HomeAssistant, Event, CoreState, EventStateChangedData, HassJob
 from homeassistant.helpers import entity_registry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval, async_call_later
@@ -148,6 +148,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Xtreme fork: one control loop at a time, and turning off waits for a running loop
         self._control_lock: asyncio.Lock = asyncio.Lock()
         self._xtreme_modulation_limit_reset: bool = False
+
+        # Xtreme fork: the last modulation limit SAT sent, for a boiler that does not report the limit
+        self._last_modulation_limit_sent: Optional[int] = None
         self._xtreme_preset_checked: bool = False
 
         # System Configuration
@@ -251,7 +254,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         await self._restore_previous_state_or_set_defaults()
 
         # Load the stored base return temperature of the dynamic minimum setpoint (never loaded upstream)
-        await self.minimum_setpoint.async_initialize(self.hass)
+        await self.minimum_setpoint.async_initialize(self.hass, self._config_entry.entry_id)
 
         # Xtreme profile: load the learned OPV and the last calibration report
         await self.learned_opv.async_initialize(self.hass)
@@ -269,9 +272,6 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         else:
             await self._register_event_listeners()
             await self.async_control_heating_loop()
-
-        # Register services
-        await self._register_services()
 
         # Initialize the area system
         await self.areas.async_added_to_hass(self.hass)
@@ -417,14 +417,6 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
                 self._hvac_mode = HVACMode.OFF
 
         self.async_write_ha_state()
-
-    async def _register_services(self):
-        async def reset_integral(_call: ServiceCall):
-            """Service to reset the integral part of the PID controller."""
-            self.pid.reset()
-            self.areas.pids.reset()
-
-        self.hass.services.async_register(DOMAIN, SERVICE_RESET_INTEGRAL, reset_integral)
 
     @property
     def name(self):
@@ -862,7 +854,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         _LOGGER.debug(f"Window Sensor Changed to {new_state.state}.")
 
         if new_state.state == STATE_ON:
-            if self.preset_mode == PRESET_ACTIVITY:
+            # Xtreme fork: one wait at a time; a second one could not be cancelled when the window closes
+            if self.preset_mode == PRESET_ACTIVITY or self._window_sensor_handle is not None:
                 return
 
             try:
@@ -870,6 +863,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
                 self._pre_activity_temperature = self.target_temperature or self.min_temp
 
                 await self._window_sensor_handle
+                self._window_sensor_handle = None
                 await self.async_set_preset_mode(PRESET_ACTIVITY)
             except asyncio.CancelledError:
                 _LOGGER.debug("Window closed before minimum open time.")
@@ -1017,11 +1011,13 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             relative_modulation_value = max(10, relative_modulation_value)
 
         # Determine if the value needs to be updated
-        if self._coordinator.maximum_relative_modulation_value == relative_modulation_value:
+        reported_modulation_value = self._coordinator.maximum_relative_modulation_value
+        if reported_modulation_value == relative_modulation_value or (reported_modulation_value is None and self._last_modulation_limit_sent == relative_modulation_value):
             _LOGGER.debug("Relative modulation value unchanged (%d%%). No update necessary.", relative_modulation_value)
             return
 
         await self._coordinator.async_set_control_max_relative_modulation(relative_modulation_value)
+        self._last_modulation_limit_sent = relative_modulation_value
 
     async def _async_update_rooms_from_climates(self) -> None:
         """Update the temperature setpoint for each room based on their associated climate entity."""
@@ -1234,6 +1230,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
     async def _async_handover_to_thermostat(self, reason: str = "SAT turned off") -> None:
         """SAT stops controlling: never leave its modulation limit behind, and with the hand-over option give the boiler back right away."""
+        self._last_modulation_limit_sent = None
+
         if self._coordinator.xtreme_profile.handover_on_off and await self._async_release_to_thermostat(reason):
             return
 
@@ -1249,6 +1247,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         _LOGGER.info("Xtreme profile: %s, releasing the control setpoint (CS=0) so the thermostat takes over.", reason)
         await self._coordinator.async_release_control_setpoint()
         await self._coordinator.async_release_modulation_limit()
+        self._last_modulation_limit_sent = None
 
         # A pushed thermostat setpoint has no expiry on the gateway, and one sent before a restart is not tracked
         if self._push_setpoint_to_thermostat:

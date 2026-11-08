@@ -20,11 +20,11 @@ class OvershootProtection:
         self._alpha: float = 0.5
         self._stable_temperature: float | None = None
         self._coordinator: SatDataUpdateCoordinator = coordinator
-        # Never exceed the configured maximum setpoint, even if the boiler reports a higher MaxTSet
-        self._setpoint: int = min(OVERSHOOT_PROTECTION_SETPOINT.get(heating_system), coordinator.maximum_setpoint_value, coordinator.maximum_setpoint)
-
-        if self._setpoint is None:
+        if (setpoint := OVERSHOOT_PROTECTION_SETPOINT.get(heating_system)) is None:
             raise ValueError(f"Invalid heating system: {heating_system}")
+
+        # Never exceed the configured maximum setpoint, even if the boiler reports a higher MaxTSet
+        self._setpoint: int = min(setpoint, coordinator.maximum_setpoint_value, coordinator.maximum_setpoint)
 
     @property
     def _relative_modulation(self) -> float:

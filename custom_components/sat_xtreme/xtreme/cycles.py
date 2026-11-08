@@ -146,6 +146,13 @@ class CycleTracker:
         if not coordinator.flame_known:
             return
 
+        # While the gateway is offline the flame is unknown: drop a running cycle instead of counting the time offline
+        if not coordinator.online:
+            self._previous_flame = None
+            self._current = None
+            self._samples = []
+            return
+
         self.update(CycleSample(
             time=_now(),
             flame=bool(coordinator.flame_active),

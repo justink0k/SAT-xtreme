@@ -26,10 +26,14 @@ class MinimumSetpoint:
         self._adjustment_factor: float = adjustment_factor
         self._configured_minimum_setpoint: float = configured_minimum_setpoint
 
-    async def async_initialize(self, hass: HomeAssistant) -> None:
-        self._store = Store(hass, self._STORAGE_VERSION, self._STORAGE_KEY)
+    async def async_initialize(self, hass: HomeAssistant, entry_id: str) -> None:
+        # Xtreme fork: one store per installation; the store that all installations shared gives the first value
+        self._store = Store(hass, self._STORAGE_VERSION, f"{self._STORAGE_KEY}_{entry_id}")
 
         data = await self._store.async_load()
+        if data is None:
+            data = await Store(hass, self._STORAGE_VERSION, self._STORAGE_KEY).async_load()
+
         if data and "base_return_temperature" in data:
             self._base_return_temperature = State(data["base_return_temperature"])
             _LOGGER.debug("Loaded base return temperature from storage.")

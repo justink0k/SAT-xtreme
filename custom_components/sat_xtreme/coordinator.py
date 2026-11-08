@@ -337,6 +337,7 @@ class SatDataUpdateCoordinator(DataUpdateCoordinator):
 
     @property
     def boiler_temperature_filtered(self) -> Optional[float]:
+        # Xtreme fork note: despite the name this is a measure of noise (the average step), not a temperature; the PID stores it but does not use it
         # Not able to use if we do not have at least two values
         if len(self._boiler_temperatures) < 2:
             return self.boiler_temperature

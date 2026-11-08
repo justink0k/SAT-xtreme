@@ -1415,3 +1415,33 @@ Bug fixes, without an option, found in the code audit. The first, third and four
 `custom_components/sat_xtreme/xtreme/calibration.py`, `custom_components/sat_xtreme/xtreme/sensor.py`,
 `tests/test_xtreme_audit_control.py` (new), `tests/test_xtreme_calibration.py`, `docs/calibration.md`,
 `docs/troubleshooting.md`.
+
+## Unreleased: the small findings of the code audit
+
+Bug fixes, without an option. Most are also in the official SAT; bellini666/SAT fixed some of them too (f03b418, 62e179c,
+00ff027).
+
+- `reset_integral` was registered a second time by the climate, without looking at the entity; the service of
+  `services.py` stays.
+- *Control Setpoint Synchro* compares with the setpoint limited to the maximum, as SAT sends it.
+- The dynamic minimum setpoint has a store per installation, and takes the first value from the store that was shared.
+- An unknown heating system in the wizard calibration, and an invalid time, give the intended error.
+- A missing ESPHome entity gives one warning and skips the command, instead of an error in every control loop.
+- A boiler that does not report its maximum modulation gets `MM=` only when the value changes, not every control loop.
+- A window that reports "open" twice starts one wait, so closing it cancels the wait, and the target to go back to is
+  kept.
+- A burn during an offline gateway is dropped from the burner cycles, instead of counting the time offline.
+- A test step with `try_opv_offset` no longer lifts a configured OPV to *Lowest learned OPV*.
+- The model of the burn handles a gap in the measured degrees.
+- The migration of very old installations with a window sensor no longer raises an error.
+
+Left as they are on purpose: `boiler_temperature_filtered` (a note explains it), the unused PIDs per room, a room without
+a temperature counting as on target, the recorder size, and the migration block for version 11 that never runs (a note
+explains why).
+
+**Files.** `custom_components/sat_xtreme/__init__.py`, `custom_components/sat_xtreme/binary_sensor.py`,
+`custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/coordinator.py`,
+`custom_components/sat_xtreme/esphome/__init__.py`, `custom_components/sat_xtreme/helpers.py`,
+`custom_components/sat_xtreme/minimum_setpoint.py`, `custom_components/sat_xtreme/overshoot_protection.py`,
+`custom_components/sat_xtreme/xtreme/cycles.py`, `custom_components/sat_xtreme/xtreme/opv.py`,
+`custom_components/sat_xtreme/xtreme/opv_model.py`, `tests/test_xtreme_audit_small.py` (new), `docs/troubleshooting.md`.

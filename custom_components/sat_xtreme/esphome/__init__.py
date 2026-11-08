@@ -51,6 +51,7 @@ class SatEspHomeCoordinator(SatDataUpdateCoordinator, SatEntityCoordinator):
         self._entity_registry: EntityRegistry = entity_registry.async_get(hass)
         self._entities: list[RegistryEntry] = entity_registry.async_entries_for_device(self._entity_registry, self._device.id)
         self._state_change_unsub = None
+        self._missing_commands: set[str] = set()
 
     @property
     def device_id(self) -> str:
@@ -216,6 +217,14 @@ class SatEspHomeCoordinator(SatDataUpdateCoordinator, SatEntityCoordinator):
         _LOGGER.debug("Unable to resolve ESPHome entity %s/%s for device %s", domain, key, mac)
         return None
 
+    def _command_entity_id(self, domain: str, key: str) -> str | None:
+        """Xtreme fork: the entity for a command; without one SAT warns once and skips the command, instead of raising in every control loop."""
+        if (entity_id := self._get_entity_id(domain, key)) is None and key not in self._missing_commands:
+            self._missing_commands.add(key)
+            _LOGGER.warning("The ESPHome device has no %s entity '%s', SAT skips this command. Check the ESPHome configuration.", domain, key)
+
+        return entity_id
+
     async def _send_command(self, domain: str, service: str, _key: str, payload: dict):
         """Helper method to send a command to a specified domain and service."""
         if not self._simulation:
@@ -225,11 +234,17 @@ class SatEspHomeCoordinator(SatDataUpdateCoordinator, SatEntityCoordinator):
 
     async def _send_command_state(self, key: str, value: bool):
         """Send a command to turn a switch on or off."""
+        if (entity_id := self._command_entity_id(switch.DOMAIN, key)) is None:
+            return
+
         service = switch.SERVICE_TURN_ON if value else switch.SERVICE_TURN_OFF
-        payload = {"entity_id": self._get_entity_id(switch.DOMAIN, key)}
+        payload = {"entity_id": entity_id}
         await self._send_command(switch.DOMAIN, service, key, payload)
 
     async def _send_command_value(self, key: str, value: float):
         """Send a command to set a numerical value."""
-        payload = {"entity_id": self._get_entity_id(number.DOMAIN, key), "value": value}
+        if (entity_id := self._command_entity_id(number.DOMAIN, key)) is None:
+            return
+
+        payload = {"entity_id": entity_id, "value": value}
         await self._send_command(number.DOMAIN, number.SERVICE_SET_VALUE, key, payload)

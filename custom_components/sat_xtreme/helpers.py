@@ -32,14 +32,12 @@ def is_state_stale(state: Optional[State], max_age_seconds: float) -> bool:
 
 def convert_time_str_to_seconds(time_str: str) -> int:
     """Convert a time string in the format 'HH:MM:SS' to seconds."""
-    try:
-        # Parse the input into a valid date time object
-        date_time = dt.parse_time(time_str)
+    # Parse the input into a valid date time object; an invalid string gives None
+    if (date_time := dt.parse_time(time_str)) is None:
+        raise ValueError(f"Invalid time format. Expected 'HH:MM:SS', got '{time_str}'")
 
-        # Calculate the number of seconds
-        return round((date_time.hour * 3600) + (date_time.minute * 60) + date_time.second, 0)
-    except ValueError as e:
-        raise ValueError(f"Invalid time format. Expected 'HH:MM:SS', got '{time_str}'") from e
+    # Calculate the number of seconds
+    return round((date_time.hour * 3600) + (date_time.minute * 60) + date_time.second, 0)
 
 
 def calculate_derivative_per_hour(temperature_error: float, time_taken_seconds: float):

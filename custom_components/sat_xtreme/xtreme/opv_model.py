@@ -182,11 +182,13 @@ class Curve:
 
         top = levels[-1]
         if temperature <= top:
-            low = floor(temperature)
-            high = low + 1
-            if high not in self.levels:
+            # The levels may have a gap, when the flow jumped a degree between two samples
+            low = max(level for level in levels if level <= temperature)
+            if low == temperature:
                 return self.levels[low]
-            return self.levels[low] + (temperature - low) * (self.levels[high] - self.levels[low])
+
+            high = min(level for level in levels if level > temperature)
+            return self.levels[low] + (temperature - low) / (high - low) * (self.levels[high] - self.levels[low])
 
         if temperature > top + MAXIMUM_EXTRAPOLATION:
             return None
