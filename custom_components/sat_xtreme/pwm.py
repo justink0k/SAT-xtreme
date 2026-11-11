@@ -190,6 +190,12 @@ class PWM:
         if self._status != PWMStatus.ON and self._duty_cycle[0] >= HEATER_STARTUP_TIMEFRAME and (elapsed >= self._duty_cycle[1] or self._status == PWMStatus.IDLE):
             if self._current_cycle >= self._cycles.maximum_count:
                 _LOGGER.info("Reached max cycles per hour, preventing new duty cycle.")
+
+                # Xtreme fork: wait in the off phase. In IDLE the climate heats on the requested setpoint, which is
+                # below the OPV while PWM runs, and the boiler makes short burns until the limit allows a cycle.
+                if self._status == PWMStatus.IDLE:
+                    self._status = PWMStatus.OFF
+
                 return
 
             if self._xtreme_profile.boiler_timing and not self._boiler_may_start(boiler, flame):

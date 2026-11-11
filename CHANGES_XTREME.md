@@ -1474,3 +1474,18 @@ fixes change how a restart runs, but they are not shown to solve those two burns
 `custom_components/sat_xtreme/const.py`, `custom_components/sat_xtreme/pid.py`, `custom_components/sat_xtreme/mqtt/__init__.py`,
 `custom_components/sat_xtreme/serial/__init__.py`, `custom_components/sat_xtreme/esphome/__init__.py`,
 `tests/test_xtreme_restart_settling.py` (new), `docs/troubleshooting.md`.
+
+## Unreleased: short burns after a preset change
+
+Bug fix, without an option, a regression of version 39. Seen on the tested boiler with version 41: a preset changed from
+*Home* to *Away* and back within six minutes, while the three PWM cycles of the hour were used. Four burns of 29 to 88
+seconds followed in ten minutes.
+
+- **PWM waits in the off phase when the limit of *Duty cycles per hour* is reached.** A change of the target resets the
+  PWM to idle. Since version 39 the starts of the last hour are kept over that reset, so the limit could already be
+  reached. PWM then stayed idle, and in idle the climate heats on the requested setpoint: 35.1 °C with an OPV of 46 °C on
+  the tested boiler, with heating demand on. The boiler stopped each time at about 40 °C. PWM now goes to the off phase
+  (setpoint primed or at the minimum, heating demand off) until the limit allows a new cycle, as it does when the limit
+  is reached at the end of a cycle.
+
+**Files.** `custom_components/sat_xtreme/pwm.py`, `tests/test_xtreme_pwm_fixes.py`, `docs/troubleshooting.md`.

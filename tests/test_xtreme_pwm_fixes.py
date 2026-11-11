@@ -79,7 +79,23 @@ async def test_the_limit_holds_after_a_reset(clock: Clock):
     pwm.enable()
     await _update(pwm, clock, 60)
 
-    assert pwm.status == PWMStatus.IDLE
+    # Waiting in the off phase: in IDLE the climate heated on the requested setpoint, below the OPV (seen on the
+    # tested boiler after a preset change: burns of 29 to 88 seconds)
+    assert pwm.status == PWMStatus.OFF
+
+
+async def test_a_new_cycle_starts_once_the_limit_allows_it(clock: Clock):
+    pwm = _pwm(maximum_count=1)
+    await _update(pwm, clock, 0)
+    pwm.reset()
+    pwm.enable()
+    await _update(pwm, clock, 60)
+    assert pwm.status == PWMStatus.OFF
+
+    # An hour after the first start the limit allows a new cycle
+    await _update(pwm, clock, 3600)
+
+    assert pwm.status == PWMStatus.ON
 
 
 async def test_hot_water_flow_does_not_shape_the_duty_cycle(clock: Clock):

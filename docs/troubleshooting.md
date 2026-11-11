@@ -145,6 +145,9 @@ These fixes apply to everyone, without an option:
 - **Old values after a restart.** With a gateway over MQTT, SAT used the values from before the restart (flame,
   flow temperature, setpoint, modulation) as if they were live. They now count only after the first message of the
   gateway. See *Sensors are empty after a restart* above.
+- **Short burns after a preset change (version 39).** When the limit of *Duty cycles per hour* was reached and the PWM
+  had just been reset, SAT heated on the requested setpoint, below the OPV, until a new cycle was allowed. It now waits
+  in the off phase.
 - **Short burns after a restart (version 40).** Without a flow temperature PWM can't run, so SAT heated on the calculated
   setpoint, below the OPV. SAT now waits for the first flow temperature, at most 5 minutes.
 - **A setpoint spike after a restart.** Sensors come online one by one, so a helper such as a median jumps for a moment,
