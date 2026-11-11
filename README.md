@@ -54,6 +54,7 @@ welcome on the [issue tracker](https://github.com/justink0k/SAT-xtreme/issues).
 | Calibration | About 20 minutes, relies on `MM=0`, could exceed the maximum setpoint. | **Slow calibration:** tests the modulation limit, median of several rounds, never above the maximum setpoint. |
 | PID strength | Only through the heating curve coefficient. | **PID settings:** gain factor, maximum rise above the curve, manual gains. |
 | Hot water keep-warm | Left to the boiler. | **Keep-warm switch:** turn it off and on, for example at night. |
+| Gateway or sensor failure | Keeps controlling while the gateway is offline; without an inside sensor it stops sending setpoints. | **Gateway online and stale sensors:** pauses while the gateway is offline; without an inside sensor it heats on the heating curve or hands the boiler to the thermostat on the bus. |
 
 The full comparison, a dashboard created with one click, boiler presets and more are in the
 [manual](https://justink0k.github.io/SAT-xtreme/background/#sat-xtreme-compared-to-sat-421).
@@ -65,8 +66,9 @@ The full comparison, a dashboard created with one click, boiler presets and more
 2. Restart Home Assistant and refresh the browser cache.
 3. Add the integration **SAT-xtreme** under *Settings → Devices & services* (or use the second button above),
    and create the dashboard from *Settings → System → Repairs*.
-4. Turn on the features you want, one at a time, under *Configure → Xtreme profile (fork)* and
-   *Configure → PID settings (fork)*.
+4. At the end of the setup, choose *Recommended*, *Like the official SAT* or *Choose myself*. Nothing is
+   preselected. Later you can turn features on or off, one at a time, under *Configure → Xtreme profile (fork)*
+   and *Configure → PID settings (fork)*.
 
 SAT-xtreme has its own domain, `sat_xtreme`, so it can be installed next to the official SAT. Do not let both
 control the same boiler.
@@ -74,7 +76,7 @@ control the same boiler.
 ### Moving from the official SAT
 
 Choose **Move a configuration from SAT** when you add the integration. All settings, the entity IDs and their
-history are kept. Then remove the official SAT in HACS, and change automations that call `sat.` actions to
+history are kept. Then remove the official SAT in the Marketplace or HACS, and change automations that call `sat.` actions to
 `sat_xtreme.` ([details](https://justink0k.github.io/SAT-xtreme/installation/#moving-from-the-official-sat)).
 
 #### Check after moving from SAT
@@ -88,6 +90,13 @@ A few bug fixes change behaviour you may have got used to:
 - **Dynamic minimum setpoint:** the learned value is now loaded after a restart, if you use this option.
 - **Automatic gains chosen in the setup wizard** now take effect, but only for new installations: a moved
   configuration keeps the gains it used.
+- **Underfloor heating:** with automatic gains the PID now uses the gains of underfloor heating; with PID version 3
+  the correction is about 25 % gentler.
+- **The modulation limit is cleared when SAT stops controlling** (turned off, Home Assistant stopping, a reload),
+  also with every fork option off.
+- **Gateway over MQTT:** after a restart the boiler sensors are empty for a short time, and SAT sends no heating
+  demand until the flow temperature is known (at most 5 minutes).
+- **After a change of the target**, PWM may wait a few minutes when the duty cycles of the last hour are used up.
 
 ## More
 

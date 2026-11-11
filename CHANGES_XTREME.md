@@ -1511,3 +1511,11 @@ commands without need. The state of the boiler did not change, because SAT only 
 
 **Files.** `custom_components/sat_xtreme/mqtt/opentherm.py`, `tests/test_xtreme_gateway_heartbeat.py` (new),
 `tests/test_xtreme_mqtt_lifecycle.py`, `docs/gateways.md`, `docs/troubleshooting.md`.
+
+## Unreleased: the README follows versions 39 to 42
+
+Only the README changes. The install steps name the choice at the end of the setup wizard, *Check after moving from
+SAT* lists the behaviour changes of versions 39 to 42, the comparison table has a row for a failing gateway or
+sensor, and the official SAT is removed in the Marketplace or HACS.
+
+**Files.** `README.md`.
