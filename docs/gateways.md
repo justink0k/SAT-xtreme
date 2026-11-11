@@ -42,6 +42,9 @@ modulation) and `SW=` (hot water setpoint).
 gateway is offline, SAT pauses its control and the binary sensor *Xtreme fork: Gateway Online* is off. When the
 gateway restarts, it forgets every command; SAT then sends the last value of each command it had sent again
 (also `CS=0` after a [hand over](handover.md)). Gateway firmware without this message counts as always online.
+SAT sees a restart when the gateway comes back after `offline`, or when the firmware's uptime
+(`OTGW/value/<device>/otgw-firmware/uptime`) starts again. Firmware 2.0 also repeats `online` every few minutes
+without restarting; that sends nothing. Firmware without an uptime topic counts every new `online` as a restart.
 
 ### Gateway mode and a thermostat on the bus
 

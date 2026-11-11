@@ -51,7 +51,8 @@ async def test_all_subscriptions_end_at_the_unload(hass: HomeAssistant) -> None:
             patch("homeassistant.components.mqtt.async_subscribe", new=AsyncMock(side_effect=subscribe)), \
             patch.object(SatOpenThermMqttCoordinator, "_publish_command", new_callable=AsyncMock):
         await coordinator.async_added_to_hass()
-        assert len(subscriptions) == len(coordinator.get_tracked_entities()) + 1
+        # The values, the will message and the firmware uptime
+        assert len(subscriptions) == len(coordinator.get_tracked_entities()) + 2
 
         await coordinator.async_will_remove_from_hass()
 

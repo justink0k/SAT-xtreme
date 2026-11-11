@@ -1489,3 +1489,20 @@ seconds followed in ten minutes.
   is reached at the end of a cycle.
 
 **Files.** `custom_components/sat_xtreme/pwm.py`, `tests/test_xtreme_pwm_fixes.py`, `docs/troubleshooting.md`.
+
+## Unreleased: no false gateway restarts every 5 minutes
+
+Bug fix, without an option, a regression of version 39. On the tested OTGW (firmware 2.0.0-alpha.416) SAT logged *The
+OpenTherm Gateway (re)started* every 5 minutes, and each time sent the boot commands and every override again: about ten
+commands without need. The state of the boiler did not change, because SAT only sent what was already set.
+
+- **Measured:** the firmware publishes a live, not retained `online` every 5 minutes, without `offline` before it. Its
+  uptime went up by exactly 300 seconds and its reboot count stayed the same, so the gateway did not restart.
+- **Fix:** SAT also follows `otgw-firmware/uptime`. A live `online` counts as a restart only after `offline`, or when no
+  uptime has arrived yet (older firmware, and once after a start of Home Assistant). With an uptime, a restart is the
+  uptime starting again. A restart that reports both is restored once.
+- **Not covered:** a restart of only the PIC, while the ESP keeps running, changes neither; that was not seen before
+  either.
+
+**Files.** `custom_components/sat_xtreme/mqtt/opentherm.py`, `tests/test_xtreme_gateway_heartbeat.py` (new),
+`tests/test_xtreme_mqtt_lifecycle.py`, `docs/gateways.md`, `docs/troubleshooting.md`.

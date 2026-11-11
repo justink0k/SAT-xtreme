@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from time import monotonic
 from typing import Optional
 
 from homeassistant.components import mqtt
@@ -48,6 +49,10 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
         # Xtreme fork: the gateway's will message, None until the first one arrives
         self._online: Optional[bool] = None
         self._overrides: dict[str, str] = {}
+
+        # Xtreme fork: the firmware's uptime, None until the first one arrives, and when the overrides were last restored
+        self._uptime: Optional[float] = None
+        self._restored_at: Optional[float] = None
 
     @property
     def supports_online_status(self) -> bool:
@@ -193,6 +198,7 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
         await super().async_added_to_hass()
 
         # OTGW-firmware publishes its will message, "online" or "offline", retained on the bare value topic
+        self._subscriptions.append(await mqtt.async_subscribe(self.hass, f"{self._topic}/value/{self._device_id}/otgw-firmware/uptime", self._uptime_changed))
         self._subscriptions.append(await mqtt.async_subscribe(self.hass, f"{self._topic}/value/{self._device_id}", self._availability_changed))
 
     @callback
@@ -200,6 +206,8 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
         """Xtreme fork: track the gateway's will message, and restore the overrides after a restart (idea from bellini666/SAT)."""
         payload = message.payload.decode() if isinstance(message.payload, bytes) else str(message.payload)
         online = payload.strip().lower() == "online"
+
+        was_offline = self._online is False
 
         if online != self._online:
             if not online:
@@ -210,10 +218,35 @@ class SatOpenThermMqttCoordinator(SatMqttCoordinator):
             self._online = online
             self.async_update_listeners()
 
-        # A retained "online" is the broker replaying the last state; a live one is a gateway that (re)started and
-        # dropped every override, also after a clean restart without an "offline" before it
+        # A retained "online" is the broker replaying the last state. A live one after "offline" is a restart. Firmware
+        # 2.0 also repeats "online" every few minutes without restarting, so with an uptime a restart is the uptime
+        # starting again; without one, every live "online" still counts, also after a clean restart without "offline"
         if online and not message.retain:
-            self.hass.async_create_task(self.async_restore_overrides())
+            if was_offline or self._uptime is None:
+                self._restore_overrides()
+            else:
+                _LOGGER.debug("The OpenTherm Gateway repeated its online message; its uptime shows no restart.")
+
+    @callback
+    def _uptime_changed(self, message) -> None:
+        """Xtreme fork: an uptime lower than the last one is a gateway that restarted."""
+        payload = message.payload.decode() if isinstance(message.payload, bytes) else str(message.payload)
+
+        try:
+            uptime = float(payload)
+        except ValueError:
+            return
+
+        restarted = self._uptime is not None and uptime < self._uptime
+        self._uptime = uptime
+
+        # After "offline" the overrides were just restored; the uptime of that same restart needs no second round
+        if restarted and (self._restored_at is None or monotonic() - self._restored_at > 60):
+            self._restore_overrides()
+
+    def _restore_overrides(self) -> None:
+        self._restored_at = monotonic()
+        self.hass.async_create_task(self.async_restore_overrides())
 
     async def async_restore_overrides(self) -> None:
         """Xtreme fork: send the boot commands and the last value of every override SAT set again."""

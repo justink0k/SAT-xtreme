@@ -145,6 +145,8 @@ These fixes apply to everyone, without an option:
 - **Old values after a restart.** With a gateway over MQTT, SAT used the values from before the restart (flame,
   flow temperature, setpoint, modulation) as if they were live. They now count only after the first message of the
   gateway. See *Sensors are empty after a restart* above.
+- **Every command sent again every 5 minutes (version 39).** OTGW firmware 2.0 repeats its `online` message every
+  5 minutes, and SAT took each one for a restart of the gateway. SAT now uses the uptime of the firmware.
 - **Short burns after a preset change (version 39).** When the limit of *Duty cycles per hour* was reached and the PWM
   had just been reset, SAT heated on the requested setpoint, below the OPV, until a new cycle was allowed. It now waits
   in the off phase.
