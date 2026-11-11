@@ -1475,7 +1475,12 @@ fixes change how a restart runs, but they are not shown to solve those two burns
 `custom_components/sat_xtreme/serial/__init__.py`, `custom_components/sat_xtreme/esphome/__init__.py`,
 `tests/test_xtreme_restart_settling.py` (new), `docs/troubleshooting.md`.
 
-## Unreleased: short burns after a preset change
+## Version 42: short burns after a preset change, and no false gateway restarts (`4.2.1-xtreme.42`, 2026-11-11)
+
+Two bug fixes, both regressions of version 39, found in the debug log of the tested boiler running version 41. There
+are no new options.
+
+### Short burns after a preset change
 
 Bug fix, without an option, a regression of version 39. Seen on the tested boiler with version 41: a preset changed from
 *Home* to *Away* and back within six minutes, while the three PWM cycles of the hour were used. Four burns of 29 to 88
@@ -1490,7 +1495,7 @@ seconds followed in ten minutes.
 
 **Files.** `custom_components/sat_xtreme/pwm.py`, `tests/test_xtreme_pwm_fixes.py`, `docs/troubleshooting.md`.
 
-## Unreleased: no false gateway restarts every 5 minutes
+### No false gateway restarts every 5 minutes
 
 Bug fix, without an option, a regression of version 39. On the tested OTGW (firmware 2.0.0-alpha.416) SAT logged *The
 OpenTherm Gateway (re)started* every 5 minutes, and each time sent the boot commands and every override again: about ten
