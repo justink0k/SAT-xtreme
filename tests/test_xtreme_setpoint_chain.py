@@ -3,7 +3,7 @@ import pytest
 from homeassistant.components.climate import HVACMode
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.sat_xtreme.climate import SatClimate
 from custom_components.sat_xtreme.const import *
@@ -22,6 +22,9 @@ def _entity_id(hass: HomeAssistant) -> str | None:
 async def _start_heating(climate: SatClimate, calculated_setpoint: float) -> None:
     await climate.async_set_target_temperature(20.5)
     await climate.async_set_hvac_mode(HVACMode.HEAT)
+
+    # Let the sensors and the control loop settle first, so they don't overwrite the setpoint set below
+    await climate.hass.async_block_till_done()
     climate._calculated_setpoint = calculated_setpoint
 
 
@@ -62,7 +65,9 @@ async def test_no_sensor_when_off(hass: HomeAssistant, entry: MockConfigEntry, c
 @pytest.mark.parametrize(*parameters(**{CONF_XTREME_SETPOINT_CHAIN: True}))
 async def test_sensor_shows_the_calculated_setpoint(hass: HomeAssistant, entry: MockConfigEntry, climate: SatClimate) -> None:
     await _start_heating(climate, 40.0)
-    climate.async_write_ha_state()
+
+    # The sensor follows the coordinator: let it write its state again with the setpoint set above
+    climate._coordinator.async_update_listeners()
     await hass.async_block_till_done()
 
     state = hass.states.get(_entity_id(hass))

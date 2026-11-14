@@ -145,6 +145,9 @@ These fixes apply to everyone, without an option:
 - **Old values after a restart.** With a gateway over MQTT, SAT used the values from before the restart (flame,
   flow temperature, setpoint, modulation) as if they were live. They now count only after the first message of the
   gateway. See *Sensors are empty after a restart* above.
+- **A planned control loop ran after an unload.** SAT plans a control loop 10 seconds ahead. A run started directly
+  forgot that plan without cancelling it, and an unload (also a reload after changing an option) did not cancel it
+  either. The old climate could then still send a setpoint and heating demand after the hand-over. It no longer does.
 - **Every command sent again every 5 minutes (version 39).** OTGW firmware 2.0 repeats its `online` message every
   5 minutes, and SAT took each one for a restart of the gateway. SAT now uses the uptime of the firmware.
 - **Short burns after a preset change (version 39).** When the limit of *Duty cycles per hour* was reached and the PWM

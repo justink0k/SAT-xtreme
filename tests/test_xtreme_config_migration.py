@@ -1,7 +1,7 @@
 """An entry of an old config version is still migrated (the other tests start at the current version)."""
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.sat_xtreme.config_flow import SatFlowHandler
 from custom_components.sat_xtreme.const import *

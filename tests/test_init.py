@@ -1,7 +1,7 @@
 """Test setup process."""
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.sat_xtreme import async_reload_entry
 from custom_components.sat_xtreme.const import DOMAIN

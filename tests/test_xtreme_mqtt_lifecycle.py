@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 import pytest
 from homeassistant.components.climate import HVACMode
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.sat_xtreme.boiler import BoilerState
 from custom_components.sat_xtreme.climate import SatClimate
@@ -85,6 +85,9 @@ async def test_restored_values_are_not_live(hass: HomeAssistant) -> None:
     assert coordinator.relative_modulation_value is None
     assert coordinator.maximum_relative_modulation_value is None
 
+    # End the planned notification of the restored values (the test package checks for lingering timers)
+    await coordinator.async_will_remove_from_hass()
+
 
 async def test_fixed_boiler_values_stay_from_storage(hass: HomeAssistant) -> None:
     coordinator = await _restored(_otgw(hass), STORED)
@@ -93,6 +96,8 @@ async def test_fixed_boiler_values_stay_from_storage(hass: HomeAssistant) -> Non
     assert coordinator.minimum_relative_modulation_value == 20
     assert coordinator.member_id == 173
     assert coordinator.hot_water_setpoint == 55
+
+    await coordinator.async_will_remove_from_hass()
 
 
 async def test_a_live_message_makes_a_value_live_also_when_it_is_the_same(hass: HomeAssistant) -> None:

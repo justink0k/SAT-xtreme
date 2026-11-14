@@ -10,7 +10,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import device_registry, entity_registry
 from homeassistant.helpers.storage import Store
 from homeassistant.setup import async_setup_component
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.sat_xtreme.const import *
 from custom_components.sat_xtreme.xtreme.migration import CONF_MIGRATED_FROM, LEGACY_DOMAIN
@@ -104,7 +104,7 @@ async def test_move_keeps_entities_device_and_options(hass: HomeAssistant) -> No
     # The device was moved, not recreated
     device = device_registry.async_get(hass).async_get(device_id)
     assert device.identifiers == {(DOMAIN, "Test")}
-    assert device.config_entries == {entry.entry_id}
+    assert device.config_entry_id == entry.entry_id
 
     # Stored data keyed by the entry moved with it
     assert await Store(hass, 1, f"sat_xtreme_opv_{entry.entry_id}").async_load() == {"estimate": 44.5, "source": "plateau"}

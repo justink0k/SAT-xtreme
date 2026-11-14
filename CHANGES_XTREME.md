@@ -1519,3 +1519,22 @@ SAT* lists the behaviour changes of versions 39 to 42, the comparison table has 
 sensor, and the official SAT is removed in the Marketplace or HACS.
 
 **Files.** `README.md`.
+
+## Unreleased: the tests run on Home Assistant 2026.11, and a planned control loop no longer runs after an unload
+
+- **The tests use `pytest-homeassistant`** (2026.11.1), the test package that Home Assistant now publishes itself. The
+  old package, `pytest-homeassistant-custom-component`, is discontinued and stopped at Home Assistant 2026.10. The tests
+  now run on Home Assistant 2026.11.1 with Python 3.14, locally and on GitHub. Only the tests and their settings change.
+- **A planned control loop no longer runs after an unload** (bug fix, without an option, also in the official SAT). SAT
+  plans a control loop 10 seconds ahead. A run started directly, at the start or forced by a new target, forgot that
+  plan without cancelling it, and an unload did not cancel it either. An unload also happens at every reload, so after
+  every change of an option. The old climate could then still send a setpoint and heating demand after the hand-over:
+  in a test, setpoint 53 °C and heating demand on. The new test package found it, because it checks that nothing is
+  left planned after a test.
+- **Two tests followed old behaviour of Home Assistant:** one read `DeviceEntry.config_entries`, which 2026.11
+  deprecates, and one set a value before Home Assistant had settled.
+
+**Files.** `custom_components/sat_xtreme/climate.py`, `requirements_test.txt`, `setup.cfg`,
+`.github/workflows/pytest.yml`, `tests/conftest.py`, `tests/test_xtreme_unload_planned_loop.py` (new),
+`tests/test_xtreme_migration.py`, `tests/test_xtreme_setpoint_chain.py`, `tests/test_xtreme_mqtt_lifecycle.py`, the
+imports of 37 test files, `docs/troubleshooting.md`.

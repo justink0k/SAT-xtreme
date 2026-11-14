@@ -1,7 +1,7 @@
 """The heating system comes from the entry data, where the setup wizard stores it (audit finding H2)."""
 import pytest
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.sat_xtreme.climate import SatClimate
 from custom_components.sat_xtreme.const import *

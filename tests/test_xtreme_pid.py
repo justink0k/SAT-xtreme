@@ -3,7 +3,7 @@ from unittest.mock import PropertyMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 import custom_components.sat_xtreme.sensor as sat_sensor
 from custom_components.sat_xtreme.climate import SatClimate

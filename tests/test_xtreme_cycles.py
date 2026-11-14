@@ -6,7 +6,7 @@ from unittest.mock import PropertyMock, patch
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry, async_capture_events
+from pytest_homeassistant.common import MockConfigEntry, async_capture_events
 
 from custom_components.sat_xtreme.climate import SatClimate
 from custom_components.sat_xtreme.const import *

@@ -144,6 +144,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             self._attr_supported_features |= ClimateEntityFeature.TURN_OFF
 
         self._control_heating_loop_unsub: Optional[Callable[[], None]] = None
+        self._removing: bool = False
 
         # Xtreme fork: one control loop at a time, and turning off waits for a running loop
         self._control_lock: asyncio.Lock = asyncio.Lock()
@@ -1070,8 +1071,18 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         self._sensors.append(entity_id)
 
+    def _cancel_planned_control_loop(self) -> None:
+        """Xtreme fork: cancel the control loop planned 10 seconds ahead, if any."""
+        if self._control_heating_loop_unsub is not None:
+            self._control_heating_loop_unsub()
+            self._control_heating_loop_unsub = None
+
     def schedule_control_heating_loop(self, _time: Optional[datetime] = None, force: bool = False, ) -> None:
         """Schedule a debounced execution of the heating control loop."""
+        # Xtreme fork: nothing is planned while SAT is unloaded
+        if self._removing:
+            return
+
         # Force immediate execution
         if force:
             # Cancel previous scheduled run, if any
@@ -1091,8 +1102,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
     async def async_control_heating_loop(self, _time: Optional[datetime] = None) -> None:
         """Control the heating based on current temperature, target temperature, and outside temperature."""
-        # Let the sub know we have run
-        self._control_heating_loop_unsub = None
+        # Let the sub know we have run. Xtreme fork: cancel a planned run instead of only forgetting it; a direct call
+        # (at the start, or forced) left it running, also after an unload
+        self._cancel_planned_control_loop()
 
         async with self._control_lock:
             await self._async_control_heating_loop()
@@ -1290,8 +1302,15 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
     async def async_will_remove_from_hass(self) -> None:
         """Xtreme profile: the integration is unloaded (also on a reload), so nothing controls the boiler anymore."""
+        # Xtreme fork: a control loop planned 10 seconds ahead would still run after the unload, and send a setpoint and
+        # heating demand after the hand-over. The hand-over itself updates the coordinator, which plans a new one.
+        self._removing = True
+        self._cancel_planned_control_loop()
+
         async with self._control_lock:
             await self._async_handover_to_thermostat("SAT is unloaded")
+
+        self._cancel_planned_control_loop()
 
         await super().async_will_remove_from_hass()
 

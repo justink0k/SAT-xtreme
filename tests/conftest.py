@@ -1,9 +1,10 @@
 """Fixtures for testing."""
 import pytest
 from _pytest.logging import LogCaptureFixture
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
-from pytest_homeassistant_custom_component.common import assert_setup_component, MockConfigEntry
+from pytest_homeassistant.common import assert_setup_component, MockConfigEntry
 
 from custom_components.sat_xtreme.const import DOMAIN, CLIMATE, COORDINATOR
 from custom_components.sat_xtreme.climate import SatClimate
@@ -13,9 +14,10 @@ from tests.fake_coordinator import MODE_FAKE, SatFakeCoordinator
 from tests.const import DEFAULT_USER_DATA
 
 
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):
-    yield
+@pytest.fixture
+def hass_config_dir(hass_tmp_config_dir: str) -> str:
+    """A fresh configuration folder per test, so Home Assistant writes no files (such as blueprints) into the repository."""
+    return hass_tmp_config_dir
 
 
 @pytest.fixture(autouse=True)
@@ -51,7 +53,12 @@ async def entry(hass: HomeAssistant, domains: list, data: dict, options: dict, c
     config_entry = MockConfigEntry(domain=DOMAIN, data=user_data, options=options, version=SatFlowHandler.VERSION, minor_version=SatFlowHandler.MINOR_VERSION)
     await hass.config_entries.async_add(config_entry)
 
-    return config_entry
+    yield config_entry
+
+    # Unload at the end, so nothing SAT planned is left behind (the test package checks for lingering timers)
+    if config_entry.state is ConfigEntryState.LOADED:
+        await hass.config_entries.async_unload(config_entry.entry_id)
+        await hass.async_block_till_done()
 
 
 @pytest.fixture
