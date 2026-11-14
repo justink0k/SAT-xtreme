@@ -98,9 +98,8 @@ def _move_devices(hass: HomeAssistant, legacy_entry_id: str, entry_id: str) -> N
     for device in device_registry.async_entries_for_config_entry(registry, legacy_entry_id):
         identifiers = {(DOMAIN, value) if domain == LEGACY_DOMAIN else (domain, value) for domain, value in device.identifiers}
 
-        # Add the new entry first: removing the last entry of a device would delete the device
-        registry.async_update_device(device.id, add_config_entry_id=entry_id, new_identifiers=identifiers)
-        registry.async_update_device(device.id, remove_config_entry_id=legacy_entry_id)
+        # A device belongs to one config entry since Home Assistant 2026.11, so it moves in one step
+        registry.async_update_device(device.id, new_config_entry_id=entry_id, new_identifiers=identifiers)
 
 
 async def _move_stores(hass: HomeAssistant, legacy_entry_id: str, entry_id: str) -> None:

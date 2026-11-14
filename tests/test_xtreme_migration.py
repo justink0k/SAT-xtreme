@@ -1,6 +1,8 @@
 """Moving a configuration of the official SAT (domain `sat`) to `sat_xtreme`: entities, device and options are kept."""
 from unittest.mock import patch
 
+import pytest
+
 from homeassistant import config_entries
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.template import DOMAIN as TEMPLATE_DOMAIN
@@ -69,7 +71,7 @@ async def _move(hass: HomeAssistant, legacy: MockConfigEntry):
     return result
 
 
-async def test_move_keeps_entities_device_and_options(hass: HomeAssistant) -> None:
+async def test_move_keeps_entities_device_and_options(hass: HomeAssistant, caplog: pytest.LogCaptureFixture) -> None:
     await _setup_sensors(hass)
     legacy = _legacy_entry(hass)
     registry = entity_registry.async_get(hass)
@@ -105,6 +107,9 @@ async def test_move_keeps_entities_device_and_options(hass: HomeAssistant) -> No
     device = device_registry.async_get(hass).async_get(device_id)
     assert device.identifiers == {(DOMAIN, "Test")}
     assert device.config_entry_id == entry.entry_id
+
+    # Moved the way of Home Assistant 2026.11, which deprecates adding and removing config entries of a device
+    assert "add_config_entry_id" not in caplog.text
 
     # Stored data keyed by the entry moved with it
     assert await Store(hass, 1, f"sat_xtreme_opv_{entry.entry_id}").async_load() == {"estimate": 44.5, "source": "plateau"}

@@ -1552,3 +1552,12 @@ imports of 37 test files, `docs/troubleshooting.md`.
 
 **Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/calibration.py`, `hacs.json`,
 `tests/test_xtreme_native_temperatures.py` (new), `README.md`, `docs/installation.md`, `RELEASING.md`.
+
+## Unreleased: moving from the official SAT follows Home Assistant 2026.11
+
+- **The device moves in one step.** *Move a configuration from SAT* added the new config entry to each device and then
+  removed the old one. Home Assistant 2026.11 deprecates both: a device belongs to one config entry now, and it logged a
+  warning. SAT now moves the device with `new_config_entry_id`. The device, its entities with their IDs and history, and
+  the stored data move as before.
+
+**Files.** `custom_components/sat_xtreme/xtreme/migration.py`, `tests/test_xtreme_migration.py`.
