@@ -1512,7 +1512,12 @@ commands without need. The state of the boiler did not change, because SAT only 
 **Files.** `custom_components/sat_xtreme/mqtt/opentherm.py`, `tests/test_xtreme_gateway_heartbeat.py` (new),
 `tests/test_xtreme_mqtt_lifecycle.py`, `docs/gateways.md`, `docs/troubleshooting.md`.
 
-## Unreleased: the README follows versions 39 to 42
+## Version 43: ready for Home Assistant 2026.11, and no control loop after an unload (`4.2.1-xtreme.43`, 2026-11-14)
+
+SAT-xtreme now needs Home Assistant 2026.11 or newer. The tests run on Home Assistant 2026.11.1. There are no new
+options.
+
+### The README follows versions 39 to 42
 
 Only the README changes. The install steps name the choice at the end of the setup wizard, *Check after moving from
 SAT* lists the behaviour changes of versions 39 to 42, the comparison table has a row for a failing gateway or
@@ -1520,7 +1525,7 @@ sensor, and the official SAT is removed in the Marketplace or HACS.
 
 **Files.** `README.md`.
 
-## Unreleased: the tests run on Home Assistant 2026.11, and a planned control loop no longer runs after an unload
+### The tests run on Home Assistant 2026.11, and a planned control loop no longer runs after an unload
 
 - **The tests use `pytest-homeassistant`** (2026.11.1), the test package that Home Assistant now publishes itself. The
   old package, `pytest-homeassistant-custom-component`, is discontinued and stopped at Home Assistant 2026.10. The tests
@@ -1539,7 +1544,7 @@ sensor, and the official SAT is removed in the Marketplace or HACS.
 `tests/test_xtreme_migration.py`, `tests/test_xtreme_setpoint_chain.py`, `tests/test_xtreme_mqtt_lifecycle.py`, the
 imports of 37 test files, `docs/troubleshooting.md`.
 
-## Unreleased: the native temperature names of Home Assistant 2026.11, which is now the minimum
+### The native temperature names of Home Assistant 2026.11, which is now the minimum
 
 - **The climate uses the native temperature names.** Home Assistant 2026.11 warns at every start that SAT writes
   `_attr_temperature_unit` and provides `current_temperature` and `target_temperature`; these stop working in 2027.11.
@@ -1553,7 +1558,7 @@ imports of 37 test files, `docs/troubleshooting.md`.
 **Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/calibration.py`, `hacs.json`,
 `tests/test_xtreme_native_temperatures.py` (new), `README.md`, `docs/installation.md`, `RELEASING.md`.
 
-## Unreleased: moving from the official SAT follows Home Assistant 2026.11
+### Moving from the official SAT follows Home Assistant 2026.11
 
 - **The device moves in one step.** *Move a configuration from SAT* added the new config entry to each device and then
   removed the old one. Home Assistant 2026.11 deprecates both: a device belongs to one config entry now, and it logged a
