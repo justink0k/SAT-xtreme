@@ -126,7 +126,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         self._pre_custom_temperature = None
         self._pre_activity_temperature = None
 
-        self._attr_temperature_unit = unit
+        self._attr_native_temperature_unit = unit
         self._attr_hvac_mode = HVACMode.OFF
         self._attr_preset_mode = PRESET_NONE
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT]
@@ -271,7 +271,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Update a heating curve if outside temperature is available
         if self.current_outside_temperature is not None:
             self.areas.heating_curves.update(self.current_outside_temperature)
-            self.heating_curve.update(self.target_temperature, self.current_outside_temperature)
+            self.heating_curve.update(self.native_target_temperature, self.current_outside_temperature)
 
         if self.hass.state is not CoreState.running:
             self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, self._register_event_listeners)
@@ -473,8 +473,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
             "setpoint": self._setpoint,
             "current_humidity": self.current_humidity,
 
-            "summer_simmer_index": SummerSimmer.index(self.current_temperature, self.current_humidity),
-            "summer_simmer_perception": SummerSimmer.perception(self.current_temperature, self.current_humidity),
+            "summer_simmer_index": SummerSimmer.index(self.native_current_temperature, self.current_humidity),
+            "summer_simmer_perception": SummerSimmer.perception(self.native_current_temperature, self.current_humidity),
 
             "valves_open": self.valves_open,
             "heating_curve": self.heating_curve.value,
@@ -494,7 +494,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         }
 
     @property
-    def current_temperature(self) -> Optional[float]:
+    def native_current_temperature(self) -> Optional[float]:
         """Return the sensor temperature."""
         # Xtreme profile: the stale sensor check picks the main or backup sensor, or none
         if self.stale_sensors.enabled:
@@ -519,17 +519,17 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         return self._get_entity_state_float(self.humidity_sensor_entity_id)
 
     @property
-    def target_temperature(self):
+    def native_target_temperature(self):
         """Return the temperature we try to reach."""
         return self._target_temperature
 
     @property
     def error(self):
         """Return the error value."""
-        if self.target_temperature is None or self.current_temperature is None:
+        if self.native_target_temperature is None or self.native_current_temperature is None:
             return 0
 
-        return round(self.target_temperature - self.current_temperature, 2)
+        return round(self.native_target_temperature - self.native_current_temperature, 2)
 
     @property
     def current_outside_temperature(self):
@@ -867,7 +867,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
             try:
                 self._window_sensor_handle = asyncio.create_task(asyncio.sleep(self._window_minimum_open_time))
-                self._pre_activity_temperature = self.target_temperature or self.min_temp
+                self._pre_activity_temperature = self.native_target_temperature or self.min_temp
 
                 await self._window_sensor_handle
                 self._window_sensor_handle = None
@@ -906,9 +906,9 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         # Xtreme profile: the stale sensor check replaces the reset below. Without a usable inside sensor the
         # PID controller is left as it is and only the heating curve follows the outside temperature.
         if self.stale_sensors.safe_mode:
-            if self.target_temperature is not None:
+            if self.native_target_temperature is not None:
                 self.areas.heating_curves.update(self.current_outside_temperature)
-                self.heating_curve.update(self.target_temperature, self.current_outside_temperature)
+                self.heating_curve.update(self.native_target_temperature, self.current_outside_temperature)
 
             self.async_write_ha_state()
             return
@@ -923,19 +923,19 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
         max_error = self.max_error
 
         # Make sure we use the latest heating curve value
-        if self.target_temperature is not None:
+        if self.native_target_temperature is not None:
             self.areas.heating_curves.update(self.current_outside_temperature)
-            self.heating_curve.update(self.target_temperature, self.current_outside_temperature)
+            self.heating_curve.update(self.native_target_temperature, self.current_outside_temperature)
 
         # Update the PID controller with the maximum error
         if not reset:
             _LOGGER.info(f"Updating error to {max_error.value} from {max_error.entity_id} (Reset: False)")
 
             # Calculate an optimal heating curve when we are in the deadband
-            if self.target_temperature is not None and -DEADBAND <= max_error.value <= DEADBAND:
+            if self.native_target_temperature is not None and -DEADBAND <= max_error.value <= DEADBAND:
                 self.heating_curve.autotune(
                     setpoint=self.requested_setpoint,
-                    target_temperature=self.target_temperature,
+                    target_temperature=self.native_target_temperature,
                     outside_temperature=self.current_outside_temperature
                 )
 
@@ -1119,7 +1119,7 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
         # If the current, target or outside temperature is not available, do nothing. Xtreme profile: in the safe mode
         # of stale sensors there is no inside temperature on purpose, and SAT heats on the heating curve only
-        if (self.current_temperature is None and not self.stale_sensors.safe_mode) or self.target_temperature is None or self.current_outside_temperature is None:
+        if (self.native_current_temperature is None and not self.stale_sensors.safe_mode) or self.native_target_temperature is None or self.current_outside_temperature is None:
             return
 
         # No need to do anything if we are not on
@@ -1163,8 +1163,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
                 flow=self._coordinator.boiler_temperature,
                 setpoint=self._coordinator.setpoint,
                 pwm=self.pulse_width_modulation_enabled,
-                target=self.target_temperature,
-                current=self.current_temperature,
+                target=self.native_target_temperature,
+                current=self.native_current_temperature,
                 outside=self.current_outside_temperature,
                 gas=self._get_entity_state_float(self._coordinator.xtreme_profile.opv_search_gas_sensor),
             ))
@@ -1285,8 +1285,8 @@ class SatClimate(SatEntity, ClimateEntity, RestoreEntity):
 
     async def _async_take_back_from_thermostat(self) -> None:
         """Xtreme profile: push the target temperature to the thermostat again after a hand-over released it."""
-        if self._push_setpoint_to_thermostat and self._coordinator.supports_setpoint_release and self.target_temperature is not None:
-            await self._coordinator.async_set_control_thermostat_setpoint(self.target_temperature)
+        if self._push_setpoint_to_thermostat and self._coordinator.supports_setpoint_release and self.native_target_temperature is not None:
+            await self._coordinator.async_set_control_thermostat_setpoint(self.native_target_temperature)
 
     async def _async_handover_on_startup(self) -> None:
         """Xtreme profile: starting in off keeps the boiler with the thermostat; starting in heat pushes a released thermostat setpoint again."""

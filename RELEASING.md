@@ -53,7 +53,7 @@ reaches every user. Publish a change that alters how the boiler runs as a pre-re
 
 ## Checking in the Marketplace or HACS
 
-- Marketplace (Home Assistant 2026.11 or newer): the new version appears under *Settings → Updates* (the catalog
+- Marketplace: the new version appears under *Settings → Updates* (the catalog
   is checked every 6 hours); the page of SAT-xtreme in *Settings → Marketplace* has *⋮ → Install another version*.
-- HACS (older versions): *HACS → SAT-xtreme → ⋮ → Update information* shows the new version. *⋮ → Redownload*
+- HACS (if you use it): *HACS → SAT-xtreme → ⋮ → Update information* shows the new version. *⋮ → Redownload*
   lets you pick an earlier release to go back to.

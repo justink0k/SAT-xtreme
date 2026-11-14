@@ -297,7 +297,7 @@ class XtremeCalibration:
             return
 
         if self._phase == CalibrationPhase.PAUSED_COMFORT:
-            if self._climate.current_temperature is not None and self._climate.target_temperature is not None and self._climate.current_temperature <= self._climate.target_temperature:
+            if self._climate.native_current_temperature is not None and self._climate.native_target_temperature is not None and self._climate.native_current_temperature <= self._climate.native_target_temperature:
                 self._set_phase(CalibrationPhase.WAITING, "Waiting until the boiler may start")
             await self._async_command(DeviceState.OFF)
             return
@@ -610,8 +610,8 @@ class XtremeCalibration:
         return max(0.0, self._coordinator.xtreme_profile.anti_cycling_wait - (monotonic() - off_since))
 
     def _too_warm(self) -> bool:
-        current = self._climate.current_temperature
-        target = self._climate.target_temperature
+        current = self._climate.native_current_temperature
+        target = self._climate.native_target_temperature
 
         return current is not None and target is not None and current > target + COMFORT_MARGIN
 

@@ -1538,3 +1538,17 @@ sensor, and the official SAT is removed in the Marketplace or HACS.
 `.github/workflows/pytest.yml`, `tests/conftest.py`, `tests/test_xtreme_unload_planned_loop.py` (new),
 `tests/test_xtreme_migration.py`, `tests/test_xtreme_setpoint_chain.py`, `tests/test_xtreme_mqtt_lifecycle.py`, the
 imports of 37 test files, `docs/troubleshooting.md`.
+
+## Unreleased: the native temperature names of Home Assistant 2026.11, which is now the minimum
+
+- **The climate uses the native temperature names.** Home Assistant 2026.11 warns at every start that SAT writes
+  `_attr_temperature_unit` and provides `current_temperature` and `target_temperature`; these stop working in 2027.11.
+  SAT now uses `_attr_native_temperature_unit`, `native_current_temperature` and `native_target_temperature`. SAT's own
+  control and the slow calibration read the native values too, so they keep using exactly the values they used before,
+  not values that Home Assistant converted. The attributes of the entity (`current_temperature`, `temperature`) stay
+  the same, so automations and cards keep working.
+- **SAT-xtreme needs Home Assistant 2026.11 or newer.** The new names do not exist in older versions. Installations on
+  an older version are no longer offered updates. The install texts name the Marketplace, and HACS for those who use it.
+
+**Files.** `custom_components/sat_xtreme/climate.py`, `custom_components/sat_xtreme/xtreme/calibration.py`, `hacs.json`,
+`tests/test_xtreme_native_temperatures.py` (new), `README.md`, `docs/installation.md`, `RELEASING.md`.
